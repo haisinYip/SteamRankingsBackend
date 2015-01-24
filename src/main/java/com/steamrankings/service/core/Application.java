@@ -1,4 +1,4 @@
-package com.steamrankings.service.main;
+package com.steamrankings.service.core;
 
 /**
  * Hello world!

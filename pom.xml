@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.steamrankings</groupId>
 	<artifactId>SteamRankingsService</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0-SNAPSHOT</version>
+	<groupId>com.steamrankings</groupId>
 	<name>SteamRankingsService</name>
 	<url>http://maven.apache.org</url>
 
@@ -43,24 +44,25 @@
 	</dependencies>
 
 	<properties>
-		<start-class>com.steamrankings.website.main.Application</start-class>
+		<start-class>com.steamrankings.website.core.Application</start-class>
 	</properties>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>appassembler-maven-plugin</artifactId>
-				<version>1.9</version>
-				<configuration>
-					<programs>
-						<program>
-							<mainClass>com.steamrankings.sevice.main.Application</mainClass>
-							<id>app</id>
-						</program>
-					</programs>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+	<profiles>
+		<profile>
+			<id>api</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-jar-plugin</artifactId>
+						<configuration>
+							<classifier>api</classifier>
+							<excludes>
+								<exclude>**/core/*</exclude>
+							</excludes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
