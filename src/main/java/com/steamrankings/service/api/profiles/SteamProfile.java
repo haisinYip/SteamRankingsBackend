@@ -1,11 +1,73 @@
 package com.steamrankings.service.api.profiles;
 
-public abstract class SteamProfile {
-	public abstract String getSteamId64();
-	public abstract String getSteamCommunityId();
-	public abstract String getPersonaName();
-	public abstract String getRealName();
-	public abstract String getCountry();
-	public abstract String getTotalPlayTime();
-	public abstract String getSteamCommunityUrl();
+import org.joda.time.DateTime;
+
+public class SteamProfile {
+	private String id64;
+	private String communityID;
+	private String personaName;
+	private String realName;
+	private String countryCode;
+	private DateTime lastOnline;
+	private String totalPlayTime;
+	
+	public SteamProfile(String id64, String communityID, String personaName) {
+		this.id64 = id64;
+		this.communityID = communityID;
+		this.personaName = personaName;
+	}
+	
+	public String getSteamId64() {
+		return id64;
+	}
+	public String getSteamCommunityId() {
+		return communityID;
+	}
+	public String getPersonaName() {
+		return personaName;
+	}
+	public String getRealName() {
+		return realName;
+	}
+	public String getCountry() {
+		return countryCode;
+	}
+	public String getTotalPlayTime() {
+		return totalPlayTime;
+	}
+	public String getSteamCommunityUrl() {
+		return null;
+	}
+	
+	public DateTime getLastOnlineTime() {
+		return lastOnline;
+	}
+	
+	public void setSteamId64(String steamID64) {
+		this.id64 = steamID64;
+	}
+	
+	public void setSteamCommunityId(String communityID) {
+		this.communityID = communityID;
+	}
+	
+	public void setPersonaName(String personaName) {
+		this.personaName = personaName;
+	}
+	
+	public void setRealName(String realName) {
+		this.realName = realName;
+	}
+	
+	public void setCountryCode(String countryCode) {
+		this.countryCode = countryCode;
+	}
+	
+	public void setLastOnlineTime(DateTime lastOnline) {
+		this.lastOnline = lastOnline;
+	}
+	
+	public void setTolalPlayTime(String totalPlayTime) {
+		this.totalPlayTime = totalPlayTime;
+	}
 }
