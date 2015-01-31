@@ -10,6 +10,7 @@ public class SteamProfile {
 	private String countryCode;
 	private DateTime lastOnline;
 	private String totalPlayTime;
+	private String avatar;
 	
 	public SteamProfile(String id64, String communityID, String personaName) {
 		this.id64 = id64;
@@ -38,36 +39,34 @@ public class SteamProfile {
 	public String getSteamCommunityUrl() {
 		return null;
 	}
-	
 	public DateTime getLastOnlineTime() {
 		return lastOnline;
 	}
-	
+	public String getAvatar() {
+		return avatar;
+	}
 	public void setSteamId64(String steamID64) {
 		this.id64 = steamID64;
 	}
-	
 	public void setSteamCommunityId(String communityID) {
 		this.communityID = communityID;
 	}
-	
 	public void setPersonaName(String personaName) {
 		this.personaName = personaName;
 	}
-	
 	public void setRealName(String realName) {
 		this.realName = realName;
 	}
-	
 	public void setCountryCode(String countryCode) {
 		this.countryCode = countryCode;
 	}
-	
 	public void setLastOnlineTime(DateTime lastOnline) {
 		this.lastOnline = lastOnline;
 	}
-	
 	public void setTolalPlayTime(String totalPlayTime) {
 		this.totalPlayTime = totalPlayTime;
+	}
+	public void setAvatar(String avatar) {
+		this.avatar = avatar;
 	}
 }
