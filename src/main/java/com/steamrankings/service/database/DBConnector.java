@@ -1,6 +1,7 @@
 package com.steamrankings.service.database;
 
 import java.sql.*;
+import java.util.HashMap;
 
 public class DBConnector {
 	private Connection connection;
@@ -28,7 +29,7 @@ public class DBConnector {
 	
 	public ResultSet readData(String table, String[] columns){
 		try{
-			String query = "select * from " + table;
+			String query = "SELECT * FROM " + table;
 			results = statement.executeQuery(query);
 			
 			for(int i=0; i<columns.length; i++)
@@ -37,9 +38,6 @@ public class DBConnector {
 			System.out.println();
 			
 			while(results.next()){
-				String name = results.getString("name");
-				String id = results.getString("id");
-				
 				for(int i=0; i<columns.length; i++)
 					System.out.print(results.getString(columns[i]) + " | ");
 				
@@ -61,7 +59,39 @@ public class DBConnector {
 		return results;
 	}
 	
-	public void writeData(String table, String[] columnsIndex, String[] data){
-		
+	public void writeData(String table, String[][] data){
+		String query = "";
+		try{
+			for(int i=0; i<data.length; i++)
+			{
+				String insert = "INSERT INTO " + table + " " + "VALUES (";
+				query = insert;
+				for(int j=0; j<data[i].length; j++)
+				{
+					if(j==data[i].length-1)
+					{
+						query = query + "'" + data[i][j] + "'";
+						break;
+					}
+					query =  query + "'" + data[i][j] + "'" + ",";
+						
+				}
+				query = query + ")";
+				statement.executeUpdate(query);
+				//System.out.println(query);
+			}
+		} catch(Exception ex){
+			System.out.println("Failed to update database");
+			System.out.println(ex.getMessage());
+		} finally {
+			try {
+				if(connection != null){
+					connection.close();
+					statement.close();
+				}
+			} catch(Exception ex){
+				System.out.println(ex.getMessage());
+			}
+		}
 	}
 }
