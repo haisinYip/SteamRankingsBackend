@@ -26,7 +26,7 @@ public class DBConnector {
 		}
 	}
 	
-	public ResultSet getData(String table, String[] columns){
+	public ResultSet readData(String table, String[] columns){
 		try{
 			String query = "select * from " + table;
 			results = statement.executeQuery(query);
@@ -59,5 +59,9 @@ public class DBConnector {
 			}
 		}
 		return results;
+	}
+	
+	public void writeData(String table, String[] columnsIndex, String[] data){
+		
 	}
 }
