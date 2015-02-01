@@ -2,5 +2,6 @@ language: java
 jdk:
   - oraclejdk7
 install:
-  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true
-  - mvn package -Papi
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -B
+  - mvn package -Papi -B -B
+  - mvn test -B
