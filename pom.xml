@@ -63,30 +63,25 @@
 					</plugin>
 				</plugins>
 			</build>
-			<repositories>
-			  <repository>
-				 <id>api</id>
-				 <url>${env.Jenkins.Repository}</url>
-				 <releases>
-					 <enabled>true</enabled>
-				 </releases>
-				 <snapshots>
-					<enabled>true</enabled>
-				 </snapshots>
-			  </repository>
-			</repositories>
-		 <pluginRepositories>
-			<pluginRepository>
-				  <id>api</id>
-				  <url>${env.Jenkins.Repository}</url>
-				  <releases>
-					<enabled>true</enabled>
-				  </releases>
-				  <snapshots>
-					<enabled>true</enabled>
-				 </snapshots>
-			</pluginRepository>
-		  </pluginRepositories>
 		</profile>
 	</profiles>
+	
+	<!-- Enabling the use of FTP -->
+	<distributionManagement>
+	  <repository>
+		<id>ftp-repository</id>
+		<url>sftp://mikemontreal.ignorelist.com:61998/api</url>
+	  </repository>
+	</distributionManagement>
+
+
+	<build>
+	  <extensions>
+		<extension>
+		  <groupId>org.apache.maven.wagon</groupId>
+		   <artifactId>wagon-ssh</artifactId>
+		   <version>1.0-beta-6</version>
+		</extension>
+	  </extensions>
+	</build>
 </project>
