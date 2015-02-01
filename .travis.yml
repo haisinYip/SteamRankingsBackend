@@ -7,5 +7,5 @@ before_install:
 install:
   - mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -s settings.xml
   - mvn test -B
-after_install:
+after_success:
   - mvn deploy -Papi -B -V -s settings.xml
