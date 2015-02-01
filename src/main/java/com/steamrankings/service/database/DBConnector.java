@@ -9,15 +9,14 @@ public class DBConnector {
 	private ResultSet results;
 	
 	private final String serverName = "mikemontreal.ignorelist.com";
-	private final String port = "17862";
+	private final String port = null;
 	private final String databaseName = "steamrankings_db";
-	private final String username = "steamroller";	
-	private final String password = "ecse4282015*";	
+	private final String username = null;	
+	private final String password = null;	
 	
 	public DBConnector(){
 		try{
 			Class.forName("com.mysql.jdbc.Driver");
-			//connection = DriverManager.getConnection("jdbc:mysql://mikemontreal.ignorelist.com:17862/steamrankings_db","steamroller","ecse4282015*");
 			connection = DriverManager.getConnection("jdbc:mysql://" + serverName + ":" + port + "/" + databaseName, username, password);;
 			statement = connection.createStatement();
 			
