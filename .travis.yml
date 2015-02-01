@@ -4,6 +4,6 @@ jdk:
 before_install:
 - openssl aes-256-cbc -K $encrypted_01d664c15d36_key -iv $encrypted_01d664c15d36_iv -in settings.xml.enc -out settings.xml -d
 install:
-  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -B
-  - mvn package -Papi -B -B
+  - mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -s settings.xml
   - mvn test -B
+  - mvn deploy -Papi -B -V -s settings.xml
