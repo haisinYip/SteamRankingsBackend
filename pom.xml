@@ -63,6 +63,30 @@
 					</plugin>
 				</plugins>
 			</build>
+			<repositories>
+			  <repository>
+				 <id>api</id>
+				 <url>${env.Jenkins.Repository}</url>
+				 <releases>
+					 <enabled>true</enabled>
+				 </releases>
+				 <snapshots>
+					<enabled>true</enabled>
+				 </snapshots>
+			  </repository>
+			</repositories>
+		 <pluginRepositories>
+			<pluginRepository>
+				  <id>api</id>
+				  <url>${env.Jenkins.Repository}</url>
+				  <releases>
+					<enabled>true</enabled>
+				  </releases>
+				  <snapshots>
+					<enabled>true</enabled>
+				 </snapshots>
+			</pluginRepository>
+		  </pluginRepositories>
 		</profile>
 	</profiles>
 </project>
