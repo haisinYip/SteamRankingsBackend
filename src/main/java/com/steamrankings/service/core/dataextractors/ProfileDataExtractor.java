@@ -1,14 +1,14 @@
 package com.steamrankings.service.core.dataextractors;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.steamrankings.service.api.games.SteamGame;
+import com.github.koraktor.steamcondenser.steam.community.WebApi;
 import com.steamrankings.service.api.profiles.SteamProfile;
 import com.steamrankings.steamapi.SteamrollerApi;
 
@@ -23,26 +23,21 @@ public class ProfileDataExtractor extends SteamProfile{
 	DateTime time;
 	String totalPlayTime;
 	String avatar;
-	String apikey = "XXXXX";
+	String apikey = "B14A5DC1B77DC531F881389B045B8495";
 
-	public ProfileDataExtractor(String id64, String communityID, String personaName, String realName,
-				String country, String lastonline, DateTime time, String totalPlayTime, String avatar) {
+	public ProfileDataExtractor(String id64, String communityID, String personaName) {
 		super(id64, communityID, personaName);
-		this.realName = realName;
-		this.country = country;
-		this.lastonline = lastonline;
-		this.time = time;
-		this.totalPlayTime = totalPlayTime;
-		this.avatar = avatar;
 	}
 
-	public SteamProfile profile() throws Exception {
-
-		ProfileDataExtractor pde = new ProfileDataExtractor(id64, communityID, personName, realName, country, 
-															lastonline, time, totalPlayTime, avatar);
-
+	public SteamProfile profile(String id64) throws Exception {
+		
+		SteamProfile sp = new SteamProfile(id64, communityID, personName);
+		
+		Map<String, Object> param = new HashMap<String, Object>();
+		param.put("steamids", id64);
+		
 		SteamrollerApi api = new SteamrollerApi(apikey); 
-		String jsonString = api.getJSON("ISteamUSer", "GetPlayerSummaries", 2);
+		String jsonString = WebApi.getJSON("ISteamUSer", "GetPlayerSummaries", 2, param);
 		JSONObject json = new JSONObject(jsonString);
 
 		json = (JSONObject) json.get("response");
@@ -57,42 +52,42 @@ public class ProfileDataExtractor extends SteamProfile{
 				if (element.equals("steamid")) {	
 					id64 = element;
 					System.out.println(id64);
-					super.setSteamId64(id64);
+					sp.setSteamId64(id64);
 				} else if(element.equals("personaname")) {
 					personName = element;
 					System.out.println(personName);
-					super.setPersonaName(personName);
+					sp.setPersonaName(personName);
 				} else if(element.equals("realname")) {
 					realName = element;
 					System.out.println(realName);
-					super.setRealName(realName);
+					sp.setRealName(realName);
 				} else if(element.equals("profileurl")) {
 					System.out.println(element);
 					communityID = getComID(element);	//parse string to get end part of url containing profileName
 					System.out.println(communityID);
-					super.setSteamCommunityId(communityID);
+					sp.setSteamCommunityId(communityID);
 				} else if(element.equals("loccountrycode")) {
 					country = element;
 					System.out.println(country);
-					super.setCountryCode(country);
+					sp.setCountryCode(country);
 				} else if(element.equals("lastlogoff")) {
 					lastonline = element;
 					time = new DateTime(lastonline);
 					System.out.println(time);
-					super.setLastOnlineTime(time);
+					sp.setLastOnlineTime(time);
 				} else if(element.equals("avatar")) {
 					avatar = element;
 					System.out.println(avatar);
-					super.setAvatar(avatar);
+					sp.setAvatar(avatar);
 				}
 			}
 		}
 		//go through gamesOwnedList and find playtime_forever field(in minutes) for each game and sum
 		//***Need to change int of minutes to time or string still***
 		totalPlayTime = totalPlayTime(api);	
-		super.setTolalPlayTime(totalPlayTime);
+		sp.setTolalPlayTime(totalPlayTime);
 		
-		return pde;
+		return sp;
 	}
 	//method for getting playtime forever of each game in IPlayerService
 	public String totalPlayTime(SteamrollerApi api) throws Exception{
