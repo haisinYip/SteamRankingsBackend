@@ -8,4 +8,4 @@ install:
   - mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
   - mvn test -B
 after_success:
-  - mvn deploy -Papi -B -V -s settings.xml
+  - ./deploy.sh
