@@ -5,7 +5,7 @@ before_install:
 - openssl aes-256-cbc -K $encrypted_01d664c15d36_key -iv $encrypted_01d664c15d36_iv -in settings.xml.enc -out settings.xml -d
 - echo "[mikemontreal.ignorelist.com]:61998 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBwKmOYrWKV8d9/w0VkDd2q5d7FeojN1Jg07oPFtvhoB3EiM7UIVql/2UbC3hxXUkZwD7Gsl3uVzjOFnL7P+ua0hniDcSjGZu9oiYSdD/TD/zvyacJB+4qtfR7f5T7nLCBQDjEkRzjyI0J/B9eMLSVFbSvAdmALqGOIrzhRI90HVjxt35PJIzjAT/HmwIEf0tl5iWS33MoC5I0QvSw6DPVo96AX73XenTvK43mEFSYvttk2xiyuXZrRmhMNxF7nsyxvfLxtGfhiUCOTW0UyxbGjEktXapsBOjGaLbNCvGhLF9GQiJUYgp0LCY+Q6wqJt1XKrc52cgRI+KrPUKl2kuF" > ~/.ssh/known_hosts
 install:
-  - mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -s settings.xml
+  - mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
   - mvn test -B
 after_success:
   - mvn deploy -Papi -B -V -s settings.xml
