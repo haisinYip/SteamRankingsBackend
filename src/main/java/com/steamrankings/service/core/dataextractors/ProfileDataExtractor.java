@@ -23,7 +23,7 @@ public class ProfileDataExtractor extends SteamProfile{
 	DateTime time;
 	String totalPlayTime;
 	String avatar;
-	String apikey = "B14A5DC1B77DC531F881389B045B8495";
+	String apikey = "XXXXX";
 
 	public ProfileDataExtractor(String id64, String communityID, String personaName) {
 		super(id64, communityID, personaName);
