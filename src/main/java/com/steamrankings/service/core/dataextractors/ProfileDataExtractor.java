@@ -37,12 +37,17 @@ public class ProfileDataExtractor extends SteamProfile{
 		param.put("steamids", id64);
 		
 		SteamrollerApi api = new SteamrollerApi(apikey); 
-		String jsonString = WebApi.getJSON("ISteamUSer", "GetPlayerSummaries", 2, param);
+		String jsonString = api.getJSON("ISteamUSer", "GetPlayerSummaries", 2, param);
+		System.out.println(jsonString);
+
 		JSONObject json = new JSONObject(jsonString);
+		System.out.println(json);
 
 		json = (JSONObject) json.get("response");
+		System.out.println(json);
 
 		JSONArray jsonArray = json.getJSONArray("players");
+		System.out.println(jsonArray);
 
 		for (int i = 0; i < jsonArray.length(); i++) {
 			JSONObject jsonElement = jsonArray.getJSONObject(i);
@@ -50,49 +55,56 @@ public class ProfileDataExtractor extends SteamProfile{
 			while(itr.hasNext()) {
 				String element = (String) itr.next();
 				if (element.equals("steamid")) {	
-					id64 = element;
+					id64 = jsonElement.getString("steamid");
 					System.out.println(id64);
 					sp.setSteamId64(id64);
 				} else if(element.equals("personaname")) {
-					personName = element;
+					personName = jsonElement.getString("personaname");
 					System.out.println(personName);
 					sp.setPersonaName(personName);
-				} else if(element.equals("realname")) {
-					realName = element;
-					System.out.println(realName);
-					sp.setRealName(realName);
+				} else if(element.equals("lastlogoff")) {
+					lastonline = jsonElement.getString("lastlogoff");
+					int temp = Integer.parseInt(lastonline);
+					//temp = temp * 1000;
+					String temp2 = Integer.toString(temp);
+					//time = new DateTime(temp2);
+					System.out.println(temp2);
+					sp.setLastOnlineTime(temp2);
 				} else if(element.equals("profileurl")) {
-					System.out.println(element);
-					communityID = getComID(element);	//parse string to get end part of url containing profileName
+					communityID = getComID(jsonElement.getString("profileurl"));	//parse string to get end part of url containing profileName
 					System.out.println(communityID);
 					sp.setSteamCommunityId(communityID);
-				} else if(element.equals("loccountrycode")) {
-					country = element;
-					System.out.println(country);
-					sp.setCountryCode(country);
-				} else if(element.equals("lastlogoff")) {
-					lastonline = element;
-					time = new DateTime(lastonline);
-					System.out.println(time);
-					sp.setLastOnlineTime(time);
 				} else if(element.equals("avatar")) {
-					avatar = element;
+					avatar = jsonElement.getString("avatar");;
 					System.out.println(avatar);
 					sp.setAvatar(avatar);
-				}
+				} else if(element.equals("realname")) {
+					realName = jsonElement.getString("realname");
+					System.out.println(realName);
+					sp.setRealName(realName);
+				} else if(element.equals("loccountrycode")) {
+					country = jsonElement.getString("loccountrycode");
+					System.out.println(country);
+					sp.setCountryCode(country);
+				} 
 			}
 		}
 		//go through gamesOwnedList and find playtime_forever field(in minutes) for each game and sum
-		//***Need to change int of minutes to time or string still***
-		totalPlayTime = totalPlayTime(api);	
+		//***Need to change int of minutes to time still***
+		totalPlayTime = totalPlayTime(id64);	
+		System.out.println(totalPlayTime + " HERE");
 		sp.setTolalPlayTime(totalPlayTime);
 		
 		return sp;
 	}
 	//method for getting playtime forever of each game in IPlayerService
-	public String totalPlayTime(SteamrollerApi api) throws Exception{
+	public String totalPlayTime(String id64) throws Exception{
 		
-		String jsonString = api.getJSON("IPlayerService", "GetOwnedGames", 1);
+		Map<String, Object> param = new HashMap<String, Object>();
+		param.put("steamid", id64);
+		
+		SteamrollerApi api = new SteamrollerApi(apikey);
+		String jsonString = api.getJSON("IPlayerService", "GetOwnedGames", 1, param);
 		JSONObject json = new JSONObject(jsonString);
 		int count = 0;			//holds total count of minutes for every game owned
 		String totalCount;
@@ -107,8 +119,8 @@ public class ProfileDataExtractor extends SteamProfile{
 			while(itr.hasNext()) {
 				String element = (String) itr.next();
 				if (element.equals("playtime_forever")) {
-					totalPlayTime = element;
-					System.out.println(totalPlayTime);
+					totalPlayTime = jsonGameElement.getString("playtime_forever");
+					//System.out.println(totalPlayTime);
 					int temp = Integer.parseInt(totalPlayTime);
 					count += temp;
 				}	
@@ -132,8 +144,8 @@ public class ProfileDataExtractor extends SteamProfile{
 				break;
 			}
 		}
-		profileName = communityID.substring(i + 1, communityID.length());
-		System.out.println(profileName);
+		profileName = communityID.substring(i + 1, communityID.length() - 1);
+		//System.out.println(profileName);
 		return profileName;
 	}
 }

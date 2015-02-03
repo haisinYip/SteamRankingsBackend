@@ -1,7 +1,6 @@
 package com.steamrankings.service.core;
 
 import com.steamrankings.service.core.dataextractors.ProfileDataExtractor;
-
 /**
  * Hello world!
  *
@@ -18,6 +17,7 @@ public class Application
         ProfileDataExtractor pde = new ProfileDataExtractor(steamid, commID, personaname);
         try {
 			pde.profile(steamid);
+        	//pde.totalPlayTime(steamid);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

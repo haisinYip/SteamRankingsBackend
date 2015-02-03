@@ -8,7 +8,7 @@ public class SteamProfile {
 	private String personaName;
 	private String realName;
 	private String countryCode;
-	private DateTime lastOnline;
+	private String lastOnline;
 	private String totalPlayTime;
 	private String avatar;
 	
@@ -39,7 +39,7 @@ public class SteamProfile {
 	public String getSteamCommunityUrl() {
 		return null;
 	}
-	public DateTime getLastOnlineTime() {
+	public String getLastOnlineTime() {
 		return lastOnline;
 	}
 	public String getAvatar() {
@@ -60,7 +60,7 @@ public class SteamProfile {
 	public void setCountryCode(String countryCode) {
 		this.countryCode = countryCode;
 	}
-	public void setLastOnlineTime(DateTime lastOnline) {
+	public void setLastOnlineTime(String lastOnline) {
 		this.lastOnline = lastOnline;
 	}
 	public void setTolalPlayTime(String totalPlayTime) {
