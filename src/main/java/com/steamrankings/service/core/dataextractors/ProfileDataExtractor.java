@@ -1,144 +1,79 @@
 package com.steamrankings.service.core.dataextractors;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import org.joda.time.DateTime;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
-import com.steamrankings.service.api.games.SteamGame;
+import com.github.koraktor.steamcondenser.steam.community.SteamId;
 import com.steamrankings.service.api.profiles.SteamProfile;
-import com.steamrankings.steamapi.SteamrollerApi;
 
-public class ProfileDataExtractor extends SteamProfile{
+public class ProfileDataExtractor {
 
-	String id64;
-	String communityID;
-	String personName;
-	String realName;
-	String country;
-	String lastonline;
-	DateTime time;
-	String totalPlayTime;
-	String avatar;
-	String apikey = "XXXXX";
+    final private static int STEAM_PROFILE_VISIBILITY_PUBLIC = 3;
 
-	public ProfileDataExtractor(String id64, String communityID, String personaName, String realName,
-				String country, String lastonline, DateTime time, String totalPlayTime, String avatar) {
-		super(id64, communityID, personaName);
-		this.realName = realName;
-		this.country = country;
-		this.lastonline = lastonline;
-		this.time = time;
-		this.totalPlayTime = totalPlayTime;
-		this.avatar = avatar;
-	}
+    public static SteamProfile getSteamProfile(long id, ResultSet dbResults) {
+        try {
+            dbResults.first();
+            while(!dbResults.isAfterLast()) {
+                if(dbResults.getLong("steam_id_64") == id) {
+                    break;
+                } else {
+                    dbResults.next();
+                }
+            }
+            
+            if(!dbResults.isAfterLast()) {
+                return new SteamProfile(dbResults.getLong("steam_id_64"), dbResults.getString("steam_community_id"), dbResults.getString("persona_name"), dbResults.getString("real_name"), dbResults.getString("country_code"), dbResults.getString("avatar_full_url"), dbResults.getString("avatar_medium_url"), dbResults.getString("avatar_icon_url"), new DateTime(0));
+            }
+        } catch (SQLException e) {
+            return null;
+        }
+        
+        SteamId steamId = getSteamId(id);
+        return createSteamProfile(steamId);
+    }
 
-	public SteamProfile profile() throws Exception {
+    private static SteamId getSteamId(long id) {
+        try {
+            SteamId steamId = SteamId.create(id);
 
-		ProfileDataExtractor pde = new ProfileDataExtractor(id64, communityID, personName, realName, country, 
-															lastonline, time, totalPlayTime, avatar);
+            if (steamId.getVisibilityState() != STEAM_PROFILE_VISIBILITY_PUBLIC) {
+                return null;
+            }
 
-		SteamrollerApi api = new SteamrollerApi(apikey); 
-		String jsonString = api.getJSON("ISteamUSer", "GetPlayerSummaries", 2);
-		JSONObject json = new JSONObject(jsonString);
+            return steamId;
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
-		json = (JSONObject) json.get("response");
+    private static SteamProfile createSteamProfile(SteamId steamId) {
+        if (steamId.getVisibilityState() != STEAM_PROFILE_VISIBILITY_PUBLIC) {
+            return null;
+        }
 
-		JSONArray jsonArray = json.getJSONArray("players");
+        SteamProfile steamProfile = new SteamProfile(steamId.getSteamId64(), steamId.getCustomUrl(), steamId.getNickname(), steamId.getRealName(), steamId.getLocation(),
+                steamId.getAvatarFullUrl(), steamId.getAvatarFullUrl(), steamId.getAvatarIconUrl(), new DateTime(steamId.getMemberSince().getTime()));
 
-		for (int i = 0; i < jsonArray.length(); i++) {
-			JSONObject jsonElement = jsonArray.getJSONObject(i);
-			Iterator itr = jsonElement.keys();
-			while(itr.hasNext()) {
-				String element = (String) itr.next();
-				if (element.equals("steamid")) {	
-					id64 = element;
-					System.out.println(id64);
-					super.setSteamId64(id64);
-				} else if(element.equals("personaname")) {
-					personName = element;
-					System.out.println(personName);
-					super.setPersonaName(personName);
-				} else if(element.equals("realname")) {
-					realName = element;
-					System.out.println(realName);
-					super.setRealName(realName);
-				} else if(element.equals("profileurl")) {
-					System.out.println(element);
-					communityID = getComID(element);	//parse string to get end part of url containing profileName
-					System.out.println(communityID);
-					super.setSteamCommunityId(communityID);
-				} else if(element.equals("loccountrycode")) {
-					country = element;
-					System.out.println(country);
-					super.setCountryCode(country);
-				} else if(element.equals("lastlogoff")) {
-					lastonline = element;
-					time = new DateTime(lastonline);
-					System.out.println(time);
-					super.setLastOnlineTime(time);
-				} else if(element.equals("avatar")) {
-					avatar = element;
-					System.out.println(avatar);
-					super.setAvatar(avatar);
-				}
-			}
-		}
-		//go through gamesOwnedList and find playtime_forever field(in minutes) for each game and sum
-		//***Need to change int of minutes to time or string still***
-		totalPlayTime = totalPlayTime(api);	
-		super.setTolalPlayTime(totalPlayTime);
-		
-		return pde;
-	}
-	//method for getting playtime forever of each game in IPlayerService
-	public String totalPlayTime(SteamrollerApi api) throws Exception{
-		
-		String jsonString = api.getJSON("IPlayerService", "GetOwnedGames", 1);
-		JSONObject json = new JSONObject(jsonString);
-		int count = 0;			//holds total count of minutes for every game owned
-		String totalCount;
-		
-		json = (JSONObject) json.get("response");
-		JSONArray jsonArrayGames = json.getJSONArray("games");
-		System.out.println(jsonArrayGames);
+        System.out.println("Visibility: " + steamId.getVisibilityState());
+        System.out.println("Privacy: " + steamId.getPrivacyState());
+        System.out.println("getSteamID64: " + steamId.getSteamId64());
+        System.out.println("getCustomUrl: " + steamId.getCustomUrl());
+        System.out.println("getNickname: " + steamId.getNickname());
+        System.out.println("getRealName: " + steamId.getRealName());
+        System.out.println("getLocation: " + steamId.getLocation());
+        System.out.println("getAvatarFullUrl: " + steamId.getAvatarFullUrl());
+        System.out.println("getAvatarIconUrl: " + steamId.getAvatarIconUrl());
+        System.out.println("getAvatarMediumUrl: " + steamId.getAvatarMediumUrl());
 
-		for (int i = 0; i < jsonArrayGames.length(); i++) {
-			JSONObject jsonGameElement = jsonArrayGames.getJSONObject(i);
-			Iterator itr = jsonGameElement.keys();
-			while(itr.hasNext()) {
-				String element = (String) itr.next();
-				if (element.equals("playtime_forever")) {
-					totalPlayTime = element;
-					System.out.println(totalPlayTime);
-					int temp = Integer.parseInt(totalPlayTime);
-					count += temp;
-				}	
-			}
-		}
-		totalCount = Integer.toString(count);
-		return totalCount;
-	}
-	
-	//method that is passed profileurl and extracts name from it(at the end of the url)
-	//after the fourth instance of '\' the profilename starts
-	public String getComID(String communityID) {
-		String profileName;
-		int i;
-		int count = 0;		//counter variable for number of '/'
-		for(i = 0; i < communityID.length(); i++) {
-			if(communityID.charAt(i) == '/') {	// '/' detected increment
-				count++;
-			}
-			if(count == 4) {		//4 '/' instances; next char till length - 1 is the profileName
-				break;
-			}
-		}
-		profileName = communityID.substring(i + 1, communityID.length());
-		System.out.println(profileName);
-		return profileName;
-	}
+        return steamProfile;
+    }
+    
+    public static long convertToSteamId64(String idToConvert) {
+        try {
+            return Long.parseLong(idToConvert);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
 }
