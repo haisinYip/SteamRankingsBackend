@@ -49,9 +49,9 @@ public class DBConnector {
         } finally {
             try {
                 if (connection != null) {
-                    //connection.close();
-                    //statement.close();
-                    //results.close();
+                    // connection.close();
+                    // statement.close();
+                    // results.close();
                 }
             } catch (Exception ex) {
                 System.out.println(ex.getMessage());
@@ -84,8 +84,8 @@ public class DBConnector {
         } finally {
             try {
                 if (connection != null) {
-                    connection.close();
-                    statement.close();
+                    //connection.close();
+                    //statement.close();
                 }
             } catch (Exception ex) {
                 System.out.println(ex.getMessage());
