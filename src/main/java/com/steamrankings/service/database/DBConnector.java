@@ -2,16 +2,18 @@ package com.steamrankings.service.database;
 
 import java.sql.*;
 
+import com.steamrankings.service.core.Application;
+
 public class DBConnector {
     private Connection connection;
     private Statement statement;
     private ResultSet results;
 
-    private final String serverName = "mikemontreal.ignorelist.com";
-    private final String port = "17862";
-    private final String databaseName = "steamrankings_db";
-    private final String username = "steamroller";
-    private final String password = "mcgillecse428";
+    private final String serverName = Application.CONFIG.getProperty("server");
+    private final String port = Application.CONFIG.getProperty("mysql_port");
+    private final String databaseName = Application.CONFIG.getProperty("mysql_database");
+    private final String username = Application.CONFIG.getProperty("mysql_username");
+    private final String password = Application.CONFIG.getProperty("mysql_password");
 
     public DBConnector() {
         try {

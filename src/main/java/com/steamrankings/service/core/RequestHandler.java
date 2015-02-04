@@ -11,6 +11,8 @@ import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.http.HttpResponse;
+
 import com.steamrankings.service.api.profiles.SteamProfile;
 import com.steamrankings.service.core.dataextractors.ProfileDataExtractor;
 import com.steamrankings.service.database.DBConnector;
