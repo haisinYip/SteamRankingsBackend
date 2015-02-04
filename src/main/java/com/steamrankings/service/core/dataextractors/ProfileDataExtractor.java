@@ -1,5 +1,6 @@
 package com.steamrankings.service.core.dataextractors;
 
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -8,13 +9,14 @@ import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.github.koraktor.steamcondenser.steam.community.SteamId;
 import com.github.koraktor.steamcondenser.steam.community.WebApi;
 import com.steamrankings.service.api.profiles.SteamProfile;
 import com.steamrankings.steamapi.SteamrollerApi;
 
 public class ProfileDataExtractor extends SteamProfile{
 
-	String id64;
+	Long id64;
 	String communityID;
 	String personName;
 	String realName;
@@ -25,19 +27,26 @@ public class ProfileDataExtractor extends SteamProfile{
 	String avatar;
 	String apikey = "XXXXX";
 
-	public ProfileDataExtractor(String id64, String communityID, String personaName) {
+	public ProfileDataExtractor(Long id64, String communityID, String personaName) {
 		super(id64, communityID, personaName);
 	}
 
-	public SteamProfile profile(String id64) throws Exception {
+	public SteamProfile profile(Long id64) throws Exception {
+		
 		
 		SteamProfile sp = new SteamProfile(id64, communityID, personName);
+		WebApi.setApiKey(apikey);
 		
-		Map<String, Object> param = new HashMap<String, Object>();
-		param.put("steamids", id64);
+		SteamId steamId = SteamId.create(id64, true);
+		String steamid = steamId.getRealName();
 		
-		SteamrollerApi api = new SteamrollerApi(apikey); 
-		String jsonString = api.getJSON("ISteamUSer", "GetPlayerSummaries", 2, param);
+		System.out.println(steamid);
+		
+		//Map<String, Object> param = new HashMap<String, Object>();
+		//param.put("steamids", id64);
+		
+		//SteamrollerApi api = new SteamrollerApi(apikey); 
+		/*String jsonString = api.getJSON("ISteamUSer", "GetPlayerSummaries", 2, param);
 		System.out.println(jsonString);
 
 		JSONObject json = new JSONObject(jsonString);
@@ -93,7 +102,7 @@ public class ProfileDataExtractor extends SteamProfile{
 		//***Need to change int of minutes to time still***
 		totalPlayTime = totalPlayTime(id64);	
 		System.out.println(totalPlayTime + " HERE");
-		sp.setTolalPlayTime(totalPlayTime);
+		sp.setTolalPlayTime(totalPlayTime);*/
 		
 		return sp;
 	}

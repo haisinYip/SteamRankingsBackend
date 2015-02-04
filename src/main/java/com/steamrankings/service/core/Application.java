@@ -9,7 +9,7 @@ public class Application
 {
     public static void main( String[] args )
     {
-    	String steamid =  "76561197965726621";
+    	Long steamid =  76561197965726621L;
 		String commID = "communityvisibilitystate";
 		String personaname =  "Viper the Vengeful Sniper";
         System.out.println( "Hello World!" );

@@ -3,7 +3,7 @@ package com.steamrankings.service.api.profiles;
 import org.joda.time.DateTime;
 
 public class SteamProfile {
-	private String id64;
+	private Long id64;
 	private String communityID;
 	private String personaName;
 	private String realName;
@@ -12,13 +12,13 @@ public class SteamProfile {
 	private String totalPlayTime;
 	private String avatar;
 	
-	public SteamProfile(String id64, String communityID, String personaName) {
+	public SteamProfile(Long id64, String communityID, String personaName) {
 		this.id64 = id64;
 		this.communityID = communityID;
 		this.personaName = personaName;
 	}
 	
-	public String getSteamId64() {
+	public Long getSteamId64() {
 		return id64;
 	}
 	public String getSteamCommunityId() {
@@ -45,7 +45,7 @@ public class SteamProfile {
 	public String getAvatar() {
 		return avatar;
 	}
-	public void setSteamId64(String steamID64) {
+	public void setSteamId64(Long steamID64) {
 		this.id64 = steamID64;
 	}
 	public void setSteamCommunityId(String communityID) {
