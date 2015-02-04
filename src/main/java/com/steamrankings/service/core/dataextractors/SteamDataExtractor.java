@@ -50,7 +50,6 @@ public class SteamDataExtractor {
             if (steamId.getVisibilityState() != STEAM_PROFILE_VISIBILITY_PUBLIC) {
                 return null;
             }
-
             return steamId;
         } catch (Exception e) {
             return null;
