@@ -271,4 +271,3 @@ public class DBConnector {
 			ex.printStackTrace();
 		} 
 	}
-}
