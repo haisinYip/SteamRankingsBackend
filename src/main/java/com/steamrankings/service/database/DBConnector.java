@@ -1,66 +1,214 @@
 package com.steamrankings.service.database;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.*;
 import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 public class DBConnector {
 	private Connection connection;
 	private Statement statement;
 	private ResultSet results;
-	
-	private final String serverName = "mikemontreal.ignorelist.com";
-	private final String port = null;
-	private final String databaseName = "steamrankings_db";
-	private final String username = null;	
-	private final String password = null;	
-	
-	public DBConnector(){
-		try{
+
+	private String serverName = null;
+	private String port = null;
+	private String databaseName = null;
+	private String username = null;	
+	private String password = null;	
+
+	public DBConnector() {
+
+		this.loadFromConfig();
+
+		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			connection = DriverManager.getConnection("jdbc:mysql://" + serverName + ":" + port + "/" + databaseName, username, password);;
+			connection = DriverManager.getConnection("jdbc:mysql://" + serverName + ":" + port + "/" + databaseName, username, password);
 			statement = connection.createStatement();
-			
-		} catch(Exception ex){
+
+		} catch(Exception ex) {
 			System.out.println("Connection failed");
 			System.out.println(ex.getMessage());
 		}
 	}
-	
-	public ResultSet readData(String table, String[] columns){
+
+	private void loadFromConfig() {
+		Properties prop = new Properties();
+		InputStream input = null;
+
+		try {
+			String tmpdir = System.getProperty("java.io.tmpdir");
+			input = new FileInputStream(tmpdir + "//config.properties");
+
+			prop.load(input);
+
+			serverName = prop.getProperty("server");
+			port = prop.getProperty("port");
+			databaseName = prop.getProperty("database");
+			username = prop.getProperty("username");	
+			password = prop.getProperty("password");
+
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		} finally {
+			if (input != null) {
+				try {
+					input.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	public ResultSet queryDB(String query) {
+		try {
+			results = statement.executeQuery(query);
+		} catch(Exception ex) {
+			ex.printStackTrace();
+		} 
+		return results;
+	}
+
+	public ResultSet getTable(String table) {
+		return this.queryDB("SELECT * FROM " + table);
+	}
+
+	// add entire 2D matrix 
+	// make sure to set up data array matches schema
+	public void burstAddToDB(String table, String[][] data) {
+		String query = "";
+		try{
+			for(int i=0; i<data.length; i++)
+			{
+				String insert = "INSERT INTO " + table + " " + "VALUES (";
+				query = insert;
+				for(int j=0; j<data[i].length; j++)
+				{
+					if(j==data[i].length-1)
+					{
+						query = query + "'" + data[i][j] + "')";
+						break;
+					}
+					query =  query + "'" + data[i][j] + "'" + ",";
+
+				}
+				statement.executeUpdate(query);
+			}
+		} catch(Exception ex) {
+			System.out.println("Failed to burst add to database");
+			ex.printStackTrace();
+		} 
+	}
+
+	public void addEntryToDB(String table, String[] row) {
+		String query = "INSERT INTO " + table + " " + "VALUES (";
+		for(int i=0; i<row.length; i++) 
+			query = query + "\"" + row[i] + "\"" + ",";
+
+		query = query.substring(0, query.length()-1); 
+		query = query + ")";
+		System.out.println(query);
+		try {
+			statement.executeQuery(query);
+		} catch (SQLException e) {
+			System.out.println("Add entry failed");
+			e.printStackTrace();
+		}
+	}
+
+	public void updateEntry(String table, HashMap<String,String> list, String pkey, String pval) throws SQLException {
+		String query = "UPDATE " + table + " SET ";
+		for (Entry<String, String> entry : list.entrySet()) 
+			query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + ",";
+
+		query = query.substring(0, query.length()-1);
+		query = query + " WHERE " + pkey + "=" + "\"" + pval + "\"";
+		System.out.println(query);
+		statement.executeUpdate(query);
+	}
+
+	public boolean primaryKeyExists(String table, String colIndex, String pkey) throws SQLException {
+		String query = "SELECT * FROM " + table + " WHERE " + colIndex + "=" + "\"" + pkey + "\"";
+		this.queryDB(query);
+		System.out.println(query);
+		// check if first row exists
+		return results.first();
+	}
+
+	public ResultSet getData(String table, String[] columnIndexes) {
+		String query = "SELECT ";
+		for(int i=0; i<columnIndexes.length; i++) 
+			query = query + columnIndexes[i] + ",";
+
+		query = query.substring(0, query.length()-1);
+		query = query + " FROM " + table;
+		return this.queryDB(query);
+	}	
+
+	public void closeConnection() {
+		try {
+			if(connection != null){
+				connection.close();
+				statement.close();
+				results.close();
+			}
+		} catch(Exception ex) {
+			System.out.println("Failed to close connection");
+			ex.printStackTrace();
+		}
+	}
+
+	public void print(String[] columnIndexes) throws SQLException {
+
+		if (results.first())
+		{
+			for(int i=0; i<columnIndexes.length; i++)
+				System.out.print(columnIndexes[i] + " | ");
+
+			System.out.println();
+
+			while(results.next()){
+				for(int i=0; i<columnIndexes.length; i++)
+					System.out.print(results.getString(columnIndexes[i]) + " | ");
+
+				System.out.println();
+			}
+		}
+		else 
+			System.out.println("ResultSet is empty");
+	}
+
+	// deprecated
+	public ResultSet readData(String table, String[] columnIndexes){
 		try{
 			String query = "SELECT * FROM " + table;
 			results = statement.executeQuery(query);
-			
-			for(int i=0; i<columns.length; i++)
-				System.out.print(columns[i] + " | ");
-			
-			System.out.println();
-			
-			while(results.next()){
-				for(int i=0; i<columns.length; i++)
-					System.out.print(results.getString(columns[i]) + " | ");
-				
-				System.out.println();
-			}
+
+			//			for(int i=0; i<columnIndexes.length; i++)
+			//				System.out.print(columnIndexes[i] + " | ");
+			//
+			//			System.out.println();
+			//
+			//			while(results.next()){
+			//				for(int i=0; i<columnIndexes.length; i++)
+			//					System.out.print(results.getString(columnIndexes[i]) + " | ");
+			//
+			//				System.out.println();
+			//			}
 		} catch(Exception ex){
-			System.out.println(ex.getMessage());
-		} finally {
-			try {
-				if(connection != null){
-					connection.close();
-					statement.close();
-					results.close();
-				}
-			} catch(Exception ex){
-				System.out.println(ex.getMessage());
-			}
-		}
+			ex.printStackTrace();
+		} 
 		return results;
 	}
-	
+
+	// deprecated
 	public void writeData(String table, String[][] data){
 		String query = "";
 		try{
+
 			for(int i=0; i<data.length; i++)
 			{
 				String insert = "INSERT INTO " + table + " " + "VALUES (";
@@ -73,24 +221,14 @@ public class DBConnector {
 						break;
 					}
 					query =  query + "'" + data[i][j] + "'" + ",";
-						
+
 				}
 				query = query + ")";
 				statement.executeUpdate(query);
-				//System.out.println(query);
 			}
 		} catch(Exception ex){
 			System.out.println("Failed to update database");
-			System.out.println(ex.getMessage());
-		} finally {
-			try {
-				if(connection != null){
-					connection.close();
-					statement.close();
-				}
-			} catch(Exception ex){
-				System.out.println(ex.getMessage());
-			}
-		}
+			ex.printStackTrace();
+		} 
 	}
 }
