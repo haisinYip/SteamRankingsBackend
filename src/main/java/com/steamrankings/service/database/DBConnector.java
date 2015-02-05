@@ -90,10 +90,10 @@ public class DBConnector {
 				{
 					if(j==data[i].length-1)
 					{
-						query = query + "'" + data[i][j] + "')";
+						query = query + "\"" + data[i][j] + "\")";
 						break;
 					}
-					query =  query + "'" + data[i][j] + "'" + ",";
+					query =  query + "\"" + data[i][j] + "\"" + ",";
 
 				}
 				query = query + ";";
