@@ -66,6 +66,7 @@ public class DBConnector {
 
 	public ResultSet queryDB(String query) {
 		try {
+			this.lastQuery = query;
 			results = statement.executeQuery(query);
 		} catch(Exception ex) {
 			ex.printStackTrace();
