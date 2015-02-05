@@ -3,15 +3,57 @@ package com.steamrankings.service.api.achievements;
 import org.joda.time.DateTime;
 
 public abstract class SteamAchievement {
-    public abstract int getAppId();
+	private int appId;
+	private String unlockedIconUrl;
+	private String LockedIconUrl;
+	private String name;
+	private String description;
+	private DateTime timestamp;
+	
+    public int getAppId(){
+    	return this.appId;
+    }
+    public void setAppId(int appId){
+    	this.appId=appId;
+    }
 
-    public abstract String getUnlockedIconUrl();
+    public  String getUnlockedIconUrl(){
+    	return this.unlockedIconUrl;
+    }
+    
+    public  void setUnlockedIconUrl(String unlockedIconUrl){
+    	this.unlockedIconUrl=unlockedIconUrl;
+    }
 
-    public abstract String getLockedIconUrl();
+    public  String getLockedIconUrl(){
+    	return this.LockedIconUrl;
+    }
+    public  void setLockedIconUrl(String lockedIconUrl){
+    	 this.LockedIconUrl= lockedIconUrl;
+    }
 
-    public abstract String getName();
+    public String getName() {
+    	return this.name;
+    }
+    
+    public void setName(String name) {
+    	this.name= name;
+    }
 
-    public abstract String getDescription();
+    public String getDescription(){
+   	 return this.description;
+   	
+   }
+    
+    public void setDescription(String description){
+    	 this.description= description;
+    	
+    }
 
-    public abstract DateTime getTimestamp();
+    public  DateTime getTimestamp(){
+    	return this.timestamp;
+    }
+    public  void setTimestamp(DateTime timestamp){
+    	 this.timestamp= timestamp;
+    }
 }
