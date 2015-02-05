@@ -97,6 +97,7 @@ public class DBConnector {
 
 				}
 				query = query + ";";
+				this.lastQuery = query;
 				statement.executeUpdate(query);
 			}
 		} catch(Exception ex) {
