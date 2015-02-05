@@ -2,10 +2,13 @@ package com.steamrankings.service.core.dataextractors;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map.Entry;
 import org.joda.time.DateTime;
 
+import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
+import com.github.koraktor.steamcondenser.steam.community.SteamGame;
 import com.github.koraktor.steamcondenser.steam.community.SteamId;
 import com.steamrankings.service.api.profiles.SteamProfile;
 import com.steamrankings.service.database.DBConnector;
@@ -84,8 +87,21 @@ public class SteamDataExtractor {
     }
 
     public void addGames() {
-        // TODO Auto-generated method stub
+        for (SteamId steamId : steamIds) {
+            try {
+                HashMap<Integer, SteamGame> games = steamId.getGames();
+                for (Entry<Integer, SteamGame> game : games.entrySet()) {
+                    if (game != null) {
+                        String[][] data = { { game.getKey().toString(), game.getValue().getName(), game.getValue().getIconUrl(), game.getValue().getLogoUrl() } };
+                        db.writeData("games", data);
+                    }
+                }
+            } catch (SteamCondenserException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
 
+        }
     }
 
     public void addGameAchievements() {
