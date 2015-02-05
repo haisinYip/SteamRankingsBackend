@@ -186,7 +186,6 @@ public class DBConnector {
 	public void print(String[] columnIndexes) throws SQLException {
 
 		if (results.first()) {
-			System.out.println("Query : " + this.lastQuery);
 			for(int i=0; i<columnIndexes.length; i++)
 				System.out.print(columnIndexes[i] + " | ");
 
@@ -201,6 +200,10 @@ public class DBConnector {
 		}
 		else 
 			System.out.println("ResultSet is empty");
+	}
+	
+	public void printLastQuery() {
+		System.out.println("Query : " + this.lastQuery);
 	}
 
 	public ResultSet getEntry(String table, String columnIndex, String primaryKey) {
