@@ -116,7 +116,6 @@ public class DBConnector {
 		query = query + ");";
 		try {
 			this.lastQuery = query;
-			System.out.println(query);
 			statement.executeUpdate(query);
 		} catch (SQLException e) {
 			System.out.println("Add entry failed");
@@ -134,7 +133,6 @@ public class DBConnector {
 		query = query + ";";
 		try {
 			this.lastQuery = query;
-			System.out.println(query);
 			statement.executeUpdate(query);
 		} catch (SQLException e) {
 			System.out.println("Add entry failed");
@@ -209,8 +207,6 @@ public class DBConnector {
 
 	public ResultSet getEntry(String table, String columnIndex, String primaryKey) {
 		String query = "SELECT * FROM " + table + " WHERE " + columnIndex + "=" + "\"" + primaryKey + "\";";
-		this.lastQuery = query;
-		System.out.println(query);
 		return this.queryDB(query);
 	}
 	
@@ -218,7 +214,6 @@ public class DBConnector {
 		int count = 0;
 		
 		String query = "SELECT COUNT(" + columnIndex + ") AS res FROM " + table + " WHERE " + columnIndex + "=" + "\"" + primaryKey + "\";";
-		System.out.println(query);
 		this.queryDB(query);
 		this.results.first();
 		count = this.results.getInt(1);
@@ -230,7 +225,6 @@ public class DBConnector {
 		int count = 0;
 		
 		String query = "SELECT COUNT(*)" + " FROM " + table;
-		System.out.println(query);
 		this.queryDB(query);
 		this.results.first();
 		count = this.results.getInt(1);
