@@ -148,7 +148,7 @@ public class RequestHandler implements Runnable {
                 
                 SteamDataExtractor dataExtractor = new SteamDataExtractor(steamIds, new DBConnector());
                 dataExtractor.addUsers();
-                //dataExtractor.addGames();
+                dataExtractor.addGames();
                 //dataExtractor.addGameAchievements();
                 //dataExtractor.addUserAchievements();
             }
