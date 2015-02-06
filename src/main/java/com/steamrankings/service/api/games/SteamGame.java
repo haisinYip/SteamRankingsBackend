@@ -1,12 +1,28 @@
 package com.steamrankings.service.api.games;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
+
 public class SteamGame {
 
+	@JsonProperty("app_id")
     private int appid;
+	
+	 @JsonProperty("icon_url")
     private String iconUrl;
+	 
+	 @JsonProperty("logo_url")
     private String logoUrl;
+	 
+	 @JsonProperty("name")
     private String name;
 
+	public SteamGame(){
+		
+	}
+	
     public SteamGame(int appid, String iconUrl, String logoUrl, String name) {
         this.appid = appid;
         this.iconUrl = iconUrl;
@@ -14,35 +30,50 @@ public class SteamGame {
         this.name = name;
     }
 
-    public int getAppId() {
+    @JsonIgnore
+    public long getAppId() {
         return appid;
     }
 
+    @JsonIgnore
     public String getIconUrl() {
         return iconUrl;
     }
 
+    @JsonIgnore
     public String getLogoUrl() {
         return logoUrl;
     }
 
+    @JsonIgnore
     public String getName() {
         return name;
     }
 
-    public void setAppId(int appid) {
-        this.appid = appid;
+    
+    
+    @Override
+    @JsonIgnore
+    public String toString() {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectWriter writer = mapper.writer();
+
+        try {
+            return writer.writeValueAsString(this);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    public void setIconUrl(String iconUrl) {
-        this.iconUrl = iconUrl;
-    }
+    @JsonIgnore
+    public String toPrettyString() {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
 
-    public void setLogoUrl(String logoUrl) {
-        this.logoUrl = logoUrl;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+        try {
+            return writer.writeValueAsString(this);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
