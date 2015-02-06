@@ -14,7 +14,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
+			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -41,6 +41,37 @@
 			<artifactId>steam-condenser</artifactId>
 			<version>1.3.8</version>
 		</dependency>
+
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>2.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<version>3.3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-core-asl</artifactId>
+			<version>1.9.13</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>1.9.13</version>
+		</dependency>
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.34</version>
+		</dependency>
+
 	</dependencies>
 
 	<properties>
@@ -62,26 +93,27 @@
 						</configuration>
 					</plugin>
 				</plugins>
+				
 			</build>
 		</profile>
 	</profiles>
-	
+
 	<!-- Enabling the use of SFTP -->
 	<distributionManagement>
-	  <repository>
-		<id>ftp-repository</id>
-		<url>sftp://mikemontreal.ignorelist.com:61998/api</url>
-	  </repository>
+		<repository>
+			<id>ftp-repository</id>
+			<url>sftp://mikemontreal.ignorelist.com:61998/api</url>
+		</repository>
 	</distributionManagement>
 
 
 	<build>
-	  <extensions>
-		<extension>
-		  <groupId>org.apache.maven.wagon</groupId>
-		   <artifactId>wagon-ssh</artifactId>
-		   <version>2.8</version>
-		</extension>
-	  </extensions>
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh</artifactId>
+				<version>2.8</version>
+			</extension>
+		</extensions>
 	</build>
 </project>

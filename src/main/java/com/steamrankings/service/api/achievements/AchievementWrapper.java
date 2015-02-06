@@ -1,42 +1,22 @@
-package com.steamrankings.service.api.leaderboards;
+package com.steamrankings.service.api.achievements;
+
+import java.util.List;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 
-public abstract class RankEntry {
-    @JsonProperty("rank")
-    private int rankNumber;
+public class AchievementWrapper {
+    @JsonProperty("achievements")
+    private List<GameAchievement> achievements;
 
-    @JsonProperty("id64")
-    private long id64;
-
-    @JsonProperty("name")
-    private String name;
-
-    public RankEntry() {
-    }
-
-    public RankEntry(int rankNumber, long id64, String name) {
-        this.rankNumber = rankNumber;
-        this.id64 = id64;
-        this.name = name;
+    public AchievementWrapper() {
     }
 
     @JsonIgnore
-    public int getRankNumber() {
-        return this.rankNumber;
-    }
-
-    @JsonIgnore
-    public String getName() {
-        return this.name;
-    }
-
-    @JsonIgnore
-    public long getId64() {
-        return this.id64;
+    public List<GameAchievement> getAchievements() {
+        return this.achievements;
     }
 
     @Override
