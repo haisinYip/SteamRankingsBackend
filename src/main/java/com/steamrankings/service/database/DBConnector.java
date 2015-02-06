@@ -267,7 +267,7 @@ public class DBConnector {
     	query = query + ")";
         this.queryDB(query);
         
-        if (this.results.first());
+        this.results.first();
         count = this.results.getInt(1);
     	
     	return count;
