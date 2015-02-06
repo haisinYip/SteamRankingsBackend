@@ -1,13 +1,13 @@
 package com.steamrankings.service.api.games;
 
-public class SteamGame {
+public class Game {
 	
 	private int appid;
 	private String iconUrl;
 	private String logoUrl;
 	private String name;
 	
-	public SteamGame(int appid, String iconUrl, String logoUrl, String name) {
+	public Game(int appid, String iconUrl, String logoUrl, String name) {
 		this.appid = appid;
 		this.iconUrl = iconUrl;
 		this.name = name;

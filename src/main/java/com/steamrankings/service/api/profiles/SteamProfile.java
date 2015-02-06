@@ -3,6 +3,8 @@ package com.steamrankings.service.api.profiles;
 import org.joda.time.DateTime;
 
 public class SteamProfile {
+    final static public long BASE_ID_64 = 76561197960265728L;
+    
     private long id64;
     private String communityID;
     private String personaName;
@@ -14,8 +16,7 @@ public class SteamProfile {
     private String iconAvatarUrl;
     private DateTime lastOnline;
 
-    public SteamProfile(long id64, String communityID, String personaName, String realName, String countryCode, String fullAvatarUrl, String mediumAvatarUrl, String iconAvatarUrl,
-            DateTime lastOnline) {
+    public SteamProfile(long id64, String communityID, String personaName, String realName, String countryCode, String fullAvatarUrl, String mediumAvatarUrl, String iconAvatarUrl, DateTime lastOnline) {
         this.id64 = id64;
         this.communityID = communityID;
         this.personaName = personaName;
@@ -27,7 +28,7 @@ public class SteamProfile {
         this.iconAvatarUrl = iconAvatarUrl;
         this.totalPlayTime = null;
     }
-
+    
     public long getSteamId64() {
         return id64;
     }
