@@ -1,14 +1,15 @@
 package com.steamrankings.service.api.profiles;
 
-import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.json.JSONArray;
 
 public class Profiles {
     public static SteamProfile getSteamUser(String steamID64) {
@@ -18,34 +19,12 @@ public class Profiles {
 
         try {
             response = client.execute(request);
+            String data = EntityUtils.toString(response.getEntity());
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(data, SteamProfile.class);
         } catch (Exception e) {
             return null;
         }
-
-        HttpEntity entity = response.getEntity();
-        InputStream is = null;
-        try {
-            is = entity.getContent();
-        } catch (Exception e) {
-            return null;
-        }
-
-        ObjectMapper mapper = new ObjectMapper();
-        SteamProfile profile = null;
-
-        try {
-            profile = mapper.readValue(is, SteamProfile.class);
-        } catch (Exception e) {
-            return null;
-        }
-
-        try {
-            is.close();
-        } catch (Exception e) {
-            return null;
-        }
-
-        return profile;
     }
 
     public static List<SteamProfile> getSteamFriends(String steamID64) {
@@ -55,33 +34,19 @@ public class Profiles {
 
         try {
             response = client.execute(request);
+            String data = EntityUtils.toString(response.getEntity());
+
+            JSONArray jsonArray = new JSONArray(data);
+            ObjectMapper mapper = new ObjectMapper();
+            ArrayList<SteamProfile> profiles = new ArrayList<SteamProfile>();
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                profiles.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), SteamProfile.class));
+            }
+
+            return profiles;
         } catch (Exception e) {
             return null;
         }
-
-        HttpEntity entity = response.getEntity();
-        InputStream is = null;
-        try {
-            is = entity.getContent();
-        } catch (Exception e) {
-            return null;
-        }
-
-        ObjectMapper mapper = new ObjectMapper();
-        List<SteamProfile> profile = null;
-
-        try {
-            // profile = mapper.readValue(is, SteamProfile.class);
-        } catch (Exception e) {
-            return null;
-        }
-
-        try {
-            is.close();
-        } catch (Exception e) {
-            return null;
-        }
-
-        return profile;
     }
 }
