@@ -1,6 +1,7 @@
 package com.steamrankings.service.core;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
@@ -23,6 +24,7 @@ public class RequestHandler implements Runnable {
     final private String HTTP_REQUEST_GET = "GET";
     final private String REST_API_INTERFACE_PROFILES = "/profile";
     final private static String PARAMETERS_USER_ID = "id";
+    final private static String CRLF = "\r\n";
 
     private Socket socket;
     private static final Logger logger = Logger.getLogger(RequestHandler.class.getName());
@@ -68,21 +70,23 @@ public class RequestHandler implements Runnable {
         }
     }
 
-    private void processGet(String restInterface, HashMap<String, String> parameters) {
+    private void processGet(String restInterface, HashMap<String, String> parameters) throws IOException {
         if (restInterface.equals(REST_API_INTERFACE_PROFILES)) {
             processGetProfiles(parameters);
         }
     }
 
-    private void processGetProfiles(HashMap<String, String> parameters) {
+    private void processGetProfiles(HashMap<String, String> parameters) throws IOException {
         // Check to see if parameters are correct
         if (parameters == null || parameters.isEmpty() || !parameters.containsKey(PARAMETERS_USER_ID)) {
-            // send HTTP error
+            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: " + "text/plain" + CRLF, "Invalid parameters.");
+            return;
         }
 
         long steamId = SteamDataDatabase.convertToSteamId64(parameters.get(PARAMETERS_USER_ID));
         if (steamId == -1) {
-            // send HTTP error
+            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: " + "text/plain" + CRLF, "Invalid steam ID.");
+            return;
         }
 
         DBConnector db = new DBConnector();
@@ -96,8 +100,10 @@ public class RequestHandler implements Runnable {
         if (profile == null) {
             profile = steamDataExtractor.getSteamProfile(steamId);
             if (profile == null) {
-                // User does not exist
-                // Return error
+                sendResponse(socket, "HTTP/1.1 404" + CRLF, "Content-type: " + "text/plain" + CRLF, "A Steam user account with the id" + Long.toString(steamId) + "does not exist.");
+                db.closeConnection();
+
+                return;
             } else {
                 SteamDataDatabase.addProfileToDatabase(db, profile);
                 processNewUser(db, steamDataExtractor, profile);
@@ -105,7 +111,9 @@ public class RequestHandler implements Runnable {
         }
 
         // Return the profile
-        // return profile
+        db.closeConnection();
+
+        return;
     }
 
     private void processNewUser(DBConnector db, SteamDataExtractor steamDataExtractor, SteamProfile profile) {
@@ -122,5 +130,16 @@ public class RequestHandler implements Runnable {
         }
 
         // Add the user's friends
+    }
+
+    private void sendResponse(Socket socket, String statusLine, String contentTypeLine, String entity) throws IOException {
+        DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+
+        output.writeBytes(statusLine);
+        output.writeBytes(contentTypeLine);
+        output.writeBytes(CRLF);
+        output.writeBytes(entity);
+
+        output.close();
     }
 }
