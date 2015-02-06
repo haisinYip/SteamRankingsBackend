@@ -10,10 +10,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.steamrankings.service.api.profiles.SteamProfile;
-
 public class Games {
-    public static Game getSteamGame(int appId) {
+    public static SteamGame getSteamGame(int appId) {
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/gamestats?appId=" + appId);
         HttpResponse response = null;
@@ -33,10 +31,10 @@ public class Games {
         }
 
         ObjectMapper mapper = new ObjectMapper();
-        Game game = null;
+        SteamGame game = null;
 
         try {
-            game = mapper.readValue(is, Game.class);
+            game = mapper.readValue(is, SteamGame.class);
         } catch (Exception e) {
             return null;
         }
@@ -50,7 +48,7 @@ public class Games {
         return game;
     }
 
-    public static List<Game> getPlayedSteamGames(String steamID64) {
+    public static List<SteamGame> getPlayedSteamGames(String steamID64) {
 
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/gamesowned?id=" + steamID64);
