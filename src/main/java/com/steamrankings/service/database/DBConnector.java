@@ -107,6 +107,7 @@ public class DBConnector {
                     input.close();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    System.out.println(e.getMessage());
                 }
             }
         }
@@ -148,6 +149,7 @@ public class DBConnector {
         } catch (Exception ex) {
             System.out.println("Failed to burst add to database");
             ex.printStackTrace();
+            System.out.println(ex.getMessage());
         }
     }
 
@@ -165,6 +167,7 @@ public class DBConnector {
         } catch (SQLException e) {
             System.out.println("Add entry failed");
             e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -180,6 +183,7 @@ public class DBConnector {
         } catch (SQLException e) {
             System.out.println("Add entry failed");
             e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -222,6 +226,7 @@ public class DBConnector {
         } catch (Exception ex) {
             System.out.println("Failed to close connection");
             ex.printStackTrace();
+            System.out.println(ex.getMessage());
         }
     }
 
@@ -261,7 +266,8 @@ public class DBConnector {
     	query = query.substring(0, query.length() - 4);
     	query = query + ")";
         this.queryDB(query);
-        this.results.first();
+        
+        if (this.results.first());
         count = this.results.getInt(1);
     	
     	return count;
