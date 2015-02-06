@@ -79,8 +79,7 @@ public class DBConnector {
             statement = connection.createStatement();
 
         } catch (Exception ex) {
-            System.out.println("Connection failed");
-            System.out.println(ex.getMessage());
+            System.out.println("Error instantiating database connection : " + ex.getMessage());
         }
     }
 
@@ -136,10 +135,12 @@ public class DBConnector {
                 query = insert;
                 for (int j = 0; j < data[i].length; j++) {
                     if (j == data[i].length - 1) {
-                        query = query + "\"" + data[i][j] + "\")";
+                        //query = query + "\"" + data[i][j] + "\")";
+                        query = query + data[i][j] + ")";
                         break;
                     }
-                    query = query + "\"" + data[i][j] + "\"" + ",";
+                    //query = query + "\"" + data[i][j] + "\"" + ",";
+                    query = query + data[i][j] + ",";
 
                 }
                 query = query + ";";
@@ -157,7 +158,8 @@ public class DBConnector {
     public void addEntryToDB(String table, String[] row) {
         String query = "INSERT INTO " + table + " " + "VALUES (";
         for (int i = 0; i < row.length; i++)
-            query = query + "\"" + row[i] + "\"" + ",";
+            //query = query + "\"" + row[i] + "\"" + ",";
+        	query = query + row[i] + ",";
 
         query = query.substring(0, query.length() - 1);
         query = query + ");";
@@ -174,7 +176,8 @@ public class DBConnector {
     public void addEntryToDB(String table, HashMap<String, String> row) {
         String query = "INSERT INTO " + table + " " + "SET ";
         for (Entry<String, String> entry : row.entrySet())
-            query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + ",";
+            //query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + ",";
+        	query = query + entry.getKey() + "=" + entry.getValue() + ",";
         query = query.substring(0, query.length() - 1);
         query = query + ";";
         try {
@@ -190,16 +193,19 @@ public class DBConnector {
     public void updateEntry(String table, HashMap<String, String> list, String pkey, String pval) throws SQLException {
         String query = "UPDATE " + table + " SET ";
         for (Entry<String, String> entry : list.entrySet())
-            query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + ",";
+            //query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + ",";
+        	query = query + entry.getKey() + "=" + entry.getValue() + ",";
 
         query = query.substring(0, query.length() - 1);
-        query = query + " WHERE " + pkey + "=" + "\"" + pval + "\";";
+        //query = query + " WHERE " + pkey + "=" + "\"" + pval + "\";";
+        query = query + " WHERE " + pkey + "=" + pval + ";";
         this.lastQuery = query;
         statement.executeUpdate(query);
     }
 
     public boolean primaryKeyExists(String table, String colIndex, String pkey) throws SQLException {
-        String query = "SELECT * FROM " + table + " WHERE " + colIndex + "=" + "\"" + pkey + "\";";
+        //String query = "SELECT * FROM " + table + " WHERE " + colIndex + "=" + "\"" + pkey + "\";";
+        String query = "SELECT * FROM " + table + " WHERE " + colIndex + "=" + pkey + ";";
         this.queryDB(query);
         // check if first row exists
         return results.first();
@@ -253,7 +259,8 @@ public class DBConnector {
     }
 
     public ResultSet getEntry(String table, String columnIndex, String primaryKey) {
-        String query = "SELECT * FROM " + table + " WHERE " + columnIndex + "=" + "\"" + primaryKey + "\";";
+        //String query = "SELECT * FROM " + table + " WHERE " + columnIndex + "=" + "\"" + primaryKey + "\";";
+        String query = "SELECT * FROM " + table + " WHERE " + columnIndex + "=" + primaryKey + ";";
         return this.queryDB(query);
     }
 
@@ -261,7 +268,8 @@ public class DBConnector {
     	int count = 0;
     	String query = "SELECT COUNT(*) AS res FROM " + table + " WHERE (";
     	for (Entry<String, String> entry : conditions.entrySet()) {
-    		query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + " AND ";
+    		//query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + " AND ";
+    		query = query + entry.getKey() + "=" + entry.getValue() + " AND ";
     	}
     	query = query.substring(0, query.length() - 4);
     	query = query + ")";
@@ -290,8 +298,8 @@ public class DBConnector {
 
         String query = "SELECT COUNT(*)" + " FROM " + table;
         this.queryDB(query);
-        this.results.first();
-        count = this.results.getInt(1);
+        if (this.results.first())
+        	count = this.results.getInt(1);
 
         return count;
     }
