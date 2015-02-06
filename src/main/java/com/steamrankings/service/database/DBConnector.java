@@ -25,19 +25,19 @@ public class DBConnector {
     final public String TABLE_NAME_PROFILES = "profiles";
     final public String TABLE_NAME_PROFILES_ACHIEVEMENTS = "profiles_has_achievements";
     final public String TABLE_NAME_PROFILES_GAMES = "profiles_has_games";
-    
+
     final public int TABLE_ACHIEVEMENTS_COL_ID_INDEX = 1;
     final public int TABLE_ACHIEVEMENTS_COL_GAMES_ID_INDEX = 2;
     final public int TABLE_ACHIEVEMENTS_COL_NAMES_INDEX = 3;
     final public int TABLE_ACHIEVEMENTS_COL_DESCRIPTION_INDEX = 4;
     final public int TABLE_ACHIEVEMENTS_COL_UNLOCKED_ICON_URL_INDEX = 5;
     final public int TABLE_ACHIEVEMENTS_COL_LOCKED_ICON_URL_INDEX = 6;
-    
+
     final public int TABLE_GAMES_COL_ID_INDEX = 1;
     final public int TABLE_GAMES_COL_NAME_INDEX = 2;
     final public int TABLE_GAMES_COL_ICON_URL_INDEX = 3;
     final public int TABLE_GAMES_COL_LOGO_URL_INDEX = 4;
-    
+
     final public int TABLE_PROFILES_COL_ID_INDEX = 1;
     final public int TABLE_PROFILES_COL_COMMUNITY_ID_INDEX = 2;
     final public int TABLE_PROFILES_COL_PERSONA_NAME_INDEX = 3;
@@ -48,7 +48,7 @@ public class DBConnector {
     final public int TABLE_PROFILES_COL_AVATAR_FULL_URL_INDEX = 8;
     final public int TABLE_PROFILES_COL_AVATAR_MEDIUM_URL_INDEX = 9;
     final public int TABLE_PROFILES_COL_AVATAR_ICON_URL_INDEX = 10;
-    
+
     final public String TABLE_PROFILES_COL_ID_LABEL = "id";
     final public String TABLE_PROFILES_COL_COMMUNITY_ID_LABEL = "community_id";
     final public String TABLE_PROFILES_COL_PERSONA_NAME_LABEL = "persona_name";
@@ -59,16 +59,16 @@ public class DBConnector {
     final public String TABLE_PROFILES_COL_AVATAR_FULL_URL_LABEL = "avatar_full_url";
     final public String TABLE_PROFILES_COL_AVATAR_MEDIUM_URL_LABEL = "avatar_medium_url";
     final public String TABLE_PROFILES_COL_AVATAR_ICON_URL_LABEL = "avatar_icon_url";
-    
+
     final public int TABLE_PROFILES_ACHIEVEMENTS_COL_PROFILES_ID_INDEX = 1;
     final public int TABLE_PROFILES_ACHIEVEMENTS_COL_ACHIEVEMENTS_ID_INDEX = 2;
     final public int TABLE_PROFILES_ACHIEVEMENTS_COL_ACHIEVEMENTS_GAMES_ID_INDEX = 3;
     final public int TABLE_PROFILES_ACHIEVEMENTS_COL_UNLOCKED_TIMESTAMP_INDEX = 4;
-    
+
     final public int TABLE_PROFILES_GAMES_COL_PROFILES_ID_INDEX = 1;
     final public int TABLE_PROFILES_GAMES_COL_GAMES_ID_INDEX = 2;
     final public int TABLE_PROFILES_GAMES_COL_TOTAL_PLAY_TIME_INDEX = 3;
-    
+
     public DBConnector() {
 
         this.loadFromConfig();
@@ -89,7 +89,6 @@ public class DBConnector {
         InputStream input = null;
 
         try {
-            String tmpdir = System.getProperty("java.io.tmpdir");
             input = new FileInputStream("config.properties");
 
             prop.load(input);
