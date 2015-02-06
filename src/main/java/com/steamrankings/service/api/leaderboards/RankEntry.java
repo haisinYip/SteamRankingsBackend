@@ -1,32 +1,66 @@
 package com.steamrankings.service.api.leaderboards;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
+
 public abstract class RankEntry {
+    @JsonProperty("rank")
+    private int rankNumber;
 
-    private String rankNumber;
+    @JsonProperty("id64")
+    private long id64;
+
+    @JsonProperty("name")
     private String name;
-    private String id64;
 
-    public String getRankNumber() {
+    public RankEntry() {
+    }
+
+    public RankEntry(int rankNumber, long id64, String name) {
+        this.rankNumber = rankNumber;
+        this.id64 = id64;
+        this.name = name;
+    }
+
+    @JsonIgnore
+    public int getRankNumber() {
         return this.rankNumber;
     }
 
-    public void setRankNumber(String rankNumber) {
-        this.rankNumber = rankNumber;
-    }
-
+    @JsonIgnore
     public String getName() {
         return this.name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getId64() {
+    @JsonIgnore
+    public long getId64() {
         return this.id64;
     }
 
-    public void setId64(String id64) {
-        this.id64 = id64;
+    @Override
+    @JsonIgnore
+    public String toString() {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectWriter writer = mapper.writer();
+
+        try {
+            return writer.writeValueAsString(this);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @JsonIgnore
+    public String toPrettyString() {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
+
+        try {
+            return writer.writeValueAsString(this);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
