@@ -5,7 +5,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 
-public abstract class RankEntryByAchievements extends RankEntry {
+public class RankEntryByAchievements extends RankEntry {
     @JsonProperty("achievements_total")
     private int achievementsTotal;
     

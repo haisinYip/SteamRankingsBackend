@@ -102,7 +102,6 @@ public class RequestHandler implements Runnable {
             if (profile == null) {
                 sendResponse(socket, "HTTP/1.1 404" + CRLF, "Content-type: " + "text/plain" + CRLF, "A Steam user account with the id" + Long.toString(steamId) + "does not exist.");
                 db.closeConnection();
-
                 return;
             } else {
                 SteamDataDatabase.addProfileToDatabase(db, profile);
@@ -111,6 +110,7 @@ public class RequestHandler implements Runnable {
         }
 
         // Return the profile
+        sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json" + CRLF, profile.toString());
         db.closeConnection();
 
         return;

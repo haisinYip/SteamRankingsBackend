@@ -14,7 +14,7 @@ import org.json.JSONArray;
 public class Profiles {
     public static SteamProfile getSteamUser(String steamID64) {
         HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/profile?id=" + steamID64);
+        HttpGet request = new HttpGet("http://localhost:6789/profile?id=" + steamID64);
         HttpResponse response = null;
 
         try {

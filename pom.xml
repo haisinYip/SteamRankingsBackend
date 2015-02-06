@@ -89,6 +89,8 @@
 							<classifier>api</classifier>
 							<excludes>
 								<exclude>**/core/*</exclude>
+                                <exclude>**/steam/*</exclude>
+                                <exclude>**/database/*</exclude>
 							</excludes>
 						</configuration>
 					</plugin>

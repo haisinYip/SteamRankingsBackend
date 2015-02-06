@@ -5,7 +5,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 
-public abstract class RankEntry {
+public class RankEntry {
     @JsonProperty("rank")
     private int rankNumber;
 
