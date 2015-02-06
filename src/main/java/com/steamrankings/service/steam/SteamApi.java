@@ -1,4 +1,4 @@
-package com.steamrankings.service.core.steam;
+package com.steamrankings.service.steam;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package com.steamrankings.service.core.steam;
+package com.steamrankings.service.steam;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

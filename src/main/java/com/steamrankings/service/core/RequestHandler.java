@@ -14,10 +14,10 @@ import java.util.logging.Logger;
 import com.steamrankings.service.api.achievements.GameAchievement;
 import com.steamrankings.service.api.games.SteamGame;
 import com.steamrankings.service.api.profiles.SteamProfile;
-import com.steamrankings.service.core.steam.SteamApi;
-import com.steamrankings.service.core.steam.SteamDataDatabase;
-import com.steamrankings.service.core.steam.SteamDataExtractor;
 import com.steamrankings.service.database.DBConnector;
+import com.steamrankings.service.steam.SteamApi;
+import com.steamrankings.service.steam.SteamDataDatabase;
+import com.steamrankings.service.steam.SteamDataExtractor;
 
 public class RequestHandler implements Runnable {
     final private String HTTP_REQUEST_GET = "GET";
