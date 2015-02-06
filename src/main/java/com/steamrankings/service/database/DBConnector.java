@@ -168,8 +168,6 @@ public class DBConnector {
         }
     }
 
-    // unresolved bug
-    // query is correct and was manually tested
     public void addEntryToDB(String table, HashMap<String, String> row) {
         String query = "INSERT INTO " + table + " " + "SET ";
         for (Entry<String, String> entry : row.entrySet())
@@ -254,6 +252,20 @@ public class DBConnector {
         return this.queryDB(query);
     }
 
+    public int getCount(String table, HashMap<String,String> conditions, String columnIndex) throws SQLException {
+    	int count = 0;
+    	String query = "SELECT COUNT(" + columnIndex + ") AS res FROM " + table + " WHERE (";
+    	for (Entry<String, String> entry : conditions.entrySet()) {
+    		query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + " AND ";
+    	}
+    	query = query.substring(0, query.length() - 4);
+    	query = query + ")";
+        this.queryDB(query);
+        this.results.first();
+        count = this.results.getInt(1);
+    	
+    	return count;
+    }
     public int getCount(String table, String columnIndex, String primaryKey) throws SQLException {
         int count = 0;
 
@@ -313,4 +325,3 @@ public class DBConnector {
         }
     }
 }
->>>>>>> 7782ab57052dbcd57c7907be6b0c7fa34c3aef0f
