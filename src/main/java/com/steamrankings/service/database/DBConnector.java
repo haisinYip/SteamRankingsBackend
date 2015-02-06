@@ -59,6 +59,7 @@ public class DBConnector {
 					input.close();
 				} catch (IOException e) {
 					e.printStackTrace();
+					System.out.println(e.getMessage());
 				}
 			}
 		}
@@ -70,6 +71,7 @@ public class DBConnector {
 			results = statement.executeQuery(query);
 		} catch(Exception ex) {
 			ex.printStackTrace();
+			System.out.println(ex.getMessage());
 		} 
 		return results;
 	}
@@ -90,19 +92,20 @@ public class DBConnector {
 				{
 					if(j==data[i].length-1)
 					{
-						query = query + "\"" + data[i][j] + "\")";
+						query = query + "\"" + data[i][j] + "\");";
 						break;
 					}
 					query =  query + "\"" + data[i][j] + "\"" + ",";
 
 				}
-				query = query + ";";
+			
 				this.lastQuery = query;
 				statement.executeUpdate(query);
 			}
 		} catch(Exception ex) {
 			System.out.println("Failed to burst add to database");
 			ex.printStackTrace();
+			System.out.println(ex.getMessage());
 		} 
 	}
 
@@ -120,6 +123,7 @@ public class DBConnector {
 		} catch (SQLException e) {
 			System.out.println("Add entry failed");
 			e.printStackTrace();
+			System.out.println(e.getMessage());
 		}
 	}
 
@@ -137,6 +141,7 @@ public class DBConnector {
 		} catch (SQLException e) {
 			System.out.println("Add entry failed");
 			e.printStackTrace();
+			System.out.println(e.getMessage());
 		}
 	}
 	
@@ -179,6 +184,7 @@ public class DBConnector {
 		} catch(Exception ex) {
 			System.out.println("Failed to close connection");
 			ex.printStackTrace();
+			System.out.println(ex.getMessage());
 		}
 	}
 
