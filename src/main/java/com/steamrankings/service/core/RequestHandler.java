@@ -6,13 +6,17 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.github.koraktor.steamcondenser.steam.community.SteamId;
+import com.steamrankings.service.api.achievements.GameAchievement;
+import com.steamrankings.service.api.games.SteamGame;
 import com.steamrankings.service.api.profiles.SteamProfile;
-import com.steamrankings.service.core.dataextractors.SteamDataExtractor;
+import com.steamrankings.service.core.steam.SteamApi;
+import com.steamrankings.service.core.steam.SteamDataDatabase;
+import com.steamrankings.service.core.steam.SteamDataExtractor;
 import com.steamrankings.service.database.DBConnector;
 
 public class RequestHandler implements Runnable {
@@ -76,31 +80,47 @@ public class RequestHandler implements Runnable {
             // send HTTP error
         }
 
-        SteamId steamId = SteamDataExtractor.convertToSteamId64(parameters.get(PARAMETERS_USER_ID));
-        if (steamId == null) {
+        long steamId = SteamDataDatabase.convertToSteamId64(parameters.get(PARAMETERS_USER_ID));
+        if (steamId == -1) {
             // send HTTP error
         }
 
         DBConnector db = new DBConnector();
-        ArrayList<Integer> userIds = new ArrayList<Integer>();
-        userIds.add((int) (steamId.getSteamId64() - SteamProfile.BASE_ID_64));
+        SteamApi steamApi = new SteamApi(Application.CONFIG.getProperty("apikey"));
+        SteamDataExtractor steamDataExtractor = new SteamDataExtractor(steamApi);
 
-        ArrayList<SteamProfile> profiles = (ArrayList<SteamProfile>) SteamDataExtractor.getProfileFromDatabase(userIds, db);
+        SteamProfile profile = SteamDataDatabase.getProfileFromDatabase((int) (steamId - SteamProfile.BASE_ID_64), db);
 
-        // Not in database, must get it from Steam API and add it to the database
-        if (profiles == null || profiles.isEmpty()) {
-            profiles = (ArrayList<SteamProfile>) SteamDataExtractor.extractProfileFromSteam(userIds, db);
-            processNewUser(steamId, db);
+        // Not in database, must get it from Steam API and add it to the
+        // database
+        if (profile == null) {
+            profile = steamDataExtractor.getSteamProfile(steamId);
+            if (profile == null) {
+                // User does not exist
+                // Return error
+            } else {
+                SteamDataDatabase.addProfileToDatabase(db, profile);
+                processNewUser(db, steamDataExtractor, profile);
+            }
         }
 
         // Return the profile
+        // return profile
     }
-    
-    private void processNewUser(SteamId user, DBConnector db) {
+
+    private void processNewUser(DBConnector db, SteamDataExtractor steamDataExtractor, SteamProfile profile) {
         // Add user's games
+        HashMap<SteamGame, Integer> ownedGames = (HashMap<SteamGame, Integer>) steamDataExtractor.getPlayerOwnedGames(profile.getSteamId64());
+        SteamDataDatabase.addGamesToDatabase(db, profile, ownedGames);
+
         // Add all the games' achievements
         // Add the achievements the user unlocked
-        SteamDataExtractor.extractAndAddGamesToDatabase(user, db);
+        for (Entry<SteamGame, Integer> ownedGame : ownedGames.entrySet()) {
+            ArrayList<GameAchievement> gameAchievements = (ArrayList<GameAchievement>) steamDataExtractor.getGameAchievements(ownedGame.getKey().getAppId());
+            ArrayList<GameAchievement> playerAchievements = (ArrayList<GameAchievement>) steamDataExtractor.getPlayerAchievements(profile.getSteamId64(), ownedGame.getKey().getAppId());
+            SteamDataDatabase.addAchievementsToDatabase(db, profile, ownedGame.getKey(), gameAchievements, playerAchievements);
+        }
+
         // Add the user's friends
     }
 }
