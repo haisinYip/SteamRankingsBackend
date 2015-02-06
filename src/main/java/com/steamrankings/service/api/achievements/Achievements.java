@@ -9,8 +9,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.steamrankings.service.api.games.UserOwnedGames;
-
 public class Achievements {
     public static List<GameAchievement> getGameAchievements(int appId) {
         HttpClient client = new DefaultHttpClient();

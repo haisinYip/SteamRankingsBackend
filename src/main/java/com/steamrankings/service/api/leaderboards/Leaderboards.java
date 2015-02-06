@@ -10,8 +10,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.steamrankings.service.api.games.SteamGame;
-
 public class Leaderboards {
     public static List<RankEntryByAchievements> getRanksByAchievementTotal(int fromRank, int toRank) {
 

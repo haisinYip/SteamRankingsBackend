@@ -20,4 +20,8 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="target/classes"/>
+<<<<<<< HEAD
 </classpath>
+=======
+</classpath>
+>>>>>>> ba6a1560df3f807b54b595b87461fd8d13de3711
