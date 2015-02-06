@@ -75,7 +75,7 @@ public class DBConnector {
 	}
 
 	public ResultSet getTable(String table) {
-		return this.queryDB("SELECT * FROM " + table + ";");
+		return this.queryDB("SELECT * FROM " + table);
 	}
 
 	// make sure to set up data array matches schema
@@ -90,14 +90,12 @@ public class DBConnector {
 				{
 					if(j==data[i].length-1)
 					{
-						query = query + "\"" + data[i][j] + "\")";
+						query = query + "'" + data[i][j] + "')";
 						break;
 					}
-					query =  query + "\"" + data[i][j] + "\"" + ",";
+					query =  query + "'" + data[i][j] + "'" + ",";
 
 				}
-				query = query + ";";
-				this.lastQuery = query;
 				statement.executeUpdate(query);
 			}
 		} catch(Exception ex) {
@@ -113,10 +111,10 @@ public class DBConnector {
 			query = query + "\"" + row[i] + "\"" + ",";
 
 		query = query.substring(0, query.length()-1); 
-		query = query + ");";
+		query = query + ")";
 		try {
 			this.lastQuery = query;
-			statement.executeUpdate(query);
+			statement.executeQuery(query);
 		} catch (SQLException e) {
 			System.out.println("Add entry failed");
 			e.printStackTrace();
@@ -130,10 +128,10 @@ public class DBConnector {
 		for (Entry<String, String> entry : row.entrySet()) 
 			query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + ",";
 		query = query.substring(0, query.length()-1); 
-		query = query + ";";
 		try {
 			this.lastQuery = query;
-			statement.executeUpdate(query);
+			System.out.println(query);
+			statement.executeQuery(query);
 		} catch (SQLException e) {
 			System.out.println("Add entry failed");
 			e.printStackTrace();
@@ -146,13 +144,13 @@ public class DBConnector {
 			query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + ",";
 
 		query = query.substring(0, query.length()-1);
-		query = query + " WHERE " + pkey + "=" + "\"" + pval + "\";";
+		query = query + " WHERE " + pkey + "=" + "\"" + pval + "\"";
 		this.lastQuery = query;
 		statement.executeUpdate(query);
 	}
 
 	public boolean primaryKeyExists(String table, String colIndex, String pkey) throws SQLException {
-		String query = "SELECT * FROM " + table + " WHERE " + colIndex + "=" + "\"" + pkey + "\";";
+		String query = "SELECT * FROM " + table + " WHERE " + colIndex + "=" + "\"" + pkey + "\"";
 		this.queryDB(query);
 		// check if first row exists
 		return results.first();
@@ -184,12 +182,14 @@ public class DBConnector {
 
 	public void print(String[] columnIndexes) throws SQLException {
 
-		if (results.first()) {
+		if (results.first())
+		{
+			System.out.println("Query : " + this.lastQuery);
 			for(int i=0; i<columnIndexes.length; i++)
 				System.out.print(columnIndexes[i] + " | ");
 
 			System.out.println();
-			
+
 			while(results.next()){
 				for(int i=0; i<columnIndexes.length; i++)
 					System.out.print(results.getString(columnIndexes[i]) + " | ");
@@ -200,38 +200,7 @@ public class DBConnector {
 		else 
 			System.out.println("ResultSet is empty");
 	}
-	
-	public void printLastQuery() {
-		System.out.println("Query : " + this.lastQuery);
-	}
 
-	public ResultSet getEntry(String table, String columnIndex, String primaryKey) {
-		String query = "SELECT * FROM " + table + " WHERE " + columnIndex + "=" + "\"" + primaryKey + "\";";
-		return this.queryDB(query);
-	}
-	
-	public int getCount(String table, String columnIndex, String primaryKey) throws SQLException {
-		int count = 0;
-		
-		String query = "SELECT COUNT(" + columnIndex + ") AS res FROM " + table + " WHERE " + columnIndex + "=" + "\"" + primaryKey + "\";";
-		this.queryDB(query);
-		this.results.first();
-		count = this.results.getInt(1);
-		
-		return count;
-	}
-	
-	public int getNumberOfEntries(String table) throws SQLException {
-		int count = 0;
-		
-		String query = "SELECT COUNT(*)" + " FROM " + table;
-		this.queryDB(query);
-		this.results.first();
-		count = this.results.getInt(1);
-		
-		return count;
-	}
-	
 	// deprecated
 	public ResultSet readData(String table, String[] columnIndexes){
 		try{
