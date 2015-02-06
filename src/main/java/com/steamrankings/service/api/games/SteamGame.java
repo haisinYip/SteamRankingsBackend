@@ -31,7 +31,7 @@ public class SteamGame {
     }
 
     @JsonIgnore
-    public long getAppId() {
+    public int getAppId() {
         return appid;
     }
 
