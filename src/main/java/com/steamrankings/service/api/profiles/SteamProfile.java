@@ -2,11 +2,13 @@ package com.steamrankings.service.api.profiles;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
 import org.joda.time.DateTime;
 
 public class SteamProfile {
     final static public long BASE_ID_64 = 76561197960265728L;
-    final static public String STEAM_COMMUNITY_BASE_URL = "http://steamcommunity.com/id/";
+    final static public String STEAM_COMMUNITY_BASE_URL = "http://steamcommunity.com/profiles/";
 
     @JsonProperty("steam_id64")
     private long id64;
@@ -96,7 +98,7 @@ public class SteamProfile {
 
     @JsonIgnore
     public String getSteamCommunityUrl() {
-        return communityID != null ? STEAM_COMMUNITY_BASE_URL + communityID : STEAM_COMMUNITY_BASE_URL + Long.toString(id64);
+        return STEAM_COMMUNITY_BASE_URL + Long.toString(id64);
     }
 
     @JsonIgnore
@@ -117,5 +119,30 @@ public class SteamProfile {
     @JsonIgnore
     public String getIconAvatarUrl() {
         return iconAvatarUrl;
+    }
+
+    @Override
+    @JsonIgnore
+    public String toString() {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectWriter writer = mapper.writer();
+
+        try {
+            return writer.writeValueAsString(this);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @JsonIgnore
+    public String toPrettyString() {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
+
+        try {
+            return writer.writeValueAsString(this);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
