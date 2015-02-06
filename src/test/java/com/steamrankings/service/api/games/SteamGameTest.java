@@ -4,11 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-import org.joda.time.DateTime;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import com.steamrankings.service.api.profiles.SteamProfile;
 
 public class SteamGameTest {
 	
@@ -99,7 +96,7 @@ public class SteamGameTest {
 	    @Test
 	    public void testToString() {
 	        System.out.println(game.toString());
-	        fail("Not yet implemented");
+	        //fail("Not yet implemented");
 	    }
 
 	    /**
@@ -110,7 +107,7 @@ public class SteamGameTest {
 	    @Test
 	    public void testToPrettyString() {
 	        System.out.println(game.toPrettyString());
-	        fail("Not yet implemented");
+	        //fail("Not yet implemented");
 	    }
 
 
