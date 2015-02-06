@@ -107,6 +107,7 @@ public class DBConnector {
                     input.close();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    System.out.println(e.getMessage());
                 }
             }
         }
@@ -148,6 +149,7 @@ public class DBConnector {
         } catch (Exception ex) {
             System.out.println("Failed to burst add to database");
             ex.printStackTrace();
+            System.out.println(ex.getMessage());
         }
     }
 
@@ -165,11 +167,10 @@ public class DBConnector {
         } catch (SQLException e) {
             System.out.println("Add entry failed");
             e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
-    // unresolved bug
-    // query is correct and was manually tested
     public void addEntryToDB(String table, HashMap<String, String> row) {
         String query = "INSERT INTO " + table + " " + "SET ";
         for (Entry<String, String> entry : row.entrySet())
@@ -182,6 +183,7 @@ public class DBConnector {
         } catch (SQLException e) {
             System.out.println("Add entry failed");
             e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -224,6 +226,7 @@ public class DBConnector {
         } catch (Exception ex) {
             System.out.println("Failed to close connection");
             ex.printStackTrace();
+            System.out.println(ex.getMessage());
         }
     }
 
@@ -254,6 +257,21 @@ public class DBConnector {
         return this.queryDB(query);
     }
 
+    public int getCount(String table, HashMap<String,String> conditions, String columnIndex) throws SQLException {
+    	int count = 0;
+    	String query = "SELECT COUNT(" + columnIndex + ") AS res FROM " + table + " WHERE (";
+    	for (Entry<String, String> entry : conditions.entrySet()) {
+    		query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + " AND ";
+    	}
+    	query = query.substring(0, query.length() - 4);
+    	query = query + ")";
+        this.queryDB(query);
+        
+        this.results.first();
+        count = this.results.getInt(1);
+    	
+    	return count;
+    }
     public int getCount(String table, String columnIndex, String primaryKey) throws SQLException {
         int count = 0;
 
