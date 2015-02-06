@@ -14,40 +14,40 @@ import com.steamrankings.service.api.games.SteamGame;
 
 public class Leaderboards {
     public static List<RankEntryByAchievements> getRanksByAchievementTotal(int fromRank, int toRank) {
-    	
-   	 HttpClient client = new DefaultHttpClient();
-     HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/ranksbyachievments?fromrank=" + fromRank +"&torank=" + toRank);
-     HttpResponse response = null;
 
-     try {
-         response = client.execute(request);
-     } catch (Exception e) {
-         return null;
-     }
+        HttpClient client = new DefaultHttpClient();
+        HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/ranksbyachievments?fromrank=" + fromRank + "&torank=" + toRank);
+        HttpResponse response = null;
 
-     HttpEntity entity = response.getEntity();
-     InputStream is = null;
-     try {
-         is = entity.getContent();
-     } catch (Exception e) {
-         return null;
-     }
+        try {
+            response = client.execute(request);
+        } catch (Exception e) {
+            return null;
+        }
 
-     ObjectMapper mapper = new ObjectMapper();
-     RankEntryByAchievementListWrapper rankByAchievements = null;
+        HttpEntity entity = response.getEntity();
+        InputStream is = null;
+        try {
+            is = entity.getContent();
+        } catch (Exception e) {
+            return null;
+        }
 
-     try {
-    	 rankByAchievements = mapper.readValue(is, RankEntryByAchievementListWrapper.class);
-     } catch (Exception e) {
-         return null;
-     }
+        ObjectMapper mapper = new ObjectMapper();
+        RankEntryByAchievementListWrapper rankByAchievements = null;
 
-     try {
-         is.close();
-     } catch (Exception e) {
-         return null;
-     }
+        try {
+            rankByAchievements = mapper.readValue(is, RankEntryByAchievementListWrapper.class);
+        } catch (Exception e) {
+            return null;
+        }
 
-     return rankByAchievements.getRankEntryByAchievements();
+        try {
+            is.close();
+        } catch (Exception e) {
+            return null;
+        }
+
+        return rankByAchievements.getRankEntryByAchievements();
     }
 }
