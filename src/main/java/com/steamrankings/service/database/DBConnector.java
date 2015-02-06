@@ -267,11 +267,13 @@ public class DBConnector {
     	query = query + ")";
         this.queryDB(query);
         
-        this.results.first();
-        count = this.results.getInt(1);
+        if(this.results.first())
+        	count = this.results.getInt(1);
     	
     	return count;
     }
+    
+    // deprecated
     public int getCount(String table, String columnIndex, String primaryKey) throws SQLException {
         int count = 0;
 
