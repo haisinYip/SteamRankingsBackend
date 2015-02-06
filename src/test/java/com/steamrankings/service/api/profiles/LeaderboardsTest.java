@@ -9,6 +9,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.steamrankings.service.api.leaderboards.Leaderboards;
@@ -33,6 +34,7 @@ public class LeaderboardsTest {
 	    }
 	  
 	  @Test
+	  @Ignore
 	  public void testgetRanksByAchievementTotals() {
 		  HttpClient hc = createMock(HttpClient.class);
 		  HttpGet request = createMock(HttpGet.class);
