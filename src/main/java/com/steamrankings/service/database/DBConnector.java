@@ -257,9 +257,9 @@ public class DBConnector {
         return this.queryDB(query);
     }
 
-    public int getCount(String table, HashMap<String,String> conditions, String columnIndex) throws SQLException {
+    public int getCount(String table, HashMap<String,String> conditions) throws SQLException {
     	int count = 0;
-    	String query = "SELECT COUNT(" + columnIndex + ") AS res FROM " + table + " WHERE (";
+    	String query = "SELECT COUNT(*) AS res FROM " + table + " WHERE (";
     	for (Entry<String, String> entry : conditions.entrySet()) {
     		query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + " AND ";
     	}
