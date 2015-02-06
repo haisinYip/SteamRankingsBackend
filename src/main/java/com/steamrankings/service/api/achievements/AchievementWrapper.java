@@ -2,14 +2,17 @@ package com.steamrankings.service.api.achievements;
 
 import java.util.List;
 
-import com.steamrankings.service.api.games.SteamGame;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 public class AchievementWrapper {
-	
-	private List<SteamAchievement> achievements;                             
-    
-    public List<SteamAchievement> getAchievements() {                        
-        return this.achievements;                                               
-    }      
+
+    @JsonProperty("achievements")
+    private List<GameAchievement> achievements;
+
+    @JsonIgnore
+    public List<GameAchievement> getAchievements() {
+        return this.achievements;
+    }
 
 }
