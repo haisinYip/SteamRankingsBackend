@@ -19,7 +19,7 @@ public class Application {
 
         ServerSocket serverSocket;
         serverSocket = new ServerSocket(port);
-
+        System.out.println("Backend now running");
         while (true) {
             Socket clientSocket = serverSocket.accept();
             RequestHandler requestHandler;
