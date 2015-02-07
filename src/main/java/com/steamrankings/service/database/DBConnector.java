@@ -9,10 +9,10 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 public class DBConnector {
-	private Connection connection;
-	private Statement statement;
-	private ResultSet results;
-	private String lastQuery;
+	private Connection connection = null;
+	private Statement statement = null;
+	private ResultSet results = null;
+	private String lastQuery = null;
 
 	private String serverName = null;
 	private String port = null;
@@ -114,9 +114,6 @@ public class DBConnector {
 
 	public ResultSet queryDB(String query) {
 		try {
-			// sanitize query
-			query = query.replace("\"", "");
-			query = query.replace("'", "");
 			this.lastQuery = query;
 			results = statement.executeQuery(query);
 		} catch (Exception ex) {
@@ -131,26 +128,20 @@ public class DBConnector {
 
 	// make sure to set up data array matches schema
 	public void burstAddToDB(String table, String[][] data) {
+
 		String query = "";
 		try {
-			for (int i = 0; i < data.length; i++) {
+			for (int i=0; i<data.length; i++) {
 				String insert = "INSERT INTO " + table + " " + "VALUES (";
 				query = insert;
 				for (int j = 0; j < data[i].length; j++) {
-					if (j == data[i].length - 1) {
-						//query = query + "\"" + data[i][j] + "\")";
-
-						query = query + data[i][j] + ")";
-						break;
-					}
-					//query = query + "\"" + data[i][j] + "\"" + ",";
-					query = query + data[i][j] + ",";
-
+					// sanitize strings
+					data[i][j] = data[i][j].replace("\"", "");
+					data[i][j] = data[i][j].replace("'", "");
+					query = query + "\"" + data[i][j] + "\"" + ",";
 				}
-				query = query + ";";
-				// sanitize query
-				query = query.replace("\"", "");
-				query = query.replace("'", "");
+				query = query.substring(0, query.length() - 1);
+				query = query + ");";
 				this.lastQuery = query;
 				statement.executeUpdate(query);
 			}
@@ -163,16 +154,17 @@ public class DBConnector {
 
 	// make sure column count matches
 	public void addEntryToDB(String table, String[] row) {
-		String query = "INSERT INTO " + table + " " + "VALUES (";
-		for (int i = 0; i < row.length; i++)
-			//query = query + "\"" + row[i] + "\"" + ",";
-			query = query + row[i] + ",";
 
+		String query = "INSERT INTO " + table + " " + "VALUES (";
+		for (int i=0; i<row.length; i++) {
+			// sanitize strings
+			row[i] = row[i].replace("\"", "");
+			row[i] = row[i].replace("'", "");
+			query = query + "\"" + row[i] + "\"" + ",";
+		}
 		query = query.substring(0, query.length() - 1);
 		query = query + ");";
-		// sanitize query
-		query = query.replace("\"", "");
-		query = query.replace("'", "");
+
 		try {
 			this.lastQuery = query;
 			statement.executeUpdate(query);
@@ -184,15 +176,18 @@ public class DBConnector {
 	}
 
 	public void addEntryToDB(String table, HashMap<String, String> row) {
+
 		String query = "INSERT INTO " + table + " " + "SET ";
-		for (Entry<String, String> entry : row.entrySet())
-			//query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + ",";
-			query = query + entry.getKey() + "=" + entry.getValue() + ",";
+		for (Entry<String, String> entry : row.entrySet()) {
+			// sanitize strings
+			String entryVal = entry.getValue();
+			entryVal = entryVal.replace("\"", "");
+			entryVal = entryVal.replace("'", "");
+			query = query + entry.getKey() + "=" + "\"" + entryVal + "\"" + ",";
+		}
 		query = query.substring(0, query.length() - 1);
 		query = query + ";";
-		// sanitize query
-		query = query.replace("\"", "");
-		query = query.replace("'", "");
+
 		try {
 			this.lastQuery = query;
 			statement.executeUpdate(query);
@@ -204,24 +199,31 @@ public class DBConnector {
 	}
 
 	public void updateEntry(String table, HashMap<String, String> list, String pkey, String pval) throws SQLException {
-		String query = "UPDATE " + table + " SET ";
-		for (Entry<String, String> entry : list.entrySet())
-			//query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + ",";
-			query = query + entry.getKey() + "=" + entry.getValue() + ",";
 
+		String query = "UPDATE " + table + " SET ";
+		for (Entry<String, String> entry : list.entrySet()) {
+			// sanitize strings
+			String entryVal = entry.getValue();
+			entryVal = entryVal.replace("\"", "");
+			entryVal = entryVal.replace("'", "");
+			query = query + entry.getKey() + "=" + "\"" + entryVal + "\"" + ",";
+		}
 		query = query.substring(0, query.length() - 1);
-		//query = query + " WHERE " + pkey + "=" + "\"" + pval + "\";";
-		query = query + " WHERE " + pkey + "=" + pval + ";";
-		// sanitize query
-		query = query.replace("\"", "");
-		query = query.replace("'", "");
+		// sanitize strings
+		pval = pval.replace("\"", "");
+		pval = pval.replace("'", "");
+		query = query + " WHERE " + pkey + "=" + "\"" + pval + "\";";
+
 		this.lastQuery = query;
+		System.out.println(query);
 		statement.executeUpdate(query);
 	}
 
 	public boolean primaryKeyExists(String table, String colIndex, String pkey) throws SQLException {
-		//String query = "SELECT * FROM " + table + " WHERE " + colIndex + "=" + "\"" + pkey + "\";";
-		String query = "SELECT * FROM " + table + " WHERE " + colIndex + "=" + pkey + ";";
+		// sanitize strings
+		pkey = pkey.replace("\"", "");
+		pkey = pkey.replace("'", "");
+		String query = "SELECT * FROM " + table + " WHERE " + colIndex + "=" + "\"" + pkey + "\";";
 		this.queryDB(query);
 		// check if first row exists
 		return results.first();
@@ -238,25 +240,16 @@ public class DBConnector {
 		return this.queryDB(query);
 	}
 
-	public void closeConnection() {
-		try {
-			if (connection != null) {
-				connection.close();
-				statement.close();
-				results.close();
-			}
-		} catch (Exception ex) {
-			System.out.println("Failed to close connection");
-			ex.printStackTrace();
-			System.out.println(ex.getMessage());
-		}
-	}
+	public void printLastQueryContent(String[] columnIndexes) throws SQLException {
 
-	public void print(String[] columnIndexes) throws SQLException {
-
-		if (results.first()) {
+		if (results!=null && results.first()) {
 			for (int i = 0; i < columnIndexes.length; i++)
 				System.out.print(columnIndexes[i] + " | ");
+
+			System.out.println();
+
+			for (int i = 0; i < columnIndexes.length; i++)
+				System.out.print(results.getString(columnIndexes[i]) + " | ");
 
 			System.out.println();
 
@@ -275,28 +268,59 @@ public class DBConnector {
 	}
 
 	public ResultSet getEntry(String table, String columnIndex, String primaryKey) {
-		//String query = "SELECT * FROM " + table + " WHERE " + columnIndex + "=" + "\"" + primaryKey + "\";";
-		String query = "SELECT * FROM " + table + " WHERE " + columnIndex + "=" + primaryKey + ";";
+		// sanitize strings
+		primaryKey = primaryKey.replace("\"", "");
+		primaryKey = primaryKey.replace("'", "");
+		String query = "SELECT * FROM " + table + " WHERE " + columnIndex + "=" + "\"" + primaryKey + "\";";
 		return this.queryDB(query);
 	}
 
 	public int getCount(String table, HashMap<String,String> conditions) throws SQLException {
+		
 		int count = 0;
 		String query = "SELECT COUNT(*) AS res FROM " + table + " WHERE (";
 		for (Entry<String, String> entry : conditions.entrySet()) {
-			//query = query + entry.getKey() + "=" + "\"" + entry.getValue() + "\"" + " AND ";
-			query = query + entry.getKey() + "=" + entry.getValue() + " AND ";
+			// sanitize strings
+			String entryVal = entry.getValue();
+			entryVal = entryVal.replace("\"", "");
+			entryVal = entryVal.replace("'", "");
+			query = query + entry.getKey() + "=" + "\"" + entryVal + "\"" + " AND ";
 		}
 		query = query.substring(0, query.length() - 4);
 		query = query + ")";
 		this.queryDB(query);
 
-		if(this.results.first())
+		if(this.results!=null && this.results.first())
 			count = this.results.getInt(1);
 
 		return count;
 	}
 
+	public int getNumberOfEntries(String table) throws SQLException {
+		
+		int count = 0;
+
+		String query = "SELECT COUNT(*)" + " FROM " + table;
+		this.queryDB(query);
+		if(this.results!=null && this.results.first())
+			count = this.results.getInt(1);
+
+		return count;
+	}
+
+	public void closeConnection() {
+		try {
+			if (connection != null) {
+				connection.close();
+				statement.close();
+				results.close();
+			}
+		} catch (Exception ex) {
+			System.out.println("Failed to close connection");
+			ex.printStackTrace();
+			System.out.println(ex.getMessage());
+		}
+	}
 	// deprecated
 	public int getCount(String table, String columnIndex, String primaryKey) throws SQLException {
 		int count = 0;
@@ -305,17 +329,6 @@ public class DBConnector {
 		this.queryDB(query);
 		this.results.first();
 		count = this.results.getInt(1);
-
-		return count;
-	}
-
-	public int getNumberOfEntries(String table) throws SQLException {
-		int count = 0;
-
-		String query = "SELECT COUNT(*)" + " FROM " + table;
-		this.queryDB(query);
-		if (this.results.first())
-			count = this.results.getInt(1);
 
 		return count;
 	}
