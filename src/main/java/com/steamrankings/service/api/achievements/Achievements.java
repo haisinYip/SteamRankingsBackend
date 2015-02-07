@@ -12,7 +12,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 public class Achievements {
     public static List<GameAchievement> getGameAchievements(int appId) {
         HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/achievements?appid=" + appId);
+        HttpGet request = new HttpGet("http://localhost:6789/achievements?appid=" + appId);
         HttpResponse response = null;
 
         try {
@@ -30,7 +30,7 @@ public class Achievements {
 
     public static List<GameAchievement> getUnlockedAchievements(String steamID64) {
         HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/achievements?id=" + steamID64);
+        HttpGet request = new HttpGet("http://localhost:6789/achievements?id=" + steamID64);
         HttpResponse response = null;
 
         try {
@@ -48,7 +48,7 @@ public class Achievements {
 
     public static List<GameAchievement> getUnlockedAchievements(String steamID64, int appId) {
         HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/achievements?id=" + steamID64 + "&appid=" + appId);
+        HttpGet request = new HttpGet("http://localhost:6789/achievements?id=" + steamID64 + "&appid=" + appId);
         HttpResponse response = null;
 
         try {

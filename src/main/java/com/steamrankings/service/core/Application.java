@@ -7,6 +7,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Properties;
 
+import com.steamrankings.service.core.RequestHandler;
+
 public class Application {
     final public static Properties CONFIG = new Properties();
 

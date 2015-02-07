@@ -13,7 +13,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 public class Games {
     public static SteamGame getSteamGame(int appId) {
         HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/gamestats?appId=" + appId);
+        HttpGet request = new HttpGet("http://localhost:6789/gamestats?appId=" + appId);
         HttpResponse response = null;
 
         try {

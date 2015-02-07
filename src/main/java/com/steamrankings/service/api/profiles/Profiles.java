@@ -29,7 +29,7 @@ public class Profiles {
 
     public static List<SteamProfile> getSteamFriends(String steamID64) {
         HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/friends?id=" + steamID64);
+        HttpGet request = new HttpGet("http://localhost:6789/friends?id=" + steamID64);
         HttpResponse response = null;
 
         try {
