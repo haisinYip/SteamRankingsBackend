@@ -25,7 +25,9 @@ public class Application {
             RequestHandler requestHandler;
 
             try {
+            	System.out.println("New request received");
                 requestHandler = new RequestHandler(clientSocket);
+                
             } catch (Exception e) {
                 break;
             }
