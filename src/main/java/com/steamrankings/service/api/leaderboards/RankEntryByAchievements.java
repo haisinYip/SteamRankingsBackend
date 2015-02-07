@@ -24,6 +24,13 @@ public class RankEntryByAchievements extends RankEntry {
         this.countryCode = countryCode;
     }
 
+    public RankEntryByAchievements(int rankNumber, long id64, String name, int achievementsTotal, String completitionRate, String countryCode) {
+        super(rankNumber, id64, name);
+        this.achievementsTotal = achievementsTotal;
+        this.completionRate = completitionRate;
+        this.countryCode = countryCode;
+    }
+
     @JsonIgnore
     public int getAchievementsTotal() {
         return this.achievementsTotal;
