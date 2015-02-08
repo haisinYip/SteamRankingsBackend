@@ -356,7 +356,6 @@ public class RequestHandler implements Runnable {
                     profileAchievementCount.getValue(), "0%", profileAchievementCount.getKey().getString("location_country")));
         }
         Collections.sort(rankEntries, new Comparator<RankEntryByAchievements>(){
-			@Override
 			public int compare(RankEntryByAchievements o1,RankEntryByAchievements o2) {
 				return o2.getAchievementsTotal() - o1.getAchievementsTotal();
 			}
