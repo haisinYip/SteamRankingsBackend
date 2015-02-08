@@ -360,9 +360,11 @@ public class RequestHandler implements Runnable {
 			public int compare(RankEntryByAchievements o1,RankEntryByAchievements o2) {
 				return o2.getAchievementsTotal() - o1.getAchievementsTotal();
 			}
-        	
         });
-        
+        for(RankEntryByAchievements rank : rankEntries){
+        	rankEntries.get(i-1).setRankNumber(i);
+        	i++;
+        }
         return rankEntries;
     }
 
