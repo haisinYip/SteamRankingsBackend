@@ -46,6 +46,16 @@ public class GameAchievement {
         this.unlockedTimestamp = new DateTime(unlockedTimestamp);
     }
 
+    public GameAchievement(int appId, String achievementId, String name, String description, String unlockedIconUrl, String lockedIconUrl) {
+        this.appId = appId;
+        this.achievementId = achievementId;
+        this.name = name;
+        this.description = description;
+        this.unlockedIconUrl = unlockedIconUrl;
+        this.lockedIconUrl = lockedIconUrl;
+        this.unlockedTimestamp = null;
+    }
+
     @JsonIgnore
     public int getAppId() {
         return this.appId;

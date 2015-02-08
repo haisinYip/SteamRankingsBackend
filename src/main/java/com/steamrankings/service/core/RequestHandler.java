@@ -5,11 +5,10 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
@@ -23,7 +22,6 @@ import com.steamrankings.service.api.achievements.GameAchievement;
 import com.steamrankings.service.api.games.SteamGame;
 import com.steamrankings.service.api.leaderboards.RankEntryByAchievements;
 import com.steamrankings.service.api.profiles.SteamProfile;
-import com.steamrankings.service.database.DBConnector;
 import com.steamrankings.service.models.Achievement;
 import com.steamrankings.service.models.Game;
 import com.steamrankings.service.models.Profile;
@@ -34,18 +32,26 @@ import com.steamrankings.service.steam.SteamDataDatabase;
 import com.steamrankings.service.steam.SteamDataExtractor;
 
 public class RequestHandler implements Runnable {
-    final private String HTTP_REQUEST_GET = "GET";
-    final private String REST_API_INTERFACE_PROFILES = "/profile";
-    final private static String PARAMETERS_USER_ID = "id";
-    final private static String CRLF = "\r\n";
+    private static final Logger logger = Logger.getLogger(RequestHandler.class.getName());
+
+    private static final String CRLF = "\r\n";
+    private static final String HTTP_REQUEST_GET = "GET";
+    private static final String REST_API_INTERFACE_PROFILES = "/profile";
+    private static final String REST_API_INTERFACE_LEADERBOARDS = "/leaderboards";
+    private static final String REST_API_INTERFACE_GAMES = "/games";
+    private static final String REST_API_INTERFACE_ACHIEVEMENTS = "/achievements";
+
+    private static final String PARAMETERS_USER_ID = "id";
+    private static final String PARAMETERS_APP_ID = "appId";
+    private static final String PARAMETER_LEADERBOARD_TYPE = "type";
+    private static final String PARAMETER_TO_RANK = "to";
+    private static final String PARAMETER_FROM_RANK = "from";
+
+    private static final String API_ERROR_BAD_ARGUMENTS_CODE = "1000";
+    private static final String API_ERROR_STEAM_USER_DOES_NOT_EXIST = "2000";
+    private static final String API_ERROR_STEAM_ID_INVALID = "3000";
 
     private Socket socket;
-    private static final Logger logger = Logger.getLogger(RequestHandler.class.getName());
-    private static final Object PARAMETER_LEADERBOARD_TYPE = "type";
-    private static final Object PARAMETER_TO_RANK = "to";
-    private static final Object PARAMETER_FROM_RANK = "from";
-    private static final Object REST_API_INTERFACE_LEADERBOARDS = "/leaderboards";
-    private static final Object REST_API_INTERFACE_GAMES = "/gamesowned";
 
     public RequestHandler(Socket socket) throws Exception {
         this.socket = socket;
@@ -84,7 +90,10 @@ public class RequestHandler implements Runnable {
         }
 
         if (httpRequestType.equals(HTTP_REQUEST_GET)) {
+            Base.open("com.mysql.jdbc.Driver", "jdbc:mysql://" + Application.CONFIG.getProperty("server") + ":" + Application.CONFIG.getProperty("mysql_port") + "/" + "steamrankings_test_db",
+                    Application.CONFIG.getProperty("mysql_username"), Application.CONFIG.getProperty("mysql_password"));
             processGet(restInterface, parameters);
+            Base.close();
         }
     }
 
@@ -95,37 +104,33 @@ public class RequestHandler implements Runnable {
             processGetLeaderboards(parameters);
         } else if (restInterface.equals(REST_API_INTERFACE_GAMES)) {
             processGetGames(parameters);
+        } else if (restInterface.equals(REST_API_INTERFACE_ACHIEVEMENTS)) {
+            processGetAchievements(parameters);
         }
     }
 
     private void processGetProfiles(HashMap<String, String> parameters) throws IOException {
         // Check to see if parameters are correct
         if (parameters == null || parameters.isEmpty() || !parameters.containsKey(PARAMETERS_USER_ID)) {
-            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: " + "text/plain" + CRLF, "Invalid parameters.");
+            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
             return;
         }
 
         long steamId = SteamDataDatabase.convertToSteamId64(parameters.get(PARAMETERS_USER_ID));
         if (steamId == -1) {
-            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: " + "text/plain" + CRLF, "Invalid steam ID.");
+            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: " + "text/plain" + CRLF, API_ERROR_STEAM_ID_INVALID);
             return;
         }
 
         SteamApi steamApi = new SteamApi(Application.CONFIG.getProperty("apikey"));
         SteamDataExtractor steamDataExtractor = new SteamDataExtractor(steamApi);
 
-        String serverName = Application.CONFIG.getProperty("server");
-        String mport = Application.CONFIG.getProperty("mysql_port");
-        String username = Application.CONFIG.getProperty("mysql_username");
-        String password = Application.CONFIG.getProperty("mysql_password");
-
-        Base.open("com.mysql.jdbc.Driver", "jdbc:mysql://" + serverName + ":" + mport + "/" + "steamrankings_test_db", username, password);
         Profile profile = Profile.findById((int) (steamId - SteamProfile.BASE_ID_64));
         SteamProfile steamProfile = null;
         if (profile == null) {
             steamProfile = steamDataExtractor.getSteamProfile(steamId);
             if (steamProfile == null) {
-                sendResponse(socket, "HTTP/1.1 404" + CRLF, "Content-type: " + "text/plain" + CRLF, "A Steam user account with the id" + Long.toString(steamId) + "does not exist.");
+                sendResponse(socket, "HTTP/1.1 404" + CRLF, "Content-type: " + "text/plain" + CRLF, API_ERROR_STEAM_USER_DOES_NOT_EXIST);
                 Base.close();
                 return;
             } else {
@@ -215,51 +220,93 @@ public class RequestHandler implements Runnable {
     private void processGetGames(HashMap<String, String> parameters) throws IOException {
         // Check to see if parameters are correct
         if (parameters == null || parameters.isEmpty()) {
-            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : " + "text/plain" + CRLF, "Invalid parameters");
+            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
             return;
         }
 
-        DBConnector db = new DBConnector();
-
-        if (parameters.containsKey("id")) {
-            String sql = "SELECT games_id FROM profiles_has_games WHERE profiles_id=" + Long.toString(Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64);
-            ResultSet results = db.queryDB(sql);
-            ArrayList<Integer> gameIds = new ArrayList<Integer>();
-            try {
-                results.first();
-                do {
-                    gameIds.add(results.getInt(1));
-                    results.next();
-                } while (!results.isAfterLast());
-            } catch (SQLException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-
-            results = db.getTable("games");
-            ArrayList<SteamGame> games = new ArrayList<SteamGame>();
-            try {
-                results.first();
-                do {
-                    System.out.println(results.getInt("id"));
-                    if (gameIds.contains(results.getInt("id"))) {
-                        games.add(new SteamGame(results.getInt("id"), results.getString("icon_url"), results.getString("logo_url"), results.getString("name")));
+        if (parameters.containsKey(PARAMETERS_USER_ID)) {
+            List<ProfilesGames> list = ProfilesGames.where("profile_id = ?", (int) (Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64));
+            ArrayList<ProfilesGames> profilesGames = new ArrayList<ProfilesGames>(list);
+            if (profilesGames != null) {
+                ArrayList<SteamGame> steamGames = new ArrayList<SteamGame>();
+                for (ProfilesGames profilesGame : profilesGames) {
+                    Game game = Game.findById(profilesGame.get("game_id"));
+                    if (game != null) {
+                        steamGames.add(new SteamGame(game.getInteger("id"), game.getString("icon_url"), game.getString("logo_url"), game.getString("name")));
                     }
-                    results.next();
-                } while (!results.isAfterLast());
-            } catch (SQLException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                }
+                ObjectMapper mapper = new ObjectMapper();
+                sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json" + CRLF, mapper.writeValueAsString(steamGames));
+                return;
             }
-            db.closeConnection();
-            ObjectMapper mapper = new ObjectMapper();
-            String json = mapper.writeValueAsString(games);
-            // JSONArray gamesJson = new JSONArray(games);
-            sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json" + CRLF, json);
-        } else if (parameters.containsKey("appId")) {
-
         } else {
+            List<Game> list = Game.findAll();
+            ArrayList<Game> games = new ArrayList<Game>(list);
+            if (games != null) {
+                ArrayList<SteamGame> steamGames = new ArrayList<SteamGame>();
+                for (Game game : games) {
+                    steamGames.add(new SteamGame(game.getInteger("id"), game.getString("icon_url"), game.getString("logo_url"), game.getString("name")));
+                }
+                ObjectMapper mapper = new ObjectMapper();
+                sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json" + CRLF, mapper.writeValueAsString(steamGames));
+                return;
+            }
+        }
+    }
 
+    private void processGetAchievements(HashMap<String, String> parameters) throws IOException {
+        // Check to see if parameters are correct
+        if (parameters == null || parameters.isEmpty()) {
+            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
+            return;
+        }
+
+        if (parameters.containsKey(PARAMETERS_USER_ID) && parameters.containsKey(PARAMETERS_APP_ID)) {
+            List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ? AND game_id = ?", (int) (Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64),
+                    Integer.parseInt(parameters.get(PARAMETERS_APP_ID)));
+            ArrayList<ProfilesAchievements> profilesAchievements = new ArrayList<ProfilesAchievements>(list);
+            if (profilesAchievements != null) {
+                ArrayList<GameAchievement> gameAchievements = new ArrayList<GameAchievement>();
+                for (ProfilesAchievements profilesAchievement : profilesAchievements) {
+                    Achievement achievement = Achievement.findFirst("id = ? AND game_id = ?", profilesAchievement.getInteger("achievement_id"), profilesAchievement.getInteger("game_id"));
+                    if (achievement != null) {
+                        gameAchievements.add(new GameAchievement(achievement.getInteger("game_id"), achievement.getString("id"), achievement.getString("name"), achievement.getString("description"),
+                                achievement.getString("unlocked_icon_url"), achievement.getString("locked_icon_url"), new DateTime(profilesAchievement.getTimestamp("unlocked_timestamp").getTime())));
+                    }
+                }
+                ObjectMapper mapper = new ObjectMapper();
+                sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json" + CRLF, mapper.writeValueAsString(gameAchievements));
+                return;
+            }
+        } else if (parameters.containsKey(PARAMETERS_USER_ID)) {
+            List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ?", (int) (Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64));
+            ArrayList<ProfilesAchievements> profilesAchievements = new ArrayList<ProfilesAchievements>(list);
+            if (profilesAchievements != null) {
+                ArrayList<GameAchievement> gameAchievements = new ArrayList<GameAchievement>();
+                for (ProfilesAchievements profilesAchievement : profilesAchievements) {
+                    Achievement achievement = Achievement.findFirst("id = ? AND game_id = ?", profilesAchievement.getInteger("achievement_id"), profilesAchievement.getInteger("game_id"));
+                    if (achievement != null) {
+                        gameAchievements.add(new GameAchievement(achievement.getInteger("game_id"), achievement.getString("id"), achievement.getString("name"), achievement.getString("description"),
+                                achievement.getString("unlocked_icon_url"), achievement.getString("locked_icon_url"), new DateTime(profilesAchievement.getTimestamp("unlocked_timestamp").getTime())));
+                    }
+                }
+                ObjectMapper mapper = new ObjectMapper();
+                sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json" + CRLF, mapper.writeValueAsString(gameAchievements));
+                return;
+            }
+        } else if (parameters.containsKey(PARAMETERS_APP_ID)) {
+            List<Achievement> list = ProfilesAchievements.where("game_id = ?", Integer.parseInt(parameters.get(PARAMETERS_APP_ID)));
+            ArrayList<Achievement> achievements = new ArrayList<Achievement>(list);
+            ArrayList<GameAchievement> gameAchievements = new ArrayList<GameAchievement>();
+            for (Achievement achievement : achievements) {
+                gameAchievements.add(new GameAchievement(achievement.getInteger("game_id"), achievement.getString("id"), achievement.getString("name"), achievement.getString("description"),
+                        achievement.getString("unlocked_icon_url"), achievement.getString("locked_icon_url")));
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json" + CRLF, mapper.writeValueAsString(gameAchievements));
+            return;
+        } else {
+            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
         }
     }
 
@@ -272,21 +319,20 @@ public class RequestHandler implements Runnable {
         }
 
         if (parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("achievements")) {
-            DBConnector db = new DBConnector();
-            ArrayList<RankEntryByAchievements> leaderboard = processGetAchievementLeaderboard(db, parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK));
+            ArrayList<RankEntryByAchievements> leaderboard = processGetAchievementLeaderboard(parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK));
             if (leaderboard == null) {
                 sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: " + "text/plain" + CRLF, "Something went wrong");
-                db.closeConnection();
                 return;
             } else {
                 sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json" + CRLF, leaderboard.toString());
-                db.closeConnection();
                 return;
             }
         }
+
+        sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
     }
 
-    private ArrayList<RankEntryByAchievements> processGetAchievementLeaderboard(DBConnector db, String string, String string2) {
+    private ArrayList<RankEntryByAchievements> processGetAchievementLeaderboard(String toRank, String fromRank) {
         return null;
     }
 
