@@ -19,6 +19,18 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.5</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.javalite</groupId>
+			<artifactId>activejdbc</artifactId>
+			<version>1.4.10</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-compress</artifactId>
 			<version>1.5</version>
@@ -78,31 +90,13 @@
 		<start-class>com.steamrankings.website.core.Application</start-class>
 	</properties>
 
-	
-	<!-- Covert to modules;
-	see http://books.sonatype.com/mvnex-book/reference/multimodule-sect-simple-parent.html -->
-	<!-- <profiles>
-		<profile>
-			<id>api</id>
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-jar-plugin</artifactId>
-						<configuration>
-							<classifier>api</classifier>
-							<excludes>
-								<exclude>**/core/*</exclude>
-                                <exclude>**/steam/*</exclude>
-                                <exclude>**/database/*</exclude>
-							</excludes>
-						</configuration>
-					</plugin>
-				</plugins>
 
-			</build>
-		</profile>
-	</profiles> -->
-	
+	<!-- Covert to modules; see http://books.sonatype.com/mvnex-book/reference/multimodule-sect-simple-parent.html -->
+	<!-- <profiles> <profile> <id>api</id> <build> <plugins> <plugin> <artifactId>maven-jar-plugin</artifactId> 
+		<configuration> <classifier>api</classifier> <excludes> <exclude>**/core/*</exclude> 
+		<exclude>**/steam/*</exclude> <exclude>**/database/*</exclude> </excludes> 
+		</configuration> </plugin> </plugins> </build> </profile> </profiles> -->
+
 	<build>
 		<plugins>
 			<plugin>
@@ -121,22 +115,36 @@
 					<finalName>standalone-${artifactId}-${version}</finalName>
 				</configuration>
 			</plugin>
-		
+
+			<plugin>
+				<groupId>org.javalite</groupId>
+				<artifactId>activejdbc-instrumentation</artifactId>
+				<version>1.4.10</version>
+				<executions>
+					<execution>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>instrument</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 			<plugin>
 				<!-- Build an executable JAR -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>2.5</version>
 				<configuration>
-				<archive>
-				  <manifest>
-					<addClasspath>true</addClasspath>
-					<mainClass>com.steamrankings.service.core.Application</mainClass>
-				  </manifest>
-				</archive>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>com.steamrankings.service.core.Application</mainClass>
+						</manifest>
+					</archive>
 				</configuration>
 			</plugin>
-	</plugins>
+		</plugins>
 	</build>
 
 </project>
