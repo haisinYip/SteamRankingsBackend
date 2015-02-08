@@ -12,39 +12,27 @@ import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 
-import com.steamrankings.service.client.SteamRankingsClient;
+import com.steamrankings.service.api.client.SteamRankingsClient;
+
 
 public class Profiles {
-    public static HttpEntity getSteamUser(String steamID64, SteamRankingsClient client) {
+    public static SteamProfile getSteamUser(String steamID64, SteamRankingsClient client) {
     	
     	try
     	{
-    	HttpEntity response=client.excecuteRequest("profile?id=" + steamID64);
-    	String data=EntityUtils.toString(response);
-//        HttpClient client = new DefaultHttpClient();
-//        HttpGet request = new HttpGet("http://localhost:6789/profile?id=" + steamID64);
-//        HttpResponse response = null;
-//
-//        try {
-//            response = client.execute(request);
-            System.out.println(data);
-            //ObjectMapper mapper = new ObjectMapper();
-            //return mapper.readValue(data, SteamProfile.class);
-            return response;
+    	String data=client.excecuteRequest("profile?id=" + steamID64);
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(data, SteamProfile.class);
         } catch (Exception e) {
         	System.out.println("Id not found");
             return null;
         }
     }
 
-    public static List<SteamProfile> getSteamFriends(String steamID64) {
-        HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://localhost:6789/friends?id=" + steamID64);
-        HttpResponse response = null;
+    public static List<SteamProfile> getSteamFriends(String steamID64, SteamRankingsClient client) {
 
         try {
-            response = client.execute(request);
-            String data = EntityUtils.toString(response.getEntity());
+        	String data=client.excecuteRequest("friends?id=" + steamID64);
 
             JSONArray jsonArray = new JSONArray(data);
             ObjectMapper mapper = new ObjectMapper();
