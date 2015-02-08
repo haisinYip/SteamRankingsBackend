@@ -1,14 +1,24 @@
 package com.steamrankings.service.steam;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.text.Element;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 import com.steamrankings.service.api.achievements.GameAchievement;
 import com.steamrankings.service.api.games.SteamGame;
@@ -123,12 +133,30 @@ public class SteamDataExtractor {
         return SteamDataExtractor.STEAM_MEDIA_URL + Integer.toString(appId) + "/" + imageHash + ".jpg";
     }
 
-    static String getCommunityIdFromUrl(String url) {
+    private static String getCommunityIdFromUrl(String url) {
         String[] urlContents = url.split("/");
         if (urlContents.length <= 0) {
             return "";
         } else {
             return urlContents[4];
         }
+    }
+    
+    public static String getSteamId64FromXML(String xml) {
+    	String steamID64 = "";
+        try {
+        	DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			InputSource is = new InputSource(new StringReader(xml));
+			Document doc = builder.parse(is);
+			doc.getDocumentElement().normalize();
+			NodeList nodes = doc.getElementsByTagName("steamID64");
+			Node steamid64Node = nodes.item(0).getFirstChild();
+			steamID64 = steamid64Node.getNodeValue(); 
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return steamID64;
     }
 }

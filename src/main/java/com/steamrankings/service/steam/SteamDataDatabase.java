@@ -17,7 +17,7 @@ import com.steamrankings.service.database.DBConnector;
 
 public class SteamDataDatabase {
 
-    final static long INVALID_STEAMID_64 = Long.MIN_VALUE;
+    final static long INVALID_STEAMID_64 = -1;
 
     // Get steam profile from database
     public static SteamProfile getProfileFromDatabase(int userIds, DBConnector db) {
@@ -109,29 +109,14 @@ public class SteamDataDatabase {
         db.burstAddToDB(db.TABLE_NAME_PROFILES_ACHIEVEMENTS, profilesAchievementsTableData);
     }
 
-    public static long convertToSteamId64(String url) {
+    // expects either communityid or the steamid64 itself
+    public static long convertToSteamId64(String idToConvert) {
+    	long steamid64 = INVALID_STEAMID_64;
 	    try {
-	        return Long.parseLong(url);
-	    } catch (Exception e) {
-	        return -1;
+	        return Long.parseLong(idToConvert);
+	    } catch (NumberFormatException e) {
+	    	steamid64 = Long.parseLong(SteamDataExtractor.getSteamId64FromXML(SteamApi.getXML(idToConvert)));
+	    	return steamid64;
 	    }
-//		String[] urlContents = url.split("/");
-//		long steamid64 = INVALID_STEAMID_64;
-//
-//		if (urlContents.length > 0) {
-//			SteamApi steamApi = new SteamApi(Application.CONFIG.getProperty("apikey"));
-//			SteamDataExtractor steamDataExtractor = new SteamDataExtractor(steamApi);
-//			try {
-//				steamid64 = Long.parseLong(urlContents[4]);
-//				if (steamDataExtractor.getSteamProfile(steamid64) != null)
-//					return (steamid64 - SteamProfile.BASE_ID_64);
-//			} catch (NumberFormatException nfe) {
-//				String communityid = SteamDataExtractor.getCommunityIdFromUrl(url);
-////				if (communityid!=null && communityid.equals(urlContents[4]))
-////					return convertCommunityIdToSteamId(communityid);	
-//			}
-//		}
-///*
-//		return steamid64;
 	}
 }
