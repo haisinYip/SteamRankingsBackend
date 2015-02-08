@@ -123,7 +123,7 @@ public class SteamDataExtractor {
         return SteamDataExtractor.STEAM_MEDIA_URL + Integer.toString(appId) + "/" + imageHash + ".jpg";
     }
 
-    private static String getCommunityIdFromUrl(String url) {
+    static String getCommunityIdFromUrl(String url) {
         String[] urlContents = url.split("/");
         if (urlContents.length <= 0) {
             return "";

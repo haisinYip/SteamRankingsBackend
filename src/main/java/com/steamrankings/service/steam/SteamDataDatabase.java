@@ -12,105 +12,121 @@ import org.joda.time.DateTime;
 import com.steamrankings.service.api.achievements.GameAchievement;
 import com.steamrankings.service.api.games.SteamGame;
 import com.steamrankings.service.api.profiles.SteamProfile;
+import com.steamrankings.service.core.Application;
 import com.steamrankings.service.database.DBConnector;
 
 public class SteamDataDatabase {
 
-    // Get steam profile from database
-    public static SteamProfile getProfileFromDatabase(int userIds, DBConnector db) {
-        String[] columns = { db.TABLE_PROFILES_COL_ID_LABEL, db.TABLE_PROFILES_COL_COMMUNITY_ID_LABEL, db.TABLE_PROFILES_COL_PERSONA_NAME_LABEL, db.TABLE_PROFILES_COL_REAL_NAME_LABEL,
-                db.TABLE_PROFILES_COL_LOC_COUNTRY_LABEL, db.TABLE_PROFILES_COL_LOC_PROVINCE_LABEL, db.TABLE_PROFILES_COL_LOC_CITY_LABEL, db.TABLE_PROFILES_COL_AVATAR_FULL_URL_LABEL,
-                db.TABLE_PROFILES_COL_AVATAR_MEDIUM_URL_LABEL, db.TABLE_PROFILES_COL_AVATAR_ICON_URL_LABEL };
+	final static long INVALID_STEAMID_64 = Long.MIN_VALUE; 
 
-        SteamProfile profile = null;
-        ResultSet results = db.readData(db.TABLE_NAME_PROFILES, columns);
+	// Get steam profile from database
+	public static SteamProfile getProfileFromDatabase(int userIds, DBConnector db) {
+		String[] columns = { db.TABLE_PROFILES_COL_ID_LABEL, db.TABLE_PROFILES_COL_COMMUNITY_ID_LABEL, db.TABLE_PROFILES_COL_PERSONA_NAME_LABEL, db.TABLE_PROFILES_COL_REAL_NAME_LABEL,
+				db.TABLE_PROFILES_COL_LOC_COUNTRY_LABEL, db.TABLE_PROFILES_COL_LOC_PROVINCE_LABEL, db.TABLE_PROFILES_COL_LOC_CITY_LABEL, db.TABLE_PROFILES_COL_AVATAR_FULL_URL_LABEL,
+				db.TABLE_PROFILES_COL_AVATAR_MEDIUM_URL_LABEL, db.TABLE_PROFILES_COL_AVATAR_ICON_URL_LABEL };
 
-        try {
-            if (results.first() == false) {
-                return null;
-            }
-            while (!results.isAfterLast()) {
-                if (userIds == results.getInt(db.TABLE_PROFILES_COL_ID_INDEX)) {
-                    profile = new SteamProfile(results.getInt(db.TABLE_PROFILES_COL_ID_INDEX) + SteamProfile.BASE_ID_64, results.getString(db.TABLE_PROFILES_COL_COMMUNITY_ID_INDEX),
-                            results.getString(db.TABLE_PROFILES_COL_PERSONA_NAME_INDEX), results.getString(db.TABLE_PROFILES_COL_REAL_NAME_INDEX),
-                            results.getString(db.TABLE_PROFILES_COL_LOC_COUNTRY_INDEX), results.getString(db.TABLE_PROFILES_COL_LOC_PROVINCE_INDEX),
-                            results.getString(db.TABLE_PROFILES_COL_LOC_CITY_INDEX), results.getString(db.TABLE_PROFILES_COL_AVATAR_FULL_URL_INDEX),
-                            results.getString(db.TABLE_PROFILES_COL_AVATAR_MEDIUM_URL_INDEX), results.getString(db.TABLE_PROFILES_COL_AVATAR_ICON_URL_INDEX), new DateTime(0));
-                    break;
-                }
-                results.next();
-            }
-        } catch (SQLException e) {
-            return null;
-        }
+		SteamProfile profile = null;
+		ResultSet results = db.readData(db.TABLE_NAME_PROFILES, columns);
 
-        return profile;
-    }
+		try {
+			if (results.first() == false) {
+				return null;
+			}
+			while (!results.isAfterLast()) {
+				if (userIds == results.getInt(db.TABLE_PROFILES_COL_ID_INDEX)) {
+					profile = new SteamProfile(results.getInt(db.TABLE_PROFILES_COL_ID_INDEX) + SteamProfile.BASE_ID_64, results.getString(db.TABLE_PROFILES_COL_COMMUNITY_ID_INDEX),
+							results.getString(db.TABLE_PROFILES_COL_PERSONA_NAME_INDEX), results.getString(db.TABLE_PROFILES_COL_REAL_NAME_INDEX),
+							results.getString(db.TABLE_PROFILES_COL_LOC_COUNTRY_INDEX), results.getString(db.TABLE_PROFILES_COL_LOC_PROVINCE_INDEX),
+							results.getString(db.TABLE_PROFILES_COL_LOC_CITY_INDEX), results.getString(db.TABLE_PROFILES_COL_AVATAR_FULL_URL_INDEX),
+							results.getString(db.TABLE_PROFILES_COL_AVATAR_MEDIUM_URL_INDEX), results.getString(db.TABLE_PROFILES_COL_AVATAR_ICON_URL_INDEX), new DateTime(0));
+					break;
+				}
+				results.next();
+			}
+		} catch (SQLException e) {
+			return null;
+		}
 
-    // Add steam profile to database
-    public static void addProfileToDatabase(DBConnector db, SteamProfile profile) {
-        String[][] data = { { Integer.toString((int) (profile.getSteamId64() - SteamProfile.BASE_ID_64)), profile.getSteamCommunityId(), profile.getPersonaName(), profile.getRealName(),
-                profile.getCountryCode(), profile.getProvinceCode(), profile.getCityCode(), profile.getFullAvatarUrl(), profile.getMediumAvatarUrl(), profile.getIconAvatarUrl() } };
+		return profile;
+	}
 
-        db.burstAddToDB(db.TABLE_NAME_PROFILES, data);
-    }
+	// Add steam profile to database
+	public static void addProfileToDatabase(DBConnector db, SteamProfile profile) {
+		String[][] data = { { Integer.toString((int) (profile.getSteamId64() - SteamProfile.BASE_ID_64)), profile.getSteamCommunityId(), profile.getPersonaName(), profile.getRealName(),
+			profile.getCountryCode(), profile.getProvinceCode(), profile.getCityCode(), profile.getFullAvatarUrl(), profile.getMediumAvatarUrl(), profile.getIconAvatarUrl() } };
 
-    public static void addGamesToDatabase(DBConnector db, SteamProfile profile, Map<SteamGame, Integer> ownedGames) {
-        String[][] gamesTableData = new String[ownedGames.size()][4];
-        String[][] profilesGamesTableData = new String[ownedGames.size()][3];
+		db.burstAddToDB(db.TABLE_NAME_PROFILES, data);
+	}
 
-        int i = 0;
-        for (Entry<SteamGame, Integer> ownedGame : ownedGames.entrySet()) {
-            gamesTableData[i][0] = Integer.toString(ownedGame.getKey().getAppId());
-            gamesTableData[i][1] = ownedGame.getKey().getName();
-            gamesTableData[i][2] = ownedGame.getKey().getIconUrl();
-            gamesTableData[i][3] = ownedGame.getKey().getLogoUrl();
+	public static void addGamesToDatabase(DBConnector db, SteamProfile profile, Map<SteamGame, Integer> ownedGames) {
+		String[][] gamesTableData = new String[ownedGames.size()][4];
+		String[][] profilesGamesTableData = new String[ownedGames.size()][3];
 
-            profilesGamesTableData[i][0] = Integer.toString((int) (profile.getSteamId64() - SteamProfile.BASE_ID_64));
-            profilesGamesTableData[i][1] = Integer.toString(ownedGame.getKey().getAppId());
-            profilesGamesTableData[i][2] = ownedGame.getValue().toString();
+		int i = 0;
+		for (Entry<SteamGame, Integer> ownedGame : ownedGames.entrySet()) {
+			gamesTableData[i][0] = Integer.toString(ownedGame.getKey().getAppId());
+			gamesTableData[i][1] = ownedGame.getKey().getName();
+			gamesTableData[i][2] = ownedGame.getKey().getIconUrl();
+			gamesTableData[i][3] = ownedGame.getKey().getLogoUrl();
 
-            i++;
-        }
+			profilesGamesTableData[i][0] = Integer.toString((int) (profile.getSteamId64() - SteamProfile.BASE_ID_64));
+			profilesGamesTableData[i][1] = Integer.toString(ownedGame.getKey().getAppId());
+			profilesGamesTableData[i][2] = ownedGame.getValue().toString();
 
-        db.burstAddToDB(db.TABLE_NAME_GAMES, gamesTableData);
-        db.burstAddToDB(db.TABLE_NAME_PROFILES_GAMES, profilesGamesTableData);
-    }
+			i++;
+		}
 
-    public static void addAchievementsToDatabase(DBConnector db, SteamProfile profile, SteamGame game, List<GameAchievement> gameAchievements, List<GameAchievement> playerAchievements) {
-        String[][] achievementsTableData = new String[gameAchievements.size()][6];
-        String[][] profilesAchievementsTableData = new String[playerAchievements.size()][4];
+		db.burstAddToDB(db.TABLE_NAME_GAMES, gamesTableData);
+		db.burstAddToDB(db.TABLE_NAME_PROFILES_GAMES, profilesGamesTableData);
+	}
 
-        int i = 0;
-        for (GameAchievement gameAchievement : gameAchievements) {
-            achievementsTableData[i][0] = Integer.toString(gameAchievement.getAchievementId().hashCode());
-            achievementsTableData[i][1] = Integer.toString(gameAchievement.getAppId());
-            achievementsTableData[i][2] = gameAchievement.getName();
-            achievementsTableData[i][3] = gameAchievement.getDescription();
-            achievementsTableData[i][4] = gameAchievement.getUnlockedIconUrl();
-            achievementsTableData[i][5] = gameAchievement.getLockedIconUrl();
+	public static void addAchievementsToDatabase(DBConnector db, SteamProfile profile, SteamGame game, List<GameAchievement> gameAchievements, List<GameAchievement> playerAchievements) {
+		String[][] achievementsTableData = new String[gameAchievements.size()][6];
+		String[][] profilesAchievementsTableData = new String[playerAchievements.size()][4];
 
-            i++;
-        }
+		int i = 0;
+		for (GameAchievement gameAchievement : gameAchievements) {
+			achievementsTableData[i][0] = Integer.toString(gameAchievement.getAchievementId().hashCode());
+			achievementsTableData[i][1] = Integer.toString(gameAchievement.getAppId());
+			achievementsTableData[i][2] = gameAchievement.getName();
+			achievementsTableData[i][3] = gameAchievement.getDescription();
+			achievementsTableData[i][4] = gameAchievement.getUnlockedIconUrl();
+			achievementsTableData[i][5] = gameAchievement.getLockedIconUrl();
 
-        i = 0;
-        for (GameAchievement playerAchievement : playerAchievements) {
-            profilesAchievementsTableData[i][0] = Integer.toString((int) (profile.getSteamId64() - SteamProfile.BASE_ID_64));
-            profilesAchievementsTableData[i][1] = Integer.toString(playerAchievement.getAchievementId().hashCode());
-            profilesAchievementsTableData[i][2] = Integer.toString(game.getAppId());
-            profilesAchievementsTableData[i][3] = new Timestamp(659836800).toString();
-            i++;
-        }
+			i++;
+		}
 
-        db.burstAddToDB(db.TABLE_NAME_ACHIEVEMENTS, achievementsTableData);
-        db.burstAddToDB(db.TABLE_NAME_PROFILES_ACHIEVEMENTS, profilesAchievementsTableData);
-    }
+		i = 0;
+		for (GameAchievement playerAchievement : playerAchievements) {
+			profilesAchievementsTableData[i][0] = Integer.toString((int) (profile.getSteamId64() - SteamProfile.BASE_ID_64));
+			profilesAchievementsTableData[i][1] = Integer.toString(playerAchievement.getAchievementId().hashCode());
+			profilesAchievementsTableData[i][2] = Integer.toString(game.getAppId());
+			profilesAchievementsTableData[i][3] = new Timestamp(659836800).toString();
+			i++;
+		}
 
-    public static long convertToSteamId64(String idToConvert) {
-        try {
-            return Long.parseLong(idToConvert);
-        } catch (Exception e) {
-            return -1;
-        }
-    }
+		db.burstAddToDB(db.TABLE_NAME_ACHIEVEMENTS, achievementsTableData);
+		db.burstAddToDB(db.TABLE_NAME_PROFILES_ACHIEVEMENTS, profilesAchievementsTableData);
+	}
+
+	public static long convertToSteamId64(String url) {
+		String[] urlContents = url.split("/");
+		long steamid64 = INVALID_STEAMID_64;
+
+		if (urlContents.length > 0) {
+			SteamApi steamApi = new SteamApi(Application.CONFIG.getProperty("apikey"));
+			SteamDataExtractor steamDataExtractor = new SteamDataExtractor(steamApi);
+			try {
+				steamid64 = Long.parseLong(urlContents[4]);
+				if (steamDataExtractor.getSteamProfile(steamid64) != null)
+					return (steamid64 - SteamProfile.BASE_ID_64);
+			} catch (NumberFormatException nfe) {
+				String communityid = SteamDataExtractor.getCommunityIdFromUrl(url);
+//				if (communityid!=null && communityid.equals(urlContents[4]))
+//					return convertCommunityIdToSteamId(communityid);	
+			}
+		}
+
+		return steamid64;
+	}
 }
