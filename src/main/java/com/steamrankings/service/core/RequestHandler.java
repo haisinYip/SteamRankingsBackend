@@ -193,6 +193,7 @@ public class RequestHandler implements Runnable {
                 achievement.set("id", gameAchievement.getAchievementId().hashCode());
                 achievement.set("game_id", game.getId());
                 achievement.set("name", gameAchievement.getName());
+                achievement.set("description", gameAchievement.getDescription());
                 achievement.set("unlocked_icon_url", gameAchievement.getUnlockedIconUrl());
                 achievement.set("locked_icon_url", gameAchievement.getLockedIconUrl());
                 if (Achievement.where("id = ? AND game_id = ?", gameAchievement.getAchievementId().hashCode(), game.getId()).isEmpty()) {
@@ -225,7 +226,7 @@ public class RequestHandler implements Runnable {
         }
 
         if (parameters.containsKey(PARAMETERS_USER_ID)) {
-            List<ProfilesGames> list = ProfilesGames.where("profile_id = ?", (int) (Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64));
+            List<ProfilesGames> list = ProfilesGames.where("profile_id = ?", (int) (Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64)).orderBy("total_play_time desc").limit(15);
             ArrayList<ProfilesGames> profilesGames = new ArrayList<ProfilesGames>(list);
             if (profilesGames != null) {
                 ArrayList<SteamGame> steamGames = new ArrayList<SteamGame>();
@@ -263,7 +264,7 @@ public class RequestHandler implements Runnable {
 
         if (parameters.containsKey(PARAMETERS_USER_ID) && parameters.containsKey(PARAMETERS_APP_ID)) {
             List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ? AND game_id = ?", (int) (Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64),
-                    Integer.parseInt(parameters.get(PARAMETERS_APP_ID)));
+                    Integer.parseInt(parameters.get(PARAMETERS_APP_ID))).limit(15);
             ArrayList<ProfilesAchievements> profilesAchievements = new ArrayList<ProfilesAchievements>(list);
             if (profilesAchievements != null) {
                 ArrayList<GameAchievement> gameAchievements = new ArrayList<GameAchievement>();
@@ -279,7 +280,7 @@ public class RequestHandler implements Runnable {
                 return;
             }
         } else if (parameters.containsKey(PARAMETERS_USER_ID)) {
-            List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ?", (int) (Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64));
+            List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ?", (int) (Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64)).limit(15);
             ArrayList<ProfilesAchievements> profilesAchievements = new ArrayList<ProfilesAchievements>(list);
             if (profilesAchievements != null) {
                 ArrayList<GameAchievement> gameAchievements = new ArrayList<GameAchievement>();

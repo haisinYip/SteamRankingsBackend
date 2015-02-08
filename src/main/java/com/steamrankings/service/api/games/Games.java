@@ -20,7 +20,9 @@ public class Games {
         try {
             response = client.execute(request);
             String data = EntityUtils.toString(response.getEntity());
+
             ObjectMapper mapper = new ObjectMapper();
+
             return mapper.readValue(data, SteamGame.class);
         } catch (Exception e) {
             return null;
@@ -36,12 +38,15 @@ public class Games {
         try {
             response = client.execute(request);
             String data = EntityUtils.toString(response.getEntity());
+
             ObjectMapper mapper = new ObjectMapper();
             JSONArray jsonArray = new JSONArray(data);
             ArrayList<SteamGame> games = new ArrayList<SteamGame>();
-            for(int i = 0; i < jsonArray.length(); i++) {
+
+            for (int i = 0; i < jsonArray.length(); i++) {
                 games.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), SteamGame.class));
             }
+
             return games;
         } catch (Exception e) {
             return null;
