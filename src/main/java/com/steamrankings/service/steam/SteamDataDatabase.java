@@ -12,7 +12,6 @@ import org.joda.time.DateTime;
 import com.steamrankings.service.api.achievements.GameAchievement;
 import com.steamrankings.service.api.games.SteamGame;
 import com.steamrankings.service.api.profiles.SteamProfile;
-import com.steamrankings.service.core.Application;
 import com.steamrankings.service.database.DBConnector;
 
 public class SteamDataDatabase {
