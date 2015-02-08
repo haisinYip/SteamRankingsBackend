@@ -334,7 +334,27 @@ public class RequestHandler implements Runnable {
     }
 
     private ArrayList<RankEntryByAchievements> processGetAchievementLeaderboard(String toRank, String fromRank) {
-        return null;
+        int from = Integer.parseInt(fromRank);
+        int to = Integer.parseInt(toRank);
+        if (from > to) {
+            return null;
+        }
+
+        List<Profile> listProfiles = Profile.findAll();
+        ArrayList<Profile> profiles = new ArrayList<Profile>(listProfiles);
+        HashMap<Profile, Integer> profileAchievementCounts = new HashMap<Profile, Integer>();
+        for (Profile profile : profiles) {
+            profileAchievementCounts.put(profile, ProfilesAchievements.where("profile_id = ?", profile.getInteger("id")).size());
+        }
+
+        int i = 1;
+        ArrayList<RankEntryByAchievements> rankEntries = new ArrayList<RankEntryByAchievements>();
+        for (Entry<Profile, Integer> profileAchievementCount : profileAchievementCounts.entrySet()) {
+            rankEntries.add(new RankEntryByAchievements(i, profileAchievementCount.getKey().getInteger("id") + SteamProfile.BASE_ID_64, profileAchievementCount.getKey().getString("persona_name"),
+                    profileAchievementCount.getValue(), "0%", profileAchievementCount.getKey().getString("location_country")));
+        }
+        
+        return rankEntries;
     }
 
     private void sendResponse(Socket socket, String statusLine, String contentTypeLine, String entity) throws IOException {
