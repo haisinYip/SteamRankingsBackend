@@ -28,6 +28,10 @@ public class RankEntry {
     public int getRankNumber() {
         return this.rankNumber;
     }
+    @JsonIgnore
+    public void setRankNumber(int rank) {
+        rankNumber=rank;
+    }
 
     @JsonIgnore
     public String getName() {

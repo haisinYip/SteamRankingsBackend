@@ -16,6 +16,8 @@ import com.steamrankings.service.database.DBConnector;
 
 public class SteamDataDatabase {
 
+    final static long INVALID_STEAMID_64 = -1;
+
     // Get steam profile from database
     public static SteamProfile getProfileFromDatabase(int userIds, DBConnector db) {
         String[] columns = { db.TABLE_PROFILES_COL_ID_LABEL, db.TABLE_PROFILES_COL_COMMUNITY_ID_LABEL, db.TABLE_PROFILES_COL_PERSONA_NAME_LABEL, db.TABLE_PROFILES_COL_REAL_NAME_LABEL,
@@ -106,11 +108,14 @@ public class SteamDataDatabase {
         db.burstAddToDB(db.TABLE_NAME_PROFILES_ACHIEVEMENTS, profilesAchievementsTableData);
     }
 
+    // expects either communityid or the steamid64 itself
     public static long convertToSteamId64(String idToConvert) {
-        try {
-            return Long.parseLong(idToConvert);
-        } catch (Exception e) {
-            return -1;
-        }
-    }
+    	long steamid64 = INVALID_STEAMID_64;
+	    try {
+	        return Long.parseLong(idToConvert);
+	    } catch (NumberFormatException e) {
+	    	steamid64 = Long.parseLong(SteamDataExtractor.getSteamId64FromXML(SteamApi.getXML(idToConvert)));
+	    	return steamid64;
+	    }
+	}
 }

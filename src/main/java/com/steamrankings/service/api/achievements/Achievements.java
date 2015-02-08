@@ -1,5 +1,6 @@
 package com.steamrankings.service.api.achievements;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.HttpResponse;
@@ -8,11 +9,12 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.json.JSONArray;
 
 public class Achievements {
     public static List<GameAchievement> getGameAchievements(int appId) {
         HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/achievements?appid=" + appId);
+        HttpGet request = new HttpGet("http://localhost:6789/achievements?appid=" + appId);
         HttpResponse response = null;
 
         try {
@@ -30,7 +32,7 @@ public class Achievements {
 
     public static List<GameAchievement> getUnlockedAchievements(String steamID64) {
         HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/achievements?id=" + steamID64);
+        HttpGet request = new HttpGet("http://localhost:6789/achievements?id=" + steamID64);
         HttpResponse response = null;
 
         try {
@@ -38,9 +40,14 @@ public class Achievements {
             String data = EntityUtils.toString(response.getEntity());
 
             ObjectMapper mapper = new ObjectMapper();
-            AchievementWrapper achievements = mapper.readValue(data, AchievementWrapper.class);
+            JSONArray jsonArray = new JSONArray(data);
+            ArrayList<GameAchievement> achievements = new ArrayList<GameAchievement>();
 
-            return achievements.getAchievements();
+            for (int i = 0; i < jsonArray.length(); i++) {
+                achievements.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), GameAchievement.class));
+            }
+
+            return achievements;
         } catch (Exception e) {
             return null;
         }
@@ -48,7 +55,7 @@ public class Achievements {
 
     public static List<GameAchievement> getUnlockedAchievements(String steamID64, int appId) {
         HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/achievements?id=" + steamID64 + "&appid=" + appId);
+        HttpGet request = new HttpGet("http://localhost:6789/achievements?id=" + steamID64 + "&appid=" + appId);
         HttpResponse response = null;
 
         try {
@@ -56,9 +63,14 @@ public class Achievements {
             String data = EntityUtils.toString(response.getEntity());
 
             ObjectMapper mapper = new ObjectMapper();
-            AchievementWrapper achievements = mapper.readValue(data, AchievementWrapper.class);
+            JSONArray jsonArray = new JSONArray(data);
+            ArrayList<GameAchievement> achievements = new ArrayList<GameAchievement>();
 
-            return achievements.getAchievements();
+            for (int i = 0; i < jsonArray.length(); i++) {
+                achievements.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), GameAchievement.class));
+            }
+
+            return achievements;
         } catch (Exception e) {
             return null;
         }

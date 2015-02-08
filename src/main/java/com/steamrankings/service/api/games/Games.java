@@ -1,93 +1,55 @@
 package com.steamrankings.service.api.games;
 
-import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.json.JSONArray;
 
 public class Games {
     public static SteamGame getSteamGame(int appId) {
         HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/gamestats?appId=" + appId);
+        HttpGet request = new HttpGet("http://localhost:6789/games?appId=" + appId);
         HttpResponse response = null;
 
         try {
             response = client.execute(request);
+            String data = EntityUtils.toString(response.getEntity());
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            return mapper.readValue(data, SteamGame.class);
         } catch (Exception e) {
             return null;
         }
-
-        HttpEntity entity = response.getEntity();
-        InputStream is = null;
-        try {
-            is = entity.getContent();
-        } catch (Exception e) {
-            return null;
-        }
-
-        ObjectMapper mapper = new ObjectMapper();
-        SteamGame game = null;
-
-        try {
-            game = mapper.readValue(is, SteamGame.class);
-        } catch (Exception e) {
-            return null;
-        }
-
-        try {
-            is.close();
-        } catch (Exception e) {
-            return null;
-        }
-
-        return game;
     }
 
     public static List<SteamGame> getPlayedSteamGames(String steamID64) {
 
         HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://mikemontreal.ignorelist.com:6789/gamesowned?id=" + steamID64);
+        HttpGet request = new HttpGet("http://localhost:6789/games?id=" + steamID64);
         HttpResponse response = null;
 
         try {
             response = client.execute(request);
+            String data = EntityUtils.toString(response.getEntity());
+
+            ObjectMapper mapper = new ObjectMapper();
+            JSONArray jsonArray = new JSONArray(data);
+            ArrayList<SteamGame> games = new ArrayList<SteamGame>();
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                games.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), SteamGame.class));
+            }
+
+            return games;
         } catch (Exception e) {
             return null;
         }
-
-        HttpEntity entity = response.getEntity();
-        InputStream is = null;
-        try {
-            is = entity.getContent();
-        } catch (Exception e) {
-            return null;
-        }
-
-        ObjectMapper mapper = new ObjectMapper();
-        UserOwnedGames games = null;
-
-        try {
-            games = mapper.readValue(is, UserOwnedGames.class);
-        } catch (Exception e) {
-            return null;
-        }
-
-        try {
-            is.close();
-        } catch (Exception e) {
-            return null;
-        }
-
-        return games.getGames();
-    }
-
-    public static int getPlayTime(int appId, String steamID64) {
-        return 0;
-
     }
 }

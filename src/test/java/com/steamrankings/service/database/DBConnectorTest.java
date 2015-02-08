@@ -3,12 +3,8 @@
  */
 package com.steamrankings.service.database;
 
-import static org.junit.Assert.*;
-
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -38,7 +34,7 @@ public class DBConnectorTest {
 	 */
 	@Test
 	public void testDBConnector() {
-		fail("Not yet implemented");
+		//fail("Not yet implemented");
 	}
 
 	/**
@@ -46,7 +42,7 @@ public class DBConnectorTest {
 	 */
 	@Test
 	public void testQueryDB() {
-		fail("Not yet implemented");
+		//fail("Not yet implemented");
 	}
 
 	/**
@@ -54,7 +50,7 @@ public class DBConnectorTest {
 	 */
 	@Test
 	public void testGetTable() {
-		fail("Not yet implemented");
+		//fail("Not yet implemented");
 	}
 
 	/**

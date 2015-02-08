@@ -11,32 +11,50 @@ import java.util.Properties;
 public class DBConnector {
 	private Connection connection = null;
 	private Statement statement = null;
+	private PreparedStatement safeStatement = null;
 	private ResultSet results = null;
 	private String lastQuery = null;
 
+	// configs
 	private String serverName = null;
 	private String port = null;
 	private String databaseName = null;
 	private String username = null;
 	private String password = null;
 
+	// table names
 	final public String TABLE_NAME_ACHIEVEMENTS = "achievements";
 	final public String TABLE_NAME_GAMES = "games";
 	final public String TABLE_NAME_PROFILES = "profiles";
 	final public String TABLE_NAME_PROFILES_ACHIEVEMENTS = "profiles_has_achievements";
 	final public String TABLE_NAME_PROFILES_GAMES = "profiles_has_games";
 
+	// table columns
 	final public int TABLE_ACHIEVEMENTS_COL_ID_INDEX = 1;
 	final public int TABLE_ACHIEVEMENTS_COL_GAMES_ID_INDEX = 2;
 	final public int TABLE_ACHIEVEMENTS_COL_NAMES_INDEX = 3;
 	final public int TABLE_ACHIEVEMENTS_COL_DESCRIPTION_INDEX = 4;
 	final public int TABLE_ACHIEVEMENTS_COL_UNLOCKED_ICON_URL_INDEX = 5;
 	final public int TABLE_ACHIEVEMENTS_COL_LOCKED_ICON_URL_INDEX = 6;
+	final public int TABLE_ACHIEVEMENTS_COL_COUNT = TABLE_ACHIEVEMENTS_COL_LOCKED_ICON_URL_INDEX;
+
+	final public String TABLE_ACHIEVEMENTS_COL_ID_LABEL = "id";
+	final public String TABLE_ACHIEVEMENTS_COL_GAMES_ID_LABEL = "games_id";
+	final public String TABLE_ACHIEVEMENTS_COL_NAMES_LABEL = "name";
+	final public String TABLE_ACHIEVEMENTS_COL_DESCRIPTION_LABEL = "description";
+	final public String TABLE_ACHIEVEMENTS_COL_UNLOCKED_ICON_URL_LABEL = "unlocked_icon_url";
+	final public String TABLE_ACHIEVEMENTS_COL_LOCKED_ICON_URL_LABEL = "locked_icon_url";
 
 	final public int TABLE_GAMES_COL_ID_INDEX = 1;
 	final public int TABLE_GAMES_COL_NAME_INDEX = 2;
 	final public int TABLE_GAMES_COL_ICON_URL_INDEX = 3;
 	final public int TABLE_GAMES_COL_LOGO_URL_INDEX = 4;
+	final public int TABLE_GAMES_COL_COUNT = TABLE_GAMES_COL_LOGO_URL_INDEX;
+
+	final public String TABLE_GAMES_COL_ID_LABEL = "id";
+	final public String TABLE_GAMES_COL_NAME_LABEL = "name";
+	final public String TABLE_GAMES_COL_ICON_URL_LABEL = "icon_url";
+	final public String TABLE_GAMES_COL_LOGO_URL_LABEL = "logo_url";
 
 	final public int TABLE_PROFILES_COL_ID_INDEX = 1;
 	final public int TABLE_PROFILES_COL_COMMUNITY_ID_INDEX = 2;
@@ -48,6 +66,7 @@ public class DBConnector {
 	final public int TABLE_PROFILES_COL_AVATAR_FULL_URL_INDEX = 8;
 	final public int TABLE_PROFILES_COL_AVATAR_MEDIUM_URL_INDEX = 9;
 	final public int TABLE_PROFILES_COL_AVATAR_ICON_URL_INDEX = 10;
+	final public int TABLE_PROFILES_COL_COUNT = TABLE_PROFILES_COL_AVATAR_ICON_URL_INDEX;
 
 	final public String TABLE_PROFILES_COL_ID_LABEL = "id";
 	final public String TABLE_PROFILES_COL_COMMUNITY_ID_LABEL = "community_id";
@@ -64,10 +83,21 @@ public class DBConnector {
 	final public int TABLE_PROFILES_ACHIEVEMENTS_COL_ACHIEVEMENTS_ID_INDEX = 2;
 	final public int TABLE_PROFILES_ACHIEVEMENTS_COL_ACHIEVEMENTS_GAMES_ID_INDEX = 3;
 	final public int TABLE_PROFILES_ACHIEVEMENTS_COL_UNLOCKED_TIMESTAMP_INDEX = 4;
+	final public int TABLE_PROFILES_ACHIEVEMENTS_COL_COUNT = 4;
+	
+	final public String TABLE_PROFILES_ACHIEVEMENTS_COL_PROFILES_ID_LABEL = "profiles_id";
+	final public String TABLE_PROFILES_ACHIEVEMENTS_COL_ACHIEVEMENTS_ID_LABEL = "achievements_id";
+	final public String TABLE_PROFILES_ACHIEVEMENTS_COL_ACHIEVEMENTS_GAMES_ID_LABEL = "achievements_games_id";
+	final public String TABLE_PROFILES_ACHIEVEMENTS_COL_UNLOCKED_TIMESTAMP_LABEL = "unlocked_timestamp";
 
 	final public int TABLE_PROFILES_GAMES_COL_PROFILES_ID_INDEX = 1;
 	final public int TABLE_PROFILES_GAMES_COL_GAMES_ID_INDEX = 2;
 	final public int TABLE_PROFILES_GAMES_COL_TOTAL_PLAY_TIME_INDEX = 3;
+	final public int TABLE_PROFILES_GAMES_COL_COUNT = 3;
+	
+	final public String TABLE_PROFILES_GAMES_COL_PROFILES_ID_LABEL = "profiles_id";
+	final public String TABLE_PROFILES_GAMES_COL_GAMES_ID_LABEL = "games_id";
+	final public String TABLE_PROFILES_GAMES_COL_TOTAL_PLAY_TIME_LABEL = "total_play_time";
 
 	public DBConnector() {
 
@@ -125,25 +155,219 @@ public class DBConnector {
 	public ResultSet getTable(String table) {
 		return this.queryDB("SELECT * FROM " + table + ";");
 	}
-
+	
 	// make sure to set up data array matches schema
 	public void burstAddToDB(String table, String[][] data) {
 
 		String query = "";
 		try {
 			for (int i=0; i<data.length; i++) {
-				String insert = "INSERT INTO " + table + " " + "VALUES (";
+				String insert = "INSERT INTO " + table + " (";
 				query = insert;
-				for (int j = 0; j < data[i].length; j++) {
-					// sanitize strings
-					data[i][j] = data[i][j].replace("\"", "");
-					data[i][j] = data[i][j].replace("'", "");
-					query = query + "\"" + data[i][j] + "\"" + ",";
+
+				if (table.equals("achievements")) {
+					for (int j=1; j<=TABLE_ACHIEVEMENTS_COL_COUNT; j++) {
+						switch (j) {
+							case TABLE_ACHIEVEMENTS_COL_ID_INDEX:
+								query = query + TABLE_ACHIEVEMENTS_COL_ID_LABEL;
+								break;
+							case TABLE_ACHIEVEMENTS_COL_GAMES_ID_INDEX: 
+								query = query + TABLE_ACHIEVEMENTS_COL_GAMES_ID_LABEL;
+								break;
+							case TABLE_ACHIEVEMENTS_COL_NAMES_INDEX:
+								query = query + TABLE_ACHIEVEMENTS_COL_NAMES_LABEL;
+								break;
+							case TABLE_ACHIEVEMENTS_COL_DESCRIPTION_INDEX:
+								query = query + TABLE_ACHIEVEMENTS_COL_DESCRIPTION_LABEL;
+								break;
+							case TABLE_ACHIEVEMENTS_COL_UNLOCKED_ICON_URL_INDEX:
+								query = query + TABLE_ACHIEVEMENTS_COL_UNLOCKED_ICON_URL_LABEL;
+								break;
+							case TABLE_ACHIEVEMENTS_COL_LOCKED_ICON_URL_INDEX: 
+								query = query + TABLE_ACHIEVEMENTS_COL_LOCKED_ICON_URL_LABEL;
+								break;
+						}
+						query = query + ",";
+					}
+
+					query = query.substring(0, query.length() - 1);
+					query = query + ") VALUES (";
+
+					for (int k=0; k<TABLE_ACHIEVEMENTS_COL_COUNT; k++) {
+						query = query + "?,";
+					}
+
+					query = query.substring(0, query.length() - 1);
+					query = query + ")";
+					//System.out.println(query);
+					this.safeStatement = this.connection.prepareStatement(query);
+
+					for (int m=1; m<=TABLE_ACHIEVEMENTS_COL_COUNT; m++) {
+						this.safeStatement.setString(m, data[i][m-1]);
+					}
 				}
-				query = query.substring(0, query.length() - 1);
-				query = query + ");";
+
+				else if (table.equals("games")) {
+					for (int j=1; j<=TABLE_GAMES_COL_COUNT; j++) {
+						switch (j) {
+							case TABLE_GAMES_COL_ID_INDEX:
+								query = query + TABLE_GAMES_COL_ID_LABEL;
+								break;
+							case TABLE_GAMES_COL_NAME_INDEX: 
+								query = query + TABLE_GAMES_COL_NAME_LABEL;
+								break;
+							case TABLE_GAMES_COL_ICON_URL_INDEX:
+								query = query + TABLE_GAMES_COL_ICON_URL_LABEL;
+								break;
+							case TABLE_GAMES_COL_LOGO_URL_INDEX:
+								query = query + TABLE_GAMES_COL_LOGO_URL_LABEL;
+								break;
+						}
+						query = query + ",";
+					}
+
+					query = query.substring(0, query.length() - 1);
+					query = query + ") VALUES (";
+
+					for (int k=0; k<TABLE_GAMES_COL_COUNT; k++) {
+						query = query + "?,";
+					}
+
+					query = query.substring(0, query.length() - 1);
+					query = query + ")";
+					//System.out.println(query);
+					this.safeStatement = this.connection.prepareStatement(query);
+
+					for (int m=1; m<=TABLE_GAMES_COL_COUNT; m++) {
+						this.safeStatement.setString(m, data[i][m-1]);
+					}
+				}
+
+				else if (table.equals("profiles")) {
+					for (int j=1; j<=TABLE_PROFILES_COL_COUNT; j++) {
+						switch (j) {
+							case TABLE_PROFILES_COL_ID_INDEX:
+								query = query + TABLE_PROFILES_COL_ID_LABEL;
+								break;
+							case TABLE_PROFILES_COL_COMMUNITY_ID_INDEX: 
+								query = query + TABLE_PROFILES_COL_COMMUNITY_ID_LABEL;
+								break;
+							case TABLE_PROFILES_COL_PERSONA_NAME_INDEX:
+								query = query + TABLE_PROFILES_COL_PERSONA_NAME_LABEL;
+								break;
+							case TABLE_PROFILES_COL_REAL_NAME_INDEX:
+								query = query + TABLE_PROFILES_COL_REAL_NAME_LABEL;
+								break;
+							case TABLE_PROFILES_COL_LOC_COUNTRY_INDEX:
+								query = query + TABLE_PROFILES_COL_LOC_COUNTRY_LABEL;
+								break;
+							case TABLE_PROFILES_COL_LOC_PROVINCE_INDEX: 
+								query = query + TABLE_PROFILES_COL_LOC_PROVINCE_LABEL;
+								break;
+							case TABLE_PROFILES_COL_LOC_CITY_INDEX:
+								query = query + TABLE_PROFILES_COL_LOC_CITY_LABEL;
+								break;
+							case TABLE_PROFILES_COL_AVATAR_FULL_URL_INDEX:
+								query = query + TABLE_PROFILES_COL_AVATAR_FULL_URL_LABEL;
+								break;
+							case TABLE_PROFILES_COL_AVATAR_MEDIUM_URL_INDEX:
+								query = query + TABLE_PROFILES_COL_AVATAR_MEDIUM_URL_LABEL;
+								break;
+							case TABLE_PROFILES_COL_AVATAR_ICON_URL_INDEX:
+								query = query + TABLE_PROFILES_COL_AVATAR_ICON_URL_LABEL;
+								break;
+						}
+						query = query + ",";
+					}
+
+					query = query.substring(0, query.length() - 1);
+					query = query + ") VALUES (";
+
+					for (int k=0; k<TABLE_PROFILES_COL_COUNT; k++) {
+						query = query + "?,";
+					}
+
+					query = query.substring(0, query.length() - 1);
+					query = query + ")";
+					//System.out.println(query);
+					this.safeStatement = this.connection.prepareStatement(query);
+
+					for (int m=1; m<=TABLE_PROFILES_COL_COUNT; m++) {
+						this.safeStatement.setString(m, data[i][m-1]);
+					}
+				}
+				
+				else if (table.equals("TABLE_PROFILES_GAMES_COL_COUNT")) {
+					for (int j=1; j<=TABLE_GAMES_COL_COUNT; j++) {
+						switch (j) {
+							case TABLE_PROFILES_GAMES_COL_PROFILES_ID_INDEX:
+								query = query + TABLE_PROFILES_GAMES_COL_PROFILES_ID_LABEL;
+								break;
+							case TABLE_PROFILES_GAMES_COL_GAMES_ID_INDEX: 
+								query = query + TABLE_PROFILES_GAMES_COL_GAMES_ID_LABEL;
+								break;
+							case TABLE_PROFILES_GAMES_COL_TOTAL_PLAY_TIME_INDEX:
+								query = query + TABLE_PROFILES_GAMES_COL_TOTAL_PLAY_TIME_LABEL;
+								break;
+						}
+						query = query + ",";
+					}
+
+					query = query.substring(0, query.length() - 1);
+					query = query + ") VALUES (";
+
+					for (int k=0; k<TABLE_PROFILES_GAMES_COL_COUNT; k++) {
+						query = query + "?,";
+					}
+
+					query = query.substring(0, query.length() - 1);
+					query = query + ")";
+					//System.out.println(query);
+					this.safeStatement = this.connection.prepareStatement(query);
+
+					for (int m=1; m<=TABLE_PROFILES_GAMES_COL_COUNT; m++) {
+						this.safeStatement.setString(m, data[i][m-1]);
+					}
+				}
+				
+				else if (table.equals("profiles_has_achievements")) {
+					for (int j=1; j<=TABLE_PROFILES_ACHIEVEMENTS_COL_COUNT; j++) {
+						switch (j) {
+							case TABLE_PROFILES_ACHIEVEMENTS_COL_PROFILES_ID_INDEX:
+								query = query + TABLE_PROFILES_ACHIEVEMENTS_COL_PROFILES_ID_LABEL;
+								break;
+							case TABLE_PROFILES_ACHIEVEMENTS_COL_ACHIEVEMENTS_ID_INDEX: 
+								query = query + TABLE_PROFILES_ACHIEVEMENTS_COL_ACHIEVEMENTS_ID_LABEL;
+								break;
+							case TABLE_PROFILES_ACHIEVEMENTS_COL_ACHIEVEMENTS_GAMES_ID_INDEX:
+								query = query + TABLE_PROFILES_ACHIEVEMENTS_COL_ACHIEVEMENTS_GAMES_ID_LABEL;
+								break;
+							case TABLE_PROFILES_ACHIEVEMENTS_COL_UNLOCKED_TIMESTAMP_INDEX:
+								query = query + TABLE_PROFILES_ACHIEVEMENTS_COL_UNLOCKED_TIMESTAMP_LABEL;
+								break;
+						}
+						query = query + ",";
+					}
+
+					query = query.substring(0, query.length() - 1);
+					query = query + ") VALUES (";
+
+					for (int k=0; k<TABLE_PROFILES_ACHIEVEMENTS_COL_COUNT; k++) {
+						query = query + "?,";
+					}
+
+					query = query.substring(0, query.length() - 1);
+					query = query + ")";
+					//System.out.println(query);
+					this.safeStatement = this.connection.prepareStatement(query);
+
+					for (int m=1; m<=TABLE_PROFILES_ACHIEVEMENTS_COL_COUNT; m++) {
+						this.safeStatement.setString(m, data[i][m-1]);
+					}
+				}
+
 				this.lastQuery = query;
-				statement.executeUpdate(query);
+				safeStatement.executeUpdate();
 			}
 		} catch (Exception ex) {
 			System.out.println("Failed to burst add to database");
@@ -157,9 +381,7 @@ public class DBConnector {
 
 		String query = "INSERT INTO " + table + " " + "VALUES (";
 		for (int i=0; i<row.length; i++) {
-			// sanitize strings
-			row[i] = row[i].replace("\"", "");
-			row[i] = row[i].replace("'", "");
+			//fix
 			query = query + "\"" + row[i] + "\"" + ",";
 		}
 		query = query.substring(0, query.length() - 1);
@@ -179,11 +401,8 @@ public class DBConnector {
 
 		String query = "INSERT INTO " + table + " " + "SET ";
 		for (Entry<String, String> entry : row.entrySet()) {
-			// sanitize strings
-			String entryVal = entry.getValue();
-			entryVal = entryVal.replace("\"", "");
-			entryVal = entryVal.replace("'", "");
-			query = query + entry.getKey() + "=" + "\"" + entryVal + "\"" + ",";
+			//fix
+			//query = query + entry.getKey() + "=" + "\"" + entryVal + "\"" + ",";
 		}
 		query = query.substring(0, query.length() - 1);
 		query = query + ";";
@@ -202,16 +421,11 @@ public class DBConnector {
 
 		String query = "UPDATE " + table + " SET ";
 		for (Entry<String, String> entry : list.entrySet()) {
-			// sanitize strings
-			String entryVal = entry.getValue();
-			entryVal = entryVal.replace("\"", "");
-			entryVal = entryVal.replace("'", "");
-			query = query + entry.getKey() + "=" + "\"" + entryVal + "\"" + ",";
+			//fix
+			//query = query + entry.getKey() + "=" + "\"" + entryVal + "\"" + ",";
 		}
 		query = query.substring(0, query.length() - 1);
-		// sanitize strings
-		pval = pval.replace("\"", "");
-		pval = pval.replace("'", "");
+		//fix
 		query = query + " WHERE " + pkey + "=" + "\"" + pval + "\";";
 
 		this.lastQuery = query;
@@ -220,9 +434,7 @@ public class DBConnector {
 	}
 
 	public boolean primaryKeyExists(String table, String colIndex, String pkey) throws SQLException {
-		// sanitize strings
-		pkey = pkey.replace("\"", "");
-		pkey = pkey.replace("'", "");
+		//fix
 		String query = "SELECT * FROM " + table + " WHERE " + colIndex + "=" + "\"" + pkey + "\";";
 		this.queryDB(query);
 		// check if first row exists
@@ -268,23 +480,18 @@ public class DBConnector {
 	}
 
 	public ResultSet getEntry(String table, String columnIndex, String primaryKey) {
-		// sanitize strings
-		primaryKey = primaryKey.replace("\"", "");
-		primaryKey = primaryKey.replace("'", "");
+		//fix
 		String query = "SELECT * FROM " + table + " WHERE " + columnIndex + "=" + "\"" + primaryKey + "\";";
 		return this.queryDB(query);
 	}
 
 	public int getCount(String table, HashMap<String,String> conditions) throws SQLException {
-		
+
 		int count = 0;
 		String query = "SELECT COUNT(*) AS res FROM " + table + " WHERE (";
 		for (Entry<String, String> entry : conditions.entrySet()) {
-			// sanitize strings
-			String entryVal = entry.getValue();
-			entryVal = entryVal.replace("\"", "");
-			entryVal = entryVal.replace("'", "");
-			query = query + entry.getKey() + "=" + "\"" + entryVal + "\"" + " AND ";
+			//fix
+			//query = query + entry.getKey() + "=" + "\"" + entryVal + "\"" + " AND ";
 		}
 		query = query.substring(0, query.length() - 4);
 		query = query + ")";
@@ -297,7 +504,7 @@ public class DBConnector {
 	}
 
 	public int getNumberOfEntries(String table) throws SQLException {
-		
+
 		int count = 0;
 
 		String query = "SELECT COUNT(*)" + " FROM " + table;
@@ -321,6 +528,7 @@ public class DBConnector {
 			System.out.println(ex.getMessage());
 		}
 	}
+
 	// deprecated
 	public int getCount(String table, String columnIndex, String primaryKey) throws SQLException {
 		int count = 0;
