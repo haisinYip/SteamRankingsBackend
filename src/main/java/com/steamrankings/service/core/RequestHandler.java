@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -353,7 +355,16 @@ public class RequestHandler implements Runnable {
             rankEntries.add(new RankEntryByAchievements(i, profileAchievementCount.getKey().getInteger("id") + SteamProfile.BASE_ID_64, profileAchievementCount.getKey().getString("persona_name"),
                     profileAchievementCount.getValue(), "0%", profileAchievementCount.getKey().getString("location_country")));
         }
-        
+        Collections.sort(rankEntries, new Comparator<RankEntryByAchievements>(){
+			@Override
+			public int compare(RankEntryByAchievements o1,RankEntryByAchievements o2) {
+				return o2.getAchievementsTotal() - o1.getAchievementsTotal();
+			}
+        });
+        for(RankEntryByAchievements rank : rankEntries){
+        	rankEntries.get(i-1).setRankNumber(i);
+        	i++;
+        }
         return rankEntries;
     }
 

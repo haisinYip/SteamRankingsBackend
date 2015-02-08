@@ -11,6 +11,7 @@ import org.apache.http.util.EntityUtils;
 
 public class SteamApi {
     private String apiKey;
+    private static DefaultHttpClient httpClient = null;
 
     final public static String INTERFACE_STEAM_USER = "ISteamUser";
     final public static String INTERFACE_STEAM_USER_STATS = "ISteamUserStats";
@@ -41,6 +42,12 @@ public class SteamApi {
         HashMap<String, String> parameters = new HashMap<String, String>();
         parameters.put("steamids", "76561197965726621");
         System.out.println(api.getJSON(INTERFACE_STEAM_USER, METHOD_GET_PLAYER_SUMMARIES, VERSION_TWO, parameters));
+        try {
+        	httpClient = new DefaultHttpClient();
+        }
+        catch (Exception e) {
+            return;
+        }
     }
 
     public String getJSON(String apiInterface, String method, int version, Map<String, String> parameters) {
@@ -61,7 +68,9 @@ public class SteamApi {
         String data;
 
         try {
-            DefaultHttpClient httpClient = new DefaultHttpClient();
+            if (this.httpClient == null) {
+            	httpClient = new DefaultHttpClient();
+            }
             HttpGet request = new HttpGet(url);
             HttpResponse response = httpClient.execute(request);
             data = EntityUtils.toString(response.getEntity());
