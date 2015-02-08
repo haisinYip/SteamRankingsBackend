@@ -227,8 +227,10 @@ public class RequestHandler implements Runnable {
             return;
         }
 
+        long steamId = SteamDataDatabase.convertToSteamId64(parameters.get("id"));
+        
         if (parameters.containsKey(PARAMETERS_USER_ID)) {
-            List<ProfilesGames> list = ProfilesGames.where("profile_id = ?", (int) (Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64)).orderBy("total_play_time desc").limit(30);
+            List<ProfilesGames> list = ProfilesGames.where("profile_id = ?", (int) (steamId - SteamProfile.BASE_ID_64)).orderBy("total_play_time desc").limit(30);
             ArrayList<ProfilesGames> profilesGames = new ArrayList<ProfilesGames>(list);
             if (profilesGames != null) {
                 ArrayList<SteamGame> steamGames = new ArrayList<SteamGame>();
@@ -263,9 +265,11 @@ public class RequestHandler implements Runnable {
             sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
             return;
         }
+        
+        long steamId = SteamDataDatabase.convertToSteamId64(parameters.get("id"));
 
         if (parameters.containsKey(PARAMETERS_USER_ID) && parameters.containsKey(PARAMETERS_APP_ID)) {
-            List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ? AND game_id = ?", (int) (Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64),
+            List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ? AND game_id = ?", (int) (steamId - SteamProfile.BASE_ID_64),
                     Integer.parseInt(parameters.get(PARAMETERS_APP_ID))).limit(15);
             ArrayList<ProfilesAchievements> profilesAchievements = new ArrayList<ProfilesAchievements>(list);
             if (profilesAchievements != null) {
@@ -282,7 +286,7 @@ public class RequestHandler implements Runnable {
                 return;
             }
         } else if (parameters.containsKey(PARAMETERS_USER_ID)) {
-            List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ?", (int) (Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64)).limit(30);
+            List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ?", (int) (steamId - SteamProfile.BASE_ID_64)).limit(30);
             ArrayList<ProfilesAchievements> profilesAchievements = new ArrayList<ProfilesAchievements>(list);
             if (profilesAchievements != null) {
                 ArrayList<GameAchievement> gameAchievements = new ArrayList<GameAchievement>();
