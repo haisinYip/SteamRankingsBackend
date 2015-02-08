@@ -112,7 +112,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<finalName>standalone-${artifactId}-${version}</finalName>
+					<finalName>standalone-${project.artifactId}-${project.version}</finalName>
 				</configuration>
 			</plugin>
 
