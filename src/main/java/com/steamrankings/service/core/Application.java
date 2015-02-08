@@ -7,8 +7,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Properties;
 
-import com.steamrankings.service.core.RequestHandler;
-
 public class Application {
     final public static Properties CONFIG = new Properties();
 
@@ -17,19 +15,16 @@ public class Application {
         CONFIG.load(inputStream);
         inputStream.close();
 
-        int port = Integer.parseInt(CONFIG.get("server_port").toString());
-
-        ServerSocket serverSocket;
-        serverSocket = new ServerSocket(port);
+        ServerSocket serverSocket = new ServerSocket(Integer.parseInt(CONFIG.get("server_port").toString()));
         System.out.println("Backend now running");
         while (true) {
             Socket clientSocket = serverSocket.accept();
             RequestHandler requestHandler;
 
             try {
-            	System.out.println("New request received");
+                System.out.println("New request received");
                 requestHandler = new RequestHandler(clientSocket);
-                
+
             } catch (Exception e) {
                 break;
             }
