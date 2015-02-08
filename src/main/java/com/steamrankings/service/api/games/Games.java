@@ -11,15 +11,13 @@ import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 
+import com.steamrankings.service.api.client.SteamRankingsClient;
+
 public class Games {
-    public static SteamGame getSteamGame(int appId) {
-        HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://localhost:6789/games?appId=" + appId);
-        HttpResponse response = null;
+    public static SteamGame getSteamGame(int appId, SteamRankingsClient client) {
 
         try {
-            response = client.execute(request);
-            String data = EntityUtils.toString(response.getEntity());
+            String data=client.excecuteRequest("games?appId=" + appId);
 
             ObjectMapper mapper = new ObjectMapper();
 
@@ -29,15 +27,10 @@ public class Games {
         }
     }
 
-    public static List<SteamGame> getPlayedSteamGames(String steamID64) {
-
-        HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://localhost:6789/games?id=" + steamID64);
-        HttpResponse response = null;
+    public static List<SteamGame> getPlayedSteamGames(String steamID64, SteamRankingsClient client) {
 
         try {
-            response = client.execute(request);
-            String data = EntityUtils.toString(response.getEntity());
+            String data=client.excecuteRequest("games?id=" + steamID64);
 
             ObjectMapper mapper = new ObjectMapper();
             JSONArray jsonArray = new JSONArray(data);
