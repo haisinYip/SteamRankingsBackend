@@ -413,20 +413,20 @@ public class RequestHandler implements Runnable {
                      //System.out.println(game);
                  }
                  else {
-                	 System.out.println("Game is NULL or Empty");
+//                	 System.out.println("Game is NULL or Empty");
                  }
              }
              for(int i = 0; i < steamGames.size(); i++) {
             	 List<Achievement> totalGameAchievements = Achievement.where("game_id = ?", steamGames.get(i).getAppId());
             	 if(totalGameAchievements == null || totalGameAchievements.isEmpty()) {
-            		 System.out.println("List is null");
+//            		 System.out.println("List is null");
             	 }
             	 double sizeOfGameAchievements = totalGameAchievements.size();
-            	 System.out.println(sizeOfGameAchievements);
+//            	 System.out.println(sizeOfGameAchievements);
             
             	 List<ProfilesAchievements> playerGameAchievements = ProfilesAchievements.where("profile_id = ? AND game_id = ?", steamId, steamGames.get(i).getAppId());
             	 double sizeOfPlayerAchievements = playerGameAchievements.size();
-            	 System.out.println(sizeOfPlayerAchievements);
+//            	 System.out.println(sizeOfPlayerAchievements);
             	 
             	 gameAchievementsTotal += sizeOfGameAchievements;
             	 playerAchievementsTotal += sizeOfPlayerAchievements;
