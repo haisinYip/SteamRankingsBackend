@@ -18,7 +18,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.javalite.activejdbc.Base;
 import org.joda.time.DateTime;
 
+import com.steamrankings.service.api.achievements.Achievements;
 import com.steamrankings.service.api.achievements.GameAchievement;
+import com.steamrankings.service.api.games.Games;
 import com.steamrankings.service.api.games.SteamGame;
 import com.steamrankings.service.api.leaderboards.RankEntryByAchievements;
 import com.steamrankings.service.api.profiles.SteamProfile;
@@ -52,6 +54,16 @@ public class RequestHandler implements Runnable {
     private static final String API_ERROR_STEAM_ID_INVALID = "3000";
 
     private Socket socket;
+    
+   /* public static void main(String[] args) {
+    	//RequestHandler rh = new RequestHandler();
+    	Profile profile = new Profile();
+    	//profile.getId();
+    	profile.setId("76561197965726621");
+		double rate;
+		//rate = processgetAverageCompletionRateForAllGames(profile);
+		//System.out.println(rate);
+	}*/
 
     public RequestHandler(Socket socket) throws Exception {
         this.socket = socket;
@@ -59,7 +71,7 @@ public class RequestHandler implements Runnable {
 
     public void run() {
         try {
-            processRequest();
+    		processRequest();
         } catch (IOException e) {
             logger.log(Level.FINE, "Error processing the request." + e);
         }
@@ -93,6 +105,7 @@ public class RequestHandler implements Runnable {
             Base.open("com.mysql.jdbc.Driver", "jdbc:mysql://" + Application.CONFIG.getProperty("server") + ":" + Application.CONFIG.getProperty("mysql_port") + "/" + "steamrankings_test_db",
                     Application.CONFIG.getProperty("mysql_username"), Application.CONFIG.getProperty("mysql_password"));
             processGet(restInterface, parameters);
+            
             Base.close();
         }
     }
@@ -159,7 +172,7 @@ public class RequestHandler implements Runnable {
                 profile.getString("avatar_medium_url"), profile.getString("avatar_icon_url"), new DateTime(profile.getTimestamp("last_logoff").getTime()));
         sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json" + CRLF, steamProfile.toString());
 
-        Base.close();
+        //Base.close();
         return;
     }
 
@@ -351,7 +364,7 @@ public class RequestHandler implements Runnable {
         ArrayList<RankEntryByAchievements> rankEntries = new ArrayList<RankEntryByAchievements>();
         for (Entry<Profile, Integer> profileAchievementCount : profileAchievementCounts.entrySet()) {
             rankEntries.add(new RankEntryByAchievements(i, profileAchievementCount.getKey().getInteger("id") + SteamProfile.BASE_ID_64, profileAchievementCount.getKey().getString("persona_name"),
-                    profileAchievementCount.getValue(), "0%", profileAchievementCount.getKey().getString("location_country")));
+                    profileAchievementCount.getValue(), processgetAverageCompletionRateForAllGames(profileAchievementCount.getKey().getInteger("id")), profileAchievementCount.getKey().getString("location_country")));
         }
         
         return rankEntries;
@@ -366,5 +379,47 @@ public class RequestHandler implements Runnable {
         output.writeBytes(entity);
 
         output.close();
+    }
+    
+    public String processgetAverageCompletionRateForAllGames(int steamId)  {
+    	
+    	String avgCompletionRate;
+    	double gameAchievementsTotal = 0;
+    	double playerAchievementsTotal = 0;
+    	
+    	 List<ProfilesGames> list = ProfilesGames.where("profile_id = ?", (steamId));
+    	 ArrayList<ProfilesGames> profilesGames = new ArrayList<ProfilesGames>(list);
+    	 
+    	 if (profilesGames != null) {
+             ArrayList<SteamGame> steamGames = new ArrayList<SteamGame>();
+             for (ProfilesGames profilesGame : profilesGames) {
+                 Game game = Game.findById(profilesGame.get("game_id"));
+                 if (game != null) {
+                     steamGames.add(new SteamGame(game.getInteger("id"), game.getString("icon_url"), game.getString("logo_url"), game.getString("name")));
+                     //System.out.println(game);
+                 }
+                 else {
+                	 System.out.println("Game is NULL or Empty");
+                 }
+             }
+             for(int i = 0; i < steamGames.size(); i++) {
+            	 List<Achievement> totalGameAchievements = Achievement.where("game_id = ?", steamGames.get(i).getAppId());
+            	 if(totalGameAchievements == null || totalGameAchievements.isEmpty()) {
+            		 System.out.println("List is null");
+            	 }
+            	 double sizeOfGameAchievements = totalGameAchievements.size();
+            	 System.out.println(sizeOfGameAchievements);
+            
+            	 List<ProfilesAchievements> playerGameAchievements = ProfilesAchievements.where("profile_id = ? AND game_id = ?", steamId, steamGames.get(i).getAppId());
+            	 double sizeOfPlayerAchievements = playerGameAchievements.size();
+            	 System.out.println(sizeOfPlayerAchievements);
+            	 
+            	 gameAchievementsTotal += sizeOfGameAchievements;
+            	 playerAchievementsTotal += sizeOfPlayerAchievements;
+             }  
+    	 }
+    	 avgCompletionRate = String.valueOf(((playerAchievementsTotal / gameAchievementsTotal) * 100));
+    	 
+    	 return (avgCompletionRate + "%");
     }
 }
