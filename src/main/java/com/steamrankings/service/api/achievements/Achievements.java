@@ -12,6 +12,12 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 
 public class Achievements {
+	
+		private static final String API_ERROR_BAD_ARGUMENTS_CODE = "1000";
+	    private static final String API_ERROR_STEAM_USER_DOES_NOT_EXIST = "2000";
+	    private static final String API_ERROR_STEAM_ID_INVALID = "3000";
+	    
+	    
     public static List<GameAchievement> getGameAchievements(int appId) {
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet("http://localhost:6789/achievements?appid=" + appId);
@@ -76,3 +82,5 @@ public class Achievements {
         }
     }
 }
+
+

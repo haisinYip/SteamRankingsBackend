@@ -11,8 +11,15 @@ import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 
+import com.steamrankings.service.api.APIException;
+
 public class Profiles {
-    public static SteamProfile getSteamUser(String steamID64) {
+	
+	 private static final String API_ERROR_BAD_ARGUMENTS_CODE = "1000";
+	    private static final String API_ERROR_STEAM_USER_DOES_NOT_EXIST = "2000";
+	    private static final String API_ERROR_STEAM_ID_INVALID = "3000";
+	    
+    public static SteamProfile getSteamUser(String steamID64) throws Exception {
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet("http://localhost:6789/profile?id=" + steamID64);
         HttpResponse response = null;
@@ -20,11 +27,38 @@ public class Profiles {
         try {
             response = client.execute(request);
             String data = EntityUtils.toString(response.getEntity());
+            
+            if (response.getStatusLine().getStatusCode() == 400) {
+            	if (data.equals(API_ERROR_STEAM_ID_INVALID)) {
+            		throw new APIException("Invalid or private Steam ID");
+            	}
+            	
+            	else if (data.equals(API_ERROR_BAD_ARGUMENTS_CODE)) {
+            		throw new APIException("Bad arguments passed to API");
+            	}
+            	else {
+            		throw new APIException("Unknown API exception; HTTP 400 error");
+            	}
+            }
+            else if (response.getStatusLine().getStatusCode() == 404)
+            {
+            	if (data.equals(API_ERROR_STEAM_USER_DOES_NOT_EXIST))
+            	{
+            		throw new APIException("Steam user does not exist");
+            	}
+            	else {
+            		throw new APIException("Unknown API exception; HTTP 404 error");
+            	}
+            }
+            
             ObjectMapper mapper = new ObjectMapper();
             return mapper.readValue(data, SteamProfile.class);
         } catch (Exception e) {
-            return null;
+            if (e instanceof APIException) {
+            	throw e;
+            }
         }
+		return null;
     }
 
     public static List<SteamProfile> getSteamFriends(String steamID64) {

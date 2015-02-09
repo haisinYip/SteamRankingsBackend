@@ -1,14 +1,22 @@
 package com.steamrankings.service.steam;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 import com.steamrankings.service.api.achievements.GameAchievement;
 import com.steamrankings.service.api.games.SteamGame;
@@ -60,10 +68,9 @@ public class SteamDataExtractor {
             json = new JSONObject(jsonString).getJSONObject("response").getJSONArray("games");
             for (int i = 0; i < json.length(); i++) {
                 JSONObject jsonObject = json.getJSONObject(i);
-                games.put(
-                        new SteamGame(jsonObject.getInt("appid"), jsonObject.has("img_icon_url") ? getSteamMediaUrl(jsonObject.getInt("appid"), jsonObject.getString("img_icon_url")) : null, jsonObject
-                                .has("img_logo_url") ? getSteamMediaUrl(jsonObject.getInt("appid"), jsonObject.getString("img_logo_url")) : null, jsonObject.getString("name")), jsonObject
-                                .getInt("playtime_forever"));
+                games.put(new SteamGame(jsonObject.getInt("appid"), jsonObject.has("img_icon_url") ? getSteamMediaUrl(jsonObject.getInt("appid"), jsonObject.getString("img_icon_url")) : null,
+                        jsonObject.has("img_logo_url") ? getSteamMediaUrl(jsonObject.getInt("appid"), jsonObject.getString("img_logo_url")) : null, jsonObject.getString("name")), jsonObject
+                        .getInt("playtime_forever"));
             }
         } catch (JSONException e) {
             return games;
@@ -123,12 +130,30 @@ public class SteamDataExtractor {
         return SteamDataExtractor.STEAM_MEDIA_URL + Integer.toString(appId) + "/" + imageHash + ".jpg";
     }
 
-    static String getCommunityIdFromUrl(String url) {
+    private static String getCommunityIdFromUrl(String url) {
         String[] urlContents = url.split("/");
         if (urlContents.length <= 0) {
             return "";
         } else {
             return urlContents[4];
         }
+    }
+
+    public static String getSteamId64FromXML(String xml) {
+        String steamID64 = null;
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            InputSource is = new InputSource(new StringReader(xml));
+            Document doc = builder.parse(is);
+            doc.getDocumentElement().normalize();
+            NodeList nodes = doc.getElementsByTagName("steamID64");
+            Node steamid64Node = nodes.item(0).getFirstChild();
+            steamID64 = steamid64Node.getNodeValue();
+
+        } catch (Exception e) {
+            return null;
+        }
+        return steamID64;
     }
 }

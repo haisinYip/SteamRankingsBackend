@@ -3,6 +3,8 @@ package com.steamrankings.service.api.games;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.steamrankings.service.api.APIException;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -12,6 +14,12 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 
 public class Games {
+	
+    private static final String API_ERROR_BAD_ARGUMENTS_CODE = "1000";
+    private static final String API_ERROR_STEAM_USER_DOES_NOT_EXIST = "2000";
+    private static final String API_ERROR_STEAM_ID_INVALID = "3000";
+    
+    
     public static SteamGame getSteamGame(int appId) {
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet("http://localhost:6789/games?appId=" + appId);
@@ -29,7 +37,7 @@ public class Games {
         }
     }
 
-    public static List<SteamGame> getPlayedSteamGames(String steamID64) {
+    public static List<SteamGame> getPlayedSteamGames(String steamID64) throws Exception {
 
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet("http://localhost:6789/games?id=" + steamID64);
@@ -37,7 +45,31 @@ public class Games {
 
         try {
             response = client.execute(request);
+            		
             String data = EntityUtils.toString(response.getEntity());
+            
+            if (response.getStatusLine().getStatusCode() == 400) {
+            	if (data.equals(API_ERROR_STEAM_ID_INVALID)) {
+            		throw new APIException("Invalid or private Steam ID");
+            	}
+            	
+            	else if (data.equals(API_ERROR_BAD_ARGUMENTS_CODE)) {
+            		throw new APIException("Bad arguments passed to API");
+            	}
+            	else {
+            		throw new APIException("Unknown API exception; HTTP 400 error");
+            	}
+            }
+            else if (response.getStatusLine().getStatusCode() == 404)
+            {
+            	if (data.equals(API_ERROR_STEAM_USER_DOES_NOT_EXIST))
+            	{
+            		throw new APIException("Steam user does not exist");
+            	}
+            	else {
+            		throw new APIException("Unknown API exception; HTTP 404 error");
+            	}
+            }
 
             ObjectMapper mapper = new ObjectMapper();
             JSONArray jsonArray = new JSONArray(data);
@@ -49,7 +81,10 @@ public class Games {
 
             return games;
         } catch (Exception e) {
-            return null;
+            if (e instanceof APIException) {
+            	throw e;
+            }
         }
+		return null;
     }
 }

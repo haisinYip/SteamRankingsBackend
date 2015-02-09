@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -170,9 +172,8 @@ public class RequestHandler implements Runnable {
         steamProfile = new SteamProfile(profile.getInteger("id") + SteamProfile.BASE_ID_64, profile.getString("community_id"), profile.getString("persona_name"), profile.getString("real_name"),
                 profile.getString("location_country"), profile.getString("location_province"), profile.getString("location_citys"), profile.getString("avatar_full_url"),
                 profile.getString("avatar_medium_url"), profile.getString("avatar_icon_url"), new DateTime(profile.getTimestamp("last_logoff").getTime()));
-        sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json" + CRLF, steamProfile.toString());
-
-        //Base.close();
+        sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json ; charset=UTF-8" + CRLF, steamProfile.toString());
+        
         return;
     }
 
@@ -238,8 +239,10 @@ public class RequestHandler implements Runnable {
             return;
         }
 
+        long steamId = SteamDataDatabase.convertToSteamId64(parameters.get("id"));
+        
         if (parameters.containsKey(PARAMETERS_USER_ID)) {
-            List<ProfilesGames> list = ProfilesGames.where("profile_id = ?", (int) (Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64)).orderBy("total_play_time desc").limit(15);
+            List<ProfilesGames> list = ProfilesGames.where("profile_id = ?", (int) (steamId - SteamProfile.BASE_ID_64)).orderBy("total_play_time desc").limit(30);
             ArrayList<ProfilesGames> profilesGames = new ArrayList<ProfilesGames>(list);
             if (profilesGames != null) {
                 ArrayList<SteamGame> steamGames = new ArrayList<SteamGame>();
@@ -250,7 +253,7 @@ public class RequestHandler implements Runnable {
                     }
                 }
                 ObjectMapper mapper = new ObjectMapper();
-                sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json" + CRLF, mapper.writeValueAsString(steamGames));
+                sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json ; charset=UTF-8" + CRLF, mapper.writeValueAsString(steamGames));
                 return;
             }
         } else {
@@ -262,7 +265,7 @@ public class RequestHandler implements Runnable {
                     steamGames.add(new SteamGame(game.getInteger("id"), game.getString("icon_url"), game.getString("logo_url"), game.getString("name")));
                 }
                 ObjectMapper mapper = new ObjectMapper();
-                sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json" + CRLF, mapper.writeValueAsString(steamGames));
+                sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json ; charset=UTF-8" + CRLF, mapper.writeValueAsString(steamGames));
                 return;
             }
         }
@@ -274,9 +277,11 @@ public class RequestHandler implements Runnable {
             sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
             return;
         }
+        
+        long steamId = SteamDataDatabase.convertToSteamId64(parameters.get("id"));
 
         if (parameters.containsKey(PARAMETERS_USER_ID) && parameters.containsKey(PARAMETERS_APP_ID)) {
-            List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ? AND game_id = ?", (int) (Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64),
+            List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ? AND game_id = ?", (int) (steamId - SteamProfile.BASE_ID_64),
                     Integer.parseInt(parameters.get(PARAMETERS_APP_ID))).limit(15);
             ArrayList<ProfilesAchievements> profilesAchievements = new ArrayList<ProfilesAchievements>(list);
             if (profilesAchievements != null) {
@@ -289,11 +294,11 @@ public class RequestHandler implements Runnable {
                     }
                 }
                 ObjectMapper mapper = new ObjectMapper();
-                sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json" + CRLF, mapper.writeValueAsString(gameAchievements));
+                sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json ; charset=UTF-8" + CRLF, mapper.writeValueAsString(gameAchievements));
                 return;
             }
         } else if (parameters.containsKey(PARAMETERS_USER_ID)) {
-            List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ?", (int) (Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64)).limit(15);
+            List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ?", (int) (steamId - SteamProfile.BASE_ID_64)).limit(30);
             ArrayList<ProfilesAchievements> profilesAchievements = new ArrayList<ProfilesAchievements>(list);
             if (profilesAchievements != null) {
                 ArrayList<GameAchievement> gameAchievements = new ArrayList<GameAchievement>();
@@ -305,7 +310,7 @@ public class RequestHandler implements Runnable {
                     }
                 }
                 ObjectMapper mapper = new ObjectMapper();
-                sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json" + CRLF, mapper.writeValueAsString(gameAchievements));
+                sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json ; charset=UTF-8" + CRLF, mapper.writeValueAsString(gameAchievements));
                 return;
             }
         } else if (parameters.containsKey(PARAMETERS_APP_ID)) {
@@ -317,7 +322,7 @@ public class RequestHandler implements Runnable {
                         achievement.getString("unlocked_icon_url"), achievement.getString("locked_icon_url")));
             }
             ObjectMapper mapper = new ObjectMapper();
-            sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json" + CRLF, mapper.writeValueAsString(gameAchievements));
+            sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json ; charset=UTF-8" + CRLF, mapper.writeValueAsString(gameAchievements));
             return;
         } else {
             sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
@@ -338,7 +343,7 @@ public class RequestHandler implements Runnable {
                 sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: " + "text/plain" + CRLF, "Something went wrong");
                 return;
             } else {
-                sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json" + CRLF, leaderboard.toString());
+            	sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json ; charset=UTF-8" + CRLF,  leaderboard.toString());
                 return;
             }
         }
@@ -366,7 +371,15 @@ public class RequestHandler implements Runnable {
             rankEntries.add(new RankEntryByAchievements(i, profileAchievementCount.getKey().getInteger("id") + SteamProfile.BASE_ID_64, profileAchievementCount.getKey().getString("persona_name"),
                     profileAchievementCount.getValue(), processgetAverageCompletionRateForAllGames(profileAchievementCount.getKey().getInteger("id")), profileAchievementCount.getKey().getString("location_country")));
         }
-        
+        Collections.sort(rankEntries, new Comparator<RankEntryByAchievements>(){
+			public int compare(RankEntryByAchievements o1,RankEntryByAchievements o2) {
+				return o2.getAchievementsTotal() - o1.getAchievementsTotal();
+			}
+        });
+        for(RankEntryByAchievements rank : rankEntries){
+        	rankEntries.get(i-1).setRankNumber(i);
+        	i++;
+        }
         return rankEntries;
     }
 
@@ -381,6 +394,7 @@ public class RequestHandler implements Runnable {
         output.close();
     }
     
+
     public String processgetAverageCompletionRateForAllGames(int steamId)  {
     	
     	String avgCompletionRate;
@@ -421,5 +435,17 @@ public class RequestHandler implements Runnable {
     	 avgCompletionRate = String.valueOf(((playerAchievementsTotal / gameAchievementsTotal) * 100));
     	 
     	 return (avgCompletionRate + "%");
+    }
+    
+    private void sendResponseUTF(Socket socket, String statusLine, String contentTypeLine, String entity) throws IOException {
+        DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+
+        output.writeBytes(statusLine);
+        output.writeBytes(contentTypeLine);
+        output.writeBytes(CRLF);
+        byte[] entityBytes = entity.getBytes("UTF-8");
+        output.write(entityBytes, 0, entityBytes.length);
+
+        output.close();
     }
 }

@@ -42,10 +42,10 @@ public class SteamApi {
         HashMap<String, String> parameters = new HashMap<String, String>();
         parameters.put("steamids", "76561197965726621");
         System.out.println(api.getJSON(INTERFACE_STEAM_USER, METHOD_GET_PLAYER_SUMMARIES, VERSION_TWO, parameters));
+        // System.out.println(api.getSteamId64FromXML(api.getXML("Nikolaos9029")));
         try {
-        	httpClient = new DefaultHttpClient();
-        }
-        catch (Exception e) {
+            httpClient = new DefaultHttpClient();
+        } catch (Exception e) {
             return;
         }
     }
@@ -68,8 +68,27 @@ public class SteamApi {
         String data;
 
         try {
-            if (this.httpClient == null) {
-            	httpClient = new DefaultHttpClient();
+            if (httpClient == null) {
+                httpClient = new DefaultHttpClient();
+            }
+            HttpGet request = new HttpGet(url);
+            HttpResponse response = httpClient.execute(request);
+            data = EntityUtils.toString(response.getEntity());
+        } catch (Exception e) {
+            return null;
+        }
+
+        return data;
+    }
+
+    public static String getXML(String communityId) {
+        String url = String.format("http://steamcommunity.com/id/%s/?xml=1", communityId);
+
+        String data = null;
+
+        try {
+            if (httpClient == null) {
+                httpClient = new DefaultHttpClient();
             }
             HttpGet request = new HttpGet(url);
             HttpResponse response = httpClient.execute(request);
