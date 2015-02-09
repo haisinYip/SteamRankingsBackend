@@ -110,12 +110,16 @@ public class SteamDataDatabase {
 
     // expects either communityid or the steamid64 itself
     public static long convertToSteamId64(String idToConvert) {
-    	long steamid64 = INVALID_STEAMID_64;
-	    try {
-	        return Long.parseLong(idToConvert);
-	    } catch (NumberFormatException e) {
-	    	steamid64 = Long.parseLong(SteamDataExtractor.getSteamId64FromXML(SteamApi.getXML(idToConvert)));
-	    	return steamid64;
-	    }
-	}
+        long steamid64 = INVALID_STEAMID_64;
+        try {
+            return Long.parseLong(idToConvert);
+        } catch (NumberFormatException e1) {
+            try {
+                steamid64 = Long.parseLong(SteamDataExtractor.getSteamId64FromXML(SteamApi.getXML(idToConvert)));
+                return steamid64;
+            } catch (Exception e2) {
+                return INVALID_STEAMID_64;
+            }
+        }
+    }
 }

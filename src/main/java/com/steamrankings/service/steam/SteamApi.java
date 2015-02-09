@@ -1,22 +1,13 @@
 package com.steamrankings.service.steam;
 
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import javax.swing.text.Element;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 public class SteamApi {
     private String apiKey;
@@ -51,11 +42,10 @@ public class SteamApi {
         HashMap<String, String> parameters = new HashMap<String, String>();
         parameters.put("steamids", "76561197965726621");
         System.out.println(api.getJSON(INTERFACE_STEAM_USER, METHOD_GET_PLAYER_SUMMARIES, VERSION_TWO, parameters));
-        //System.out.println(api.getSteamId64FromXML(api.getXML("Nikolaos9029")));
+        // System.out.println(api.getSteamId64FromXML(api.getXML("Nikolaos9029")));
         try {
-        	httpClient = new DefaultHttpClient();
-        }
-        catch (Exception e) {
+            httpClient = new DefaultHttpClient();
+        } catch (Exception e) {
             return;
         }
     }
@@ -78,8 +68,8 @@ public class SteamApi {
         String data;
 
         try {
-            if (this.httpClient == null) {
-            	httpClient = new DefaultHttpClient();
+            if (httpClient == null) {
+                httpClient = new DefaultHttpClient();
             }
             HttpGet request = new HttpGet(url);
             HttpResponse response = httpClient.execute(request);
@@ -90,15 +80,15 @@ public class SteamApi {
 
         return data;
     }
-    
+
     public static String getXML(String communityId) {
         String url = String.format("http://steamcommunity.com/id/%s/?xml=1", communityId);
 
-        String data;
+        String data = null;
 
         try {
             if (httpClient == null) {
-            	httpClient = new DefaultHttpClient();
+                httpClient = new DefaultHttpClient();
             }
             HttpGet request = new HttpGet(url);
             HttpResponse response = httpClient.execute(request);
