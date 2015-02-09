@@ -369,7 +369,7 @@ public class RequestHandler implements Runnable {
         ArrayList<RankEntryByAchievements> rankEntries = new ArrayList<RankEntryByAchievements>();
         for (Entry<Profile, Integer> profileAchievementCount : profileAchievementCounts.entrySet()) {
             rankEntries.add(new RankEntryByAchievements(i, profileAchievementCount.getKey().getInteger("id") + SteamProfile.BASE_ID_64, profileAchievementCount.getKey().getString("persona_name"),
-                    profileAchievementCount.getValue(), processgetAverageCompletionRateForAllGames(profileAchievementCount.getKey().getInteger("id")), profileAchievementCount.getKey().getString("location_country")));
+                    profileAchievementCount.getValue(), "0%", profileAchievementCount.getKey().getString("location_country")));
         }
         Collections.sort(rankEntries, new Comparator<RankEntryByAchievements>(){
 			public int compare(RankEntryByAchievements o1,RankEntryByAchievements o2) {
