@@ -20,9 +20,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.javalite.activejdbc.Base;
 import org.joda.time.DateTime;
 
-import com.steamrankings.service.api.achievements.Achievements;
 import com.steamrankings.service.api.achievements.GameAchievement;
-import com.steamrankings.service.api.games.Games;
 import com.steamrankings.service.api.games.SteamGame;
 import com.steamrankings.service.api.leaderboards.RankEntryByAchievements;
 import com.steamrankings.service.api.profiles.SteamProfile;
