@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,6 +20,7 @@ import java.util.logging.Logger;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.javalite.activejdbc.Base;
+import org.javalite.activejdbc.LazyList;
 import org.joda.time.DateTime;
 
 import com.steamrankings.service.api.achievements.GameAchievement;
@@ -54,6 +57,7 @@ public class RequestHandler implements Runnable {
 	private static final String API_ERROR_STEAM_USER_DOES_NOT_EXIST = "2000";
 	private static final String API_ERROR_STEAM_ID_INVALID = "3000";
 
+	private static final int AVG_NUM_GAMES_NOT_IN_DB = 50;
 	private Socket socket;
 
 	public RequestHandler(Socket socket) throws Exception {
@@ -101,11 +105,19 @@ public class RequestHandler implements Runnable {
 		}
 	}
 
+	// TODO : CHANGE THIS BEFORE PUSH
 	private void openDBConnection() {
+		// Base.open("com.mysql.jdbc.Driver",
+		// "jdbc:mysql://" + Application.CONFIG.getProperty("server")
+		// + ":" + Application.CONFIG.getProperty("mysql_port")
+		// + "/" + "steamrankings_test_db"
+		// + "?characterEncoding=utf8",
+		// Application.CONFIG.getProperty("mysql_username"),
+		// Application.CONFIG.getProperty("mysql_password"));
 		Base.open("com.mysql.jdbc.Driver",
 				"jdbc:mysql://" + Application.CONFIG.getProperty("server")
 						+ ":" + Application.CONFIG.getProperty("mysql_port")
-						+ "/" + "steamrankings_test_db"
+						+ "/" + "steamrankings_michael_db"
 						+ "?characterEncoding=utf8",
 				Application.CONFIG.getProperty("mysql_username"),
 				Application.CONFIG.getProperty("mysql_password"));
@@ -154,6 +166,7 @@ public class RequestHandler implements Runnable {
 		Profile profile = Profile
 				.findById((int) (steamId - SteamProfile.BASE_ID_64));
 		SteamProfile steamProfile = null;
+
 		if (profile == null) {
 			steamProfile = steamDataExtractor.getSteamProfile(steamId);
 			if (steamProfile == null) {
@@ -178,11 +191,10 @@ public class RequestHandler implements Runnable {
 				profile.set("avatar_medium_url",
 						steamProfile.getMediumAvatarUrl());
 				profile.set("avatar_icon_url", steamProfile.getIconAvatarUrl());
-				
+
 				profile.set("last_logoff", new Timestamp(steamProfile
 						.getLastOnline().getMillis()));
-				if (profile.insert())
-					System.out.println("Did not save");
+				profile.insert();
 
 				logger.info(profile.toString());
 				processNewUser(steamDataExtractor, profile, steamProfile);
@@ -209,74 +221,125 @@ public class RequestHandler implements Runnable {
 
 	private void processNewUser(SteamDataExtractor steamDataExtractor,
 			Profile profile, SteamProfile steamProfile) {
-		// Add user's games
+		
+		long time = System.currentTimeMillis();
+		// Get user game list
 		HashMap<SteamGame, Integer> ownedGames = (HashMap<SteamGame, Integer>) steamDataExtractor
 				.getPlayerOwnedGames(steamProfile.getSteamId64());
-		for (Entry<SteamGame, Integer> ownedGame : ownedGames.entrySet()) {
-			Game game = new Game();
-			game.set("id", ownedGame.getKey().getAppId());
-			game.set("name", ownedGame.getKey().getName());
-			game.set("icon_url", ownedGame.getKey().getIconUrl());
-			game.set("logo_url", ownedGame.getKey().getLogoUrl());
-			ProfilesGames profilesGames = new ProfilesGames();
-			profilesGames.set("profile_id", profile.getId());
-			profilesGames.set("game_id", game.getId());
-			profilesGames.set("total_play_time", ownedGame.getValue());
-			if (ProfilesGames.where("profile_id = ? AND game_id = ?",
-					profile.getId(), game.getId()).isEmpty()) {
-				profilesGames.insert();
-				logger.info(profilesGames.toString());
-			}
 
-			if (Game.findById(ownedGame.getKey().getAppId()) == null) {
-				game.insert();
-				logger.info(game.toString());
-			}
 
-			ArrayList<GameAchievement> gameAchievements = (ArrayList<GameAchievement>) steamDataExtractor
-					.getGameAchievements(ownedGame.getKey().getAppId());
+		// Get list of all games + achievements in DB, convert to array of IDs
+		LazyList<Game> gamesDB = Game.findAll();
 
-			for (GameAchievement gameAchievement : gameAchievements) {
-				Achievement achievement = new Achievement();
-				achievement.set("id", gameAchievement.getAchievementId()
-						.hashCode());
-				achievement.set("game_id", game.getId());
-				achievement.set("name", gameAchievement.getName());
-				achievement
-						.set("description", gameAchievement.getDescription());
-				achievement.set("unlocked_icon_url",
-						gameAchievement.getUnlockedIconUrl());
-				achievement.set("locked_icon_url",
-						gameAchievement.getLockedIconUrl());
-				if (Achievement.where("id = ? AND game_id = ?",
-						gameAchievement.getAchievementId().hashCode(),
-						game.getId()).isEmpty()) {
-					logger.info(achievement.toString());
-					achievement.insert();
-				}
-			}
+		ArrayList<Long> idListDB = new ArrayList<>(gamesDB.size());
+		for (Game game : gamesDB) {
+			idListDB.add(game.getLongId());
+		}
 
-			ArrayList<GameAchievement> playerAchievements = (ArrayList<GameAchievement>) steamDataExtractor
-					.getPlayerAchievements(steamProfile.getSteamId64(),
-							ownedGame.getKey().getAppId());
-
-			for (GameAchievement playerAchievement : playerAchievements) {
-				ProfilesAchievements achievement = new ProfilesAchievements();
-				achievement.set("profile_id", profile.getId());
-				achievement.set("achievement_id", playerAchievement
-						.getAchievementId().hashCode());
-				achievement.set("game_id", game.getId());
-				achievement.set("unlocked_timestamp",
-						new Timestamp(659836800).toString());
-				if (ProfilesAchievements.where(
-						"id = ? AND profile_id = ? AND game_id = ?",
-						playerAchievement.getAchievementId().hashCode(),
-						profile.getId(), game.getId()).isEmpty()) {
-					logger.info(achievement.toString());
-					achievement.insert();
-				}
+		// Go through all games owned by player, check for missing ones with DB
+		ArrayList<SteamGame> notContain = new ArrayList<>(
+				AVG_NUM_GAMES_NOT_IN_DB);
+		for (SteamGame game : ownedGames.keySet()) {
+			if (!idListDB.contains((long) game.getAppId())) {
+				notContain.add(game);
 			}
 		}
+
+		// Define list of IDs from not games not in DB
+		int[] idListNotContain = new int[notContain.size()];
+
+		// Add all missing games to DB, create ID list for missing games at the same time
+		PreparedStatement ps = Base
+				.startBatch("insert into games (id, name, icon_url, logo_url) values(?, ?, ?, ?)");
+
+		int i = 0;
+		for (SteamGame game : notContain) {
+			Base.addBatch(ps, game.getAppId(), game.getName(),
+					game.getIconUrl(), game.getLogoUrl());
+			idListNotContain[i++] = game.getAppId();
+		}
+
+		Base.executeBatch(ps);
+
+		// Get all achievements for all missing games
+		ArrayList<GameAchievement> gameAchievements = (ArrayList<GameAchievement>) steamDataExtractor
+				.getGameAchievementsThreaded(idListNotContain);
+
+		
+		// Add all missing achievements to DB
+		ps = Base
+				.startBatch("insert into achievements (id, game_id, name, description, unlocked_icon_url, locked_icon_url) values (?,?,?,?,?,?)");
+		for (GameAchievement achievement : gameAchievements) {
+			Base.addBatch(ps, achievement.getAchievementId().hashCode(),
+					achievement.getAppId(), achievement.getName(),
+					achievement.getDescription(),
+					achievement.getUnlockedIconUrl(),
+					achievement.getLockedIconUrl());
+		}
+
+		Base.executeBatch(ps);
+
+		// Clear gameAcheivement list to save memory
+		gameAchievements.clear();
+		gameAchievements.trimToSize();
+		
+		// Add links from profile to achievements
+		
+		// First create array of IDs
+		int[] ownedGamesIdList = new int[ownedGames.size()];
+		i = 0;
+		for (SteamGame game : ownedGames.keySet() ) {
+			ownedGamesIdList[i++] = game.getAppId();
+		}
+		
+		// Call Steam API to get all achievements for all games player owns
+		ArrayList<GameAchievement> playerAchievements =
+				  (ArrayList<GameAchievement>) steamDataExtractor
+				  .getPlayerAchievementsThreaded(steamProfile.getSteamId64(),
+				  ownedGamesIdList);
+		
+		// Add profile -> achievement links to DB
+		ps = Base.startBatch("insert into profiles_achievements (profile_id, achievement_id, game_id, unlocked_timestamp) values (?,?,?,?)");
+		for (GameAchievement achievement : playerAchievements) {
+			// TODO: Timestamp is a placeholder
+			Base.addBatch(ps, profile.getId(), achievement.getAchievementId().hashCode(), achievement.getAppId(), new Timestamp(659836800).toString());
+		}
+		
+		Base.executeBatch(ps);
+		
+		
+		// Add all links from profile to each game, also calculate completion ratio
+		ps = Base
+				.startBatch("insert into profiles_games (profile_id, game_id, total_play_time) values (?,?,?)");
+		for (Entry<SteamGame, Integer> ownedGame : ownedGames.entrySet()) {
+			Base.addBatch(ps, profile.getId(), ownedGame.getKey().getAppId(),
+					ownedGame.getValue());
+		}
+		Base.executeBatch(ps);
+		
+
+		
+		// TODO: Calculate per game completion ratio
+		// Ideally this would be done earlier in the code to avoid the DB but that would make the code
+		// resemble spaghetti
+		
+		//First, get total achievements and how many the player has for each game they own
+//		for (Entry<SteamGame, Integer> ownedGame : ownedGames.entrySet()) {
+//			List<Achievement> achievment
+//		}
+		
+//		ps = Base.startBatch("count from achievements)
+		
+		// Close prepared statement because we're done with it
+		try {
+			ps.close();
+		} catch (SQLException e) {
+			logger.warning("Unable to close prepared statement in batch processing");
+			e.printStackTrace();
+		}
+		
+		System.out.println("Time taken to add new user: " + (System.currentTimeMillis() - time));
+	
 	}
 
 	private void processGetGames(HashMap<String, String> parameters)
