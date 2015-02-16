@@ -21,10 +21,10 @@ public class Profiles {
 	    
     public static SteamProfile getSteamUser(String steamID64) throws Exception {
         HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://localhost:6789/profile?id=" + steamID64);
-        HttpResponse response = null;
-
         try {
+            HttpGet request = new HttpGet("http://localhost:6789/profile?id=" + steamID64);
+            HttpResponse response = null;
+            
             response = client.execute(request);
             String data = EntityUtils.toString(response.getEntity());
             
@@ -55,6 +55,9 @@ public class Profiles {
             return mapper.readValue(data, SteamProfile.class);
         } catch (Exception e) {
             if (e instanceof APIException) {
+            	throw e;
+            }
+            if (e instanceof IllegalArgumentException) {
             	throw e;
             }
         }
