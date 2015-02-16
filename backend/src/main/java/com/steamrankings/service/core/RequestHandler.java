@@ -173,7 +173,6 @@ public class RequestHandler implements Runnable {
 				sendResponse(socket, "HTTP/1.1 404" + CRLF, "Content-type: "
 						+ "text/plain" + CRLF,
 						API_ERROR_STEAM_USER_DOES_NOT_EXIST);
-				Base.close();
 				return;
 			} else {
 
@@ -292,11 +291,14 @@ public class RequestHandler implements Runnable {
 			ownedGamesIdList[i++] = game.getAppId();
 		}
 		
+		// Create array for completion rate
+		float[] completionRate = new float[ownedGames.size()];
+		
 		// Call Steam API to get all achievements for all games player owns
 		ArrayList<GameAchievement> playerAchievements =
 				  (ArrayList<GameAchievement>) steamDataExtractor
 				  .getPlayerAchievementsThreaded(steamProfile.getSteamId64(),
-				  ownedGamesIdList);
+				  ownedGamesIdList, completionRate);
 		
 		// Add profile -> achievement links to DB
 		ps = Base.startBatch("insert into profiles_achievements (profile_id, achievement_id, game_id, unlocked_timestamp) values (?,?,?,?)");
@@ -310,25 +312,20 @@ public class RequestHandler implements Runnable {
 		
 		// Add all links from profile to each game, also calculate completion ratio
 		ps = Base
-				.startBatch("insert into profiles_games (profile_id, game_id, total_play_time) values (?,?,?)");
+				.startBatch("insert into profiles_games (profile_id, game_id, total_play_time, completion_rate) values (?,?,?,?)");
+		i = 0;
 		for (Entry<SteamGame, Integer> ownedGame : ownedGames.entrySet()) {
 			Base.addBatch(ps, profile.getId(), ownedGame.getKey().getAppId(),
-					ownedGame.getValue());
+					ownedGame.getValue(), completionRate[i++]);
 		}
 		Base.executeBatch(ps);
 		
-
+		if (completionRate.length != 0) {
+			profile.setFloat("avg_completion_rate", mean(completionRate));
+			profile.saveIt();
+		}
 		
-		// TODO: Calculate per game completion ratio
-		// Ideally this would be done earlier in the code to avoid the DB but that would make the code
-		// resemble spaghetti
 		
-		//First, get total achievements and how many the player has for each game they own
-//		for (Entry<SteamGame, Integer> ownedGame : ownedGames.entrySet()) {
-//			List<Achievement> achievment
-//		}
-		
-//		ps = Base.startBatch("count from achievements)
 		
 		// Close prepared statement because we're done with it
 		try {
@@ -560,7 +557,7 @@ public class RequestHandler implements Runnable {
 					profileAchievementCount.getKey().getInteger("id")
 							+ SteamProfile.BASE_ID_64, profileAchievementCount
 							.getKey().getString("persona_name"),
-					profileAchievementCount.getValue(), "0%",
+					profileAchievementCount.getValue(), profileAchievementCount.getKey().getFloat("avg_completion_rate").toString() + '%',
 					profileAchievementCount.getKey().getString(
 							"location_country")));
 		}
@@ -591,56 +588,6 @@ public class RequestHandler implements Runnable {
 		output.close();
 	}
 
-	public String processgetAverageCompletionRateForAllGames(int steamId) {
-
-		String avgCompletionRate;
-		double gameAchievementsTotal = 0;
-		double playerAchievementsTotal = 0;
-
-		List<ProfilesGames> list = ProfilesGames.where("profile_id = ?",
-				(steamId));
-		ArrayList<ProfilesGames> profilesGames = new ArrayList<ProfilesGames>(
-				list);
-
-		if (profilesGames != null) {
-			ArrayList<SteamGame> steamGames = new ArrayList<SteamGame>();
-			for (ProfilesGames profilesGame : profilesGames) {
-				Game game = Game.findById(profilesGame.get("game_id"));
-				if (game != null) {
-					steamGames.add(new SteamGame(game.getInteger("id"), game
-							.getString("icon_url"), game.getString("logo_url"),
-							game.getString("name")));
-					// System.out.println(game);
-				} else {
-					// System.out.println("Game is NULL or Empty");
-				}
-			}
-			for (int i = 0; i < steamGames.size(); i++) {
-				List<Achievement> totalGameAchievements = Achievement.where(
-						"game_id = ?", steamGames.get(i).getAppId());
-				if (totalGameAchievements == null
-						|| totalGameAchievements.isEmpty()) {
-					// System.out.println("List is null");
-				}
-				double sizeOfGameAchievements = totalGameAchievements.size();
-				// System.out.println(sizeOfGameAchievements);
-
-				List<ProfilesAchievements> playerGameAchievements = ProfilesAchievements
-						.where("profile_id = ? AND game_id = ?", steamId,
-								steamGames.get(i).getAppId());
-				double sizeOfPlayerAchievements = playerGameAchievements.size();
-				// System.out.println(sizeOfPlayerAchievements);
-
-				gameAchievementsTotal += sizeOfGameAchievements;
-				playerAchievementsTotal += sizeOfPlayerAchievements;
-			}
-		}
-		avgCompletionRate = String
-				.valueOf(((playerAchievementsTotal / gameAchievementsTotal) * 100));
-
-		return (avgCompletionRate + "%");
-	}
-
 	private void sendResponseUTF(Socket socket, String statusLine,
 			String contentTypeLine, String entity) throws IOException {
 		DataOutputStream output = new DataOutputStream(socket.getOutputStream());
@@ -652,5 +599,16 @@ public class RequestHandler implements Runnable {
 		output.write(entityBytes, 0, entityBytes.length);
 
 		output.close();
+	}
+	
+	
+	public static float mean(float[] p) {
+		
+	    float sum = 0;
+	    
+	    for (int i=0; i<p.length; i++) {
+	        sum += p[i];
+	    }
+	    return sum / p.length;
 	}
 }

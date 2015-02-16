@@ -5,23 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
-import java.util.Map.Entry;
-
-import org.javalite.activejdbc.Base;
-import org.javalite.activejdbc.LazyList;
-
-import com.steamrankings.service.api.games.SteamGame;
-import com.steamrankings.service.api.profiles.SteamProfile;
-import com.steamrankings.service.models.Game;
-import com.steamrankings.service.steam.SteamApi;
-import com.steamrankings.service.steam.SteamDataExtractor;
 
 public class Application {
 	final public static Properties CONFIG = new Properties();

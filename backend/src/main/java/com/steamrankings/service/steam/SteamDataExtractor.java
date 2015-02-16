@@ -241,12 +241,13 @@ public class SteamDataExtractor {
 
 	/**
 	 * Gets all achievements for a game a player has played, including whether the achievement has been earned or not
+	 * The completionRate should be set by the caller to be the same size as appId; it will be filled by this method
 	 * @param steamId
 	 * @param appId
 	 * @return
 	 */
 	public List<GameAchievement> getPlayerAchievementsThreaded(long steamId,
-			int[] appId) {
+			int[] appId, float completionRate[]) {
 
 		// Create map for arguments that don't change every request
 		HashMap<String, String> parametersConstant = new HashMap<String, String>(
@@ -280,13 +281,17 @@ public class SteamDataExtractor {
 			try {
 				json = new JSONObject(jsonString[j]).getJSONObject("playerstats")
 						.getJSONArray("achievements");
+				float numAcheivForGame = json.length();
+				float numAcheivedByPlayer = 0;
 				for (int i = 0; i < json.length(); i++) {
 					JSONObject jsonObject = json.getJSONObject(i);
 					if (jsonObject.getInt("achieved") == 1) {
 						achievements.add(new GameAchievement(appId[j],
 								jsonObject.getString("apiname")));
+						numAcheivedByPlayer++;
 					}
 				}
+				completionRate[j] = (numAcheivedByPlayer/numAcheivForGame)*100;
 			} catch (JSONException e) {
 				logger.warning("Error parsing JSON : " + jsonString[j]);
 			}
