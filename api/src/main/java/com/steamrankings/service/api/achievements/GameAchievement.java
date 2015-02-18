@@ -35,6 +35,12 @@ public class GameAchievement {
         this.appId = appId;
         this.achievementId = achievementId;
     }
+    
+    public GameAchievement(int appId, String achievementId, String name) {
+    	this.appId = appId;
+        this.achievementId = achievementId;
+        this.name = name;
+    }
 
     public GameAchievement(int appId, String achievementId, String name, String description, String unlockedIconUrl, String lockedIconUrl, DateTime unlockedTimestamp) {
         this.appId = appId;
