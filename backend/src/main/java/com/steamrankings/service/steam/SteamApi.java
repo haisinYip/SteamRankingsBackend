@@ -34,7 +34,7 @@ public class SteamApi {
     final public static String PARAMETER_STEAM_ID = "steamid";
     final public static String PARAMETER_APP_ID = "appid";
     final public static String PARAMETER_FORMAT = "format";
-    final public static String LANGUAGE = "l";
+    final public static String PARAMETER_LANGUAGE = "l";
     
     final private static int MAX_NUMBER_OF_CONNECTIONS = 25;
 

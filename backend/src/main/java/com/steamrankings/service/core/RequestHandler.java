@@ -220,12 +220,11 @@ public class RequestHandler implements Runnable {
 
 	private void processNewUser(SteamDataExtractor steamDataExtractor,
 			Profile profile, SteamProfile steamProfile) {
-		
+
 		long time = System.currentTimeMillis();
 		// Get user game list
 		HashMap<SteamGame, Integer> ownedGames = (HashMap<SteamGame, Integer>) steamDataExtractor
 				.getPlayerOwnedGames(steamProfile.getSteamId64());
-
 
 		// Get list of all games + achievements in DB, convert to array of IDs
 		LazyList<Game> gamesDB = Game.findAll();
@@ -247,7 +246,8 @@ public class RequestHandler implements Runnable {
 		// Define list of IDs from not games not in DB
 		int[] idListNotContain = new int[notContain.size()];
 
-		// Add all missing games to DB, create ID list for missing games at the same time
+		// Add all missing games to DB, create ID list for missing games at the
+		// same time
 		PreparedStatement ps = Base
 				.startBatch("insert into games (id, name, icon_url, logo_url) values(?, ?, ?, ?)");
 
@@ -264,16 +264,14 @@ public class RequestHandler implements Runnable {
 		ArrayList<GameAchievement> gameAchievements = (ArrayList<GameAchievement>) steamDataExtractor
 				.getGameAchievementsThreaded(idListNotContain);
 
-		
 		// Add all missing achievements to DB
 		ps = Base
 				.startBatch("insert into achievements (id, game_id, name, description, unlocked_icon_url, locked_icon_url) values (?,?,?,?,?,?)");
 		for (GameAchievement achievement : gameAchievements) {
-			Base.addBatch(ps, achievement.getAchievementId().hashCode(),
-					achievement.getAppId(), achievement.getName(),
-					achievement.getDescription(),
-					achievement.getUnlockedIconUrl(),
-					achievement.getLockedIconUrl());
+			Base.addBatch(ps, (achievement.getAchievementId() + achievement
+					.getName()).hashCode(), achievement.getAppId(), achievement
+					.getName(), achievement.getDescription(), achievement
+					.getUnlockedIconUrl(), achievement.getLockedIconUrl());
 		}
 
 		Base.executeBatch(ps);
@@ -281,36 +279,39 @@ public class RequestHandler implements Runnable {
 		// Clear gameAcheivement list to save memory
 		gameAchievements.clear();
 		gameAchievements.trimToSize();
-		
+
 		// Add links from profile to achievements
-		
+
 		// First create array of IDs
 		int[] ownedGamesIdList = new int[ownedGames.size()];
 		i = 0;
-		for (SteamGame game : ownedGames.keySet() ) {
+		for (SteamGame game : ownedGames.keySet()) {
 			ownedGamesIdList[i++] = game.getAppId();
 		}
-		
+
 		// Create array for completion rate
 		float[] completionRate = new float[ownedGames.size()];
-		
+
 		// Call Steam API to get all achievements for all games player owns
-		ArrayList<GameAchievement> playerAchievements =
-				  (ArrayList<GameAchievement>) steamDataExtractor
-				  .getPlayerAchievementsThreaded(steamProfile.getSteamId64(),
-				  ownedGamesIdList, completionRate);
-		
+		ArrayList<GameAchievement> playerAchievements = (ArrayList<GameAchievement>) steamDataExtractor
+				.getPlayerAchievementsThreaded(steamProfile.getSteamId64(),
+						ownedGamesIdList, completionRate);
+
 		// Add profile -> achievement links to DB
-		ps = Base.startBatch("insert into profiles_achievements (profile_id, achievement_id, game_id, unlocked_timestamp) values (?,?,?,?)");
+		ps = Base
+				.startBatch("insert into profiles_achievements (profile_id, achievement_id, game_id, unlocked_timestamp) values (?,?,?,?)");
 		for (GameAchievement achievement : playerAchievements) {
 			// TODO: Timestamp is a placeholder
-			Base.addBatch(ps, profile.getId(), achievement.getAchievementId().hashCode(), achievement.getAppId(), new Timestamp(659836800).toString());
+			Base.addBatch(ps, profile.getId(),
+					(achievement.getAchievementId() + achievement.getName())
+							.hashCode(), achievement.getAppId(), new Timestamp(
+							659836800).toString());
 		}
-		
+
 		Base.executeBatch(ps);
-		
-		
-		// Add all links from profile to each game, also calculate completion ratio
+
+		// Add all links from profile to each game, also calculate completion
+		// ratio
 		ps = Base
 				.startBatch("insert into profiles_games (profile_id, game_id, total_play_time, completion_rate) values (?,?,?,?)");
 		i = 0;
@@ -319,14 +320,14 @@ public class RequestHandler implements Runnable {
 					ownedGame.getValue(), completionRate[i++]);
 		}
 		Base.executeBatch(ps);
-		
+
+		float avgCompletionRate = 0;
 		if (completionRate.length != 0) {
-			profile.setFloat("avg_completion_rate", mean(completionRate));
-			profile.saveIt();
+			avgCompletionRate = mean(completionRate);
 		}
-		
-		
-		
+		profile.setFloat("avg_completion_rate", avgCompletionRate);
+		profile.saveIt();
+
 		// Close prepared statement because we're done with it
 		try {
 			ps.close();
@@ -334,9 +335,10 @@ public class RequestHandler implements Runnable {
 			logger.warning("Unable to close prepared statement in batch processing");
 			e.printStackTrace();
 		}
-		
-		System.out.println("Time taken to add new user: " + (System.currentTimeMillis() - time));
-	
+
+		System.out.println("Time taken to add new user: "
+				+ (System.currentTimeMillis() - time));
+
 	}
 
 	private void processGetGames(HashMap<String, String> parameters)
@@ -557,9 +559,10 @@ public class RequestHandler implements Runnable {
 					profileAchievementCount.getKey().getInteger("id")
 							+ SteamProfile.BASE_ID_64, profileAchievementCount
 							.getKey().getString("persona_name"),
-					profileAchievementCount.getValue(), profileAchievementCount.getKey().getFloat("avg_completion_rate").toString() + '%',
-					profileAchievementCount.getKey().getString(
-							"location_country")));
+					profileAchievementCount.getValue(), profileAchievementCount
+							.getKey().getFloat("avg_completion_rate")
+							.toString() + '%', profileAchievementCount.getKey()
+							.getString("location_country")));
 		}
 		Collections.sort(rankEntries,
 				new Comparator<RankEntryByAchievements>() {
@@ -600,15 +603,14 @@ public class RequestHandler implements Runnable {
 
 		output.close();
 	}
-	
-	
+
 	public static float mean(float[] p) {
-		
-	    float sum = 0;
-	    
-	    for (int i=0; i<p.length; i++) {
-	        sum += p[i];
-	    }
-	    return sum / p.length;
+
+		float sum = 0;
+
+		for (int i = 0; i < p.length; i++) {
+			sum += p[i];
+		}
+		return sum / p.length;
 	}
 }

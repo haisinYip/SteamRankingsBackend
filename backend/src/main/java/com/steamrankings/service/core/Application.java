@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+
 import java.util.Properties;
 
 public class Application {
@@ -17,29 +18,27 @@ public class Application {
 		CONFIG.load(inputStream);
 		inputStream.close();
 
+		// Open socket to receive requests from frontend
+		ServerSocket serverSocket = new ServerSocket(Integer.parseInt(CONFIG
+				.get("server_port").toString()));
+		System.out.println("Backend now running");
 		
-		 // Open socket to receive requests from frontend
-		 ServerSocket serverSocket = new ServerSocket(Integer.parseInt(CONFIG
-		 .get("server_port").toString()));
-		 System.out.println("Backend now running");
-		
-		
-		 while (true) {
-		 // Receive requests and handle them
-		 Socket clientSocket = serverSocket.accept();
-		 RequestHandler requestHandler;
-		
-		 try {
-		 System.out.println("New request received");
-		 requestHandler = new RequestHandler(clientSocket);
-		
-		 } catch (Exception e) {
-		 break;
-		 }
-		 new Thread(requestHandler).start();
-		 }
-		
-		 serverSocket.close();
+		while (true) {
+			// Receive requests and handle them
+			Socket clientSocket = serverSocket.accept();
+			RequestHandler requestHandler;
+
+			try {
+				System.out.println("New request received");
+				requestHandler = new RequestHandler(clientSocket);
+
+			} catch (Exception e) {
+				break;
+			}
+			new Thread(requestHandler).start();
+		}
+
+		serverSocket.close();
 	}
 
 }

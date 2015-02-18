@@ -255,6 +255,7 @@ public class SteamDataExtractor {
 		parametersConstant.put(SteamApi.PARAMETER_FORMAT, "json");
 		parametersConstant.put(SteamApi.PARAMETER_STEAM_ID,
 				Long.toString(steamId));
+		parametersConstant.put(SteamApi.PARAMETER_LANGUAGE, "en");
 
 		// Create and fill list for arguments that do change each request
 		ArrayList<Map<String, String>> parameterList = new ArrayList<>(
@@ -287,7 +288,7 @@ public class SteamDataExtractor {
 					JSONObject jsonObject = json.getJSONObject(i);
 					if (jsonObject.getInt("achieved") == 1) {
 						achievements.add(new GameAchievement(appId[j],
-								jsonObject.getString("apiname")));
+								jsonObject.getString("apiname"), jsonObject.getString("name")));
 						numAcheivedByPlayer++;
 					}
 				}
