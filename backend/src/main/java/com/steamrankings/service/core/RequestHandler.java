@@ -117,7 +117,7 @@ public class RequestHandler implements Runnable {
 		Base.open("com.mysql.jdbc.Driver",
 				"jdbc:mysql://" + Application.CONFIG.getProperty("server")
 						+ ":" + Application.CONFIG.getProperty("mysql_port")
-						+ "/" + "steamrankings_michael_db"
+						+ "/" + "steamrankings_test_db"
 						+ "?characterEncoding=utf8",
 				Application.CONFIG.getProperty("mysql_username"),
 				Application.CONFIG.getProperty("mysql_password"));
@@ -268,10 +268,16 @@ public class RequestHandler implements Runnable {
 		ps = Base
 				.startBatch("insert into achievements (id, game_id, name, description, unlocked_icon_url, locked_icon_url) values (?,?,?,?,?,?)");
 		for (GameAchievement achievement : gameAchievements) {
-			Base.addBatch(ps, (achievement.getAchievementId() + achievement
-					.getName()).hashCode(), achievement.getAppId(), achievement
-					.getName(), achievement.getDescription(), achievement
-					.getUnlockedIconUrl(), achievement.getLockedIconUrl());
+			// Note achievement hash is the ID ("apiname" in JSON, e.g.
+			// TF_PLAY_GAME_EVERYCLASS) + the human readable name (e.g. Head of
+			// the Class)
+			// to ensure enough variation for hashing. Some apinames are only
+			// 2-3 characters long which leads to collisions
+			Base.addBatch(ps, (achievement.getAchievementId() + achievement.getName()).hashCode(),
+					achievement.getAppId(), achievement.getName(),
+					achievement.getDescription(),
+					achievement.getUnlockedIconUrl(),
+					achievement.getLockedIconUrl());
 		}
 
 		Base.executeBatch(ps);
@@ -303,9 +309,8 @@ public class RequestHandler implements Runnable {
 		for (GameAchievement achievement : playerAchievements) {
 			// TODO: Timestamp is a placeholder
 			Base.addBatch(ps, profile.getId(),
-					(achievement.getAchievementId() + achievement.getName())
-							.hashCode(), achievement.getAppId(), new Timestamp(
-							659836800).toString());
+					(achievement.getAchievementId() + achievement.getName()).hashCode(), achievement.getAppId(),
+					new Timestamp(659836800).toString());
 		}
 
 		Base.executeBatch(ps);

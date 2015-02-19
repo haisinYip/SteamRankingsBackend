@@ -22,7 +22,6 @@ import org.xml.sax.InputSource;
 import com.steamrankings.service.api.achievements.GameAchievement;
 import com.steamrankings.service.api.games.SteamGame;
 import com.steamrankings.service.api.profiles.SteamProfile;
-import com.steamrankings.service.core.RequestHandler;
 
 public class SteamDataExtractor {
 
@@ -38,6 +37,11 @@ public class SteamDataExtractor {
 		this.steamApi = steamApi;
 	}
 
+	/**
+	 * Gets the profile information of a player
+	 * @param steamId SteamId of player
+	 * @return A profile object representing known information about the player.
+	 */
 	public SteamProfile getSteamProfile(long steamId) {
 		HashMap<String, String> parameters = new HashMap<String, String>();
 		parameters.put(SteamApi.PARAMETER_STEAM_IDS, Long.toString(steamId));
@@ -77,21 +81,33 @@ public class SteamDataExtractor {
 		}
 	}
 
+	/**
+	 * Gets a list of all games a player owns
+	 * @param steamId The steamId64 of the player
+	 * @return A mapping of all the games they own to the play time in each
+	 */
 	public Map<SteamGame, Integer> getPlayerOwnedGames(long steamId) {
+		// Create parameter list to pass to API
 		HashMap<String, String> parameters = new HashMap<String, String>();
 		parameters.put(SteamApi.PARAMETER_STEAM_ID, Long.toString(steamId));
 		parameters.put(SteamApi.PARAMETER_FORMAT, "json");
 		parameters.put("include_appinfo", "1");
 		parameters.put("include_played_free_games", "1");
+		
+		// Call API
 		String jsonString = steamApi.getJSON(SteamApi.INTERFACE_PLAYER_SERVICE,
 				SteamApi.METHOD_GET_OWNED_GAMES, SteamApi.VERSION_ONE,
 				parameters);
 
 		JSONArray json;
-		HashMap<SteamGame, Integer> games = new HashMap<SteamGame, Integer>();
+		HashMap<SteamGame, Integer> games = null;
 		try {
+			// Retrive game section, ignore other info
 			json = new JSONObject(jsonString).getJSONObject("response")
 					.getJSONArray("games");
+			// Allocate HashMap using number of games
+			games = new HashMap<SteamGame, Integer>(json.length());
+			// Iterate over all games, add to map
 			for (int i = 0; i < json.length(); i++) {
 				JSONObject jsonObject = json.getJSONObject(i);
 				games.put(
@@ -108,12 +124,13 @@ public class SteamDataExtractor {
 						jsonObject.getInt("playtime_forever"));
 			}
 		} catch (JSONException e) {
-			return games;
+			logger.warning("Error parsing JSON for owned games of player " + steamId);
 		}
 
 		return games;
 	}
 
+	// No longer used
 	public List<GameAchievement> getGameAchievements(int appId) {
 		HashMap<String, String> parameters = new HashMap<String, String>();
 		parameters.put(SteamApi.PARAMETER_APP_ID, Integer.toString(appId));
@@ -150,9 +167,9 @@ public class SteamDataExtractor {
 
 	
 	/**
-	 * Gets all game achievements for all specified games.  Uses multithreading to be fast
-	 * @param appId
-	 * @return
+	 * Gets all game achievements for all specified games.
+	 * @param appId List of games to query.
+	 * @return A list of all achievements for all specified games.
 	 */
 	public List<GameAchievement> getGameAchievementsThreaded(int[] appId) {
 
@@ -161,7 +178,7 @@ public class SteamDataExtractor {
 				1);
 		parametersConstant.put(SteamApi.PARAMETER_FORMAT, "json");
 
-		// Create and fill list for arguments that do change each request
+		// Create and fill list for arguments that do change each request (i.e. appId)
 		ArrayList<Map<String, String>> parameterList = new ArrayList<>(
 				appId.length);
 
@@ -181,13 +198,17 @@ public class SteamDataExtractor {
 
 		// Parse everything into a nice array list
 		JSONArray json;
+		// Preallocate memory to avoid reallocation during .add() later
 		ArrayList<GameAchievement> achievements = new ArrayList<GameAchievement>(
 				jsonString.length * AVG_NUM_ACHEIVEMENTS_PER_GAME);
+		// Iterate over all games
 		for (int j = 0; j < jsonString.length; j++) {
 			try {
+				// Get achievements; ignore other data
 				json = new JSONObject(jsonString[j]).getJSONObject("game")
 						.getJSONObject("availableGameStats")
 						.getJSONArray("achievements");
+				// Create object for each achievement in the list
 				for (int i = 0; i < json.length(); i++) {
 					JSONObject jsonObject = json.getJSONObject(i);
 					achievements.add(new GameAchievement(appId[j], jsonObject
@@ -203,13 +224,14 @@ public class SteamDataExtractor {
 									.now()));
 				}
 			} catch (JSONException e) {
-				logger.warning("Error parsing JSON : " + jsonString[j]);
+				logger.warning("Error parsing JSON, likely no achievement data for game ID " + appId[j]);
 			}
 		}
 
 		return achievements;
 	}
 
+	// No longer used
 	public List<GameAchievement> getPlayerAchievements(long steamId, int appId) {
 		HashMap<String, String> parameters = new HashMap<String, String>();
 		parameters.put(SteamApi.PARAMETER_APP_ID, Integer.toString(appId));
@@ -240,11 +262,12 @@ public class SteamDataExtractor {
 	}
 
 	/**
-	 * Gets all achievements for a game a player has played, including whether the achievement has been earned or not
-	 * The completionRate should be set by the caller to be the same size as appId; it will be filled by this method
-	 * @param steamId
-	 * @param appId
-	 * @return
+	 * Gets all achievements for the list of games, which should be owned by the player specified by steamId.
+	 * @param steamId The steamId64 of the user
+	 * @param appId A list of appIds to check achievement data
+	 * @param completionRate Array which will be filled with completion rate corresponding to each game, in the same order as appId
+	 * Please preallocate an array of the correct size before calling this method.
+	 * @return All achievements the player owns
 	 */
 	public List<GameAchievement> getPlayerAchievementsThreaded(long steamId,
 			int[] appId, float completionRate[]) {
@@ -255,9 +278,11 @@ public class SteamDataExtractor {
 		parametersConstant.put(SteamApi.PARAMETER_FORMAT, "json");
 		parametersConstant.put(SteamApi.PARAMETER_STEAM_ID,
 				Long.toString(steamId));
+		// This provides some human readable info like name; what it is set to
+		// doesn't seem to matter, it's always English
 		parametersConstant.put(SteamApi.PARAMETER_LANGUAGE, "en");
 
-		// Create and fill list for arguments that do change each request
+		// Create and fill list for arguments that do change each request (i.e. appId)
 		ArrayList<Map<String, String>> parameterList = new ArrayList<>(
 				appId.length);
 
@@ -269,6 +294,7 @@ public class SteamDataExtractor {
 			parameterList.add(parametersVarying);
 		}
 
+		// Go get data from steam.
 		String[] jsonString = steamApi.getJSONThreaded(
 				SteamApi.INTERFACE_STEAM_USER_STATS,
 				SteamApi.METHOD_PLAYER_ACHIEVEMENTS, SteamApi.VERSION_ONE,
@@ -276,25 +302,31 @@ public class SteamDataExtractor {
 
 		// Parse everything into a nice array list
 		JSONArray json;
+		// Note we try and preallocate memory here to avoid having to reallocate during .add
 		ArrayList<GameAchievement> achievements = new ArrayList<GameAchievement>(
 				jsonString.length * AVG_NUM_ACHEIVEMENTS_PER_GAME);
 		for (int j = 0; j < jsonString.length; j++) {
 			try {
+				// We get the achievement info; we don't care about other info
 				json = new JSONObject(jsonString[j]).getJSONObject("playerstats")
 						.getJSONArray("achievements");
+				// Set achievement counter
 				float numAcheivForGame = json.length();
 				float numAcheivedByPlayer = 0;
+				// Iterate through all achievements
 				for (int i = 0; i < json.length(); i++) {
 					JSONObject jsonObject = json.getJSONObject(i);
+					// Only add achievement if achieved and count it
 					if (jsonObject.getInt("achieved") == 1) {
 						achievements.add(new GameAchievement(appId[j],
 								jsonObject.getString("apiname"), jsonObject.getString("name")));
 						numAcheivedByPlayer++;
 					}
 				}
+				// Calculate completion rate
 				completionRate[j] = (numAcheivedByPlayer/numAcheivForGame)*100;
 			} catch (JSONException e) {
-				logger.warning("Error parsing JSON : " + jsonString[j]);
+				logger.warning("Error parsing JSON, likely no achievement data for game ID " + appId[j]);
 			}
 		}
 
