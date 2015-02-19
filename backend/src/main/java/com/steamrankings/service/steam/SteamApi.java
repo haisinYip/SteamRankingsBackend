@@ -179,7 +179,7 @@ public class SteamApi {
 
 			// create a thread for each URI
 			ExecutorService executorService = Executors
-					.newCachedThreadPool();
+					.newWorkStealingPool(MAX_NUMBER_OF_CONNECTIONS*2);
 
 			ArrayList<Future<String>> futureList = new ArrayList<Future<String>>(urisToGet.length);
 			

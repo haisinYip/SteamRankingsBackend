@@ -105,7 +105,6 @@ public class RequestHandler implements Runnable {
 		}
 	}
 
-	// TODO : CHANGE THIS BEFORE PUSH
 	private void openDBConnection() {
 		// Base.open("com.mysql.jdbc.Driver",
 		// "jdbc:mysql://" + Application.CONFIG.getProperty("server")
