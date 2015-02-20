@@ -33,7 +33,6 @@ import com.steamrankings.service.models.Profile;
 import com.steamrankings.service.models.ProfilesAchievements;
 import com.steamrankings.service.models.ProfilesGames;
 import com.steamrankings.service.steam.SteamApi;
-import com.steamrankings.service.steam.SteamDataDatabase;
 import com.steamrankings.service.steam.SteamDataExtractor;
 
 public class RequestHandler implements Runnable {
@@ -150,7 +149,7 @@ public class RequestHandler implements Runnable {
 			return;
 		}
 
-		long steamId = SteamDataDatabase.convertToSteamId64(parameters
+		long steamId = SteamDataExtractor.convertToSteamId64(parameters
 				.get(PARAMETERS_USER_ID));
 		if (steamId == -1) {
 			sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: "
@@ -354,7 +353,7 @@ public class RequestHandler implements Runnable {
 			return;
 		}
 
-		long steamId = SteamDataDatabase.convertToSteamId64(parameters
+		long steamId = SteamDataExtractor.convertToSteamId64(parameters
 				.get("id"));
 
 		if (parameters.containsKey(PARAMETERS_USER_ID)) {
@@ -409,7 +408,7 @@ public class RequestHandler implements Runnable {
 			return;
 		}
 
-		long steamId = SteamDataDatabase.convertToSteamId64(parameters
+		long steamId = SteamDataExtractor.convertToSteamId64(parameters
 				.get("id"));
 
 		if (parameters.containsKey(PARAMETERS_USER_ID)
