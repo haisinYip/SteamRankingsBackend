@@ -130,7 +130,10 @@ public class SteamDataExtractor {
 		return games;
 	}
 
-	// No longer used
+	/**
+	 * @deprecated use {@link #getGameAchievementsThreaded()} instead.
+	 */
+	@Deprecated
 	public List<GameAchievement> getGameAchievements(int appId) {
 		HashMap<String, String> parameters = new HashMap<String, String>();
 		parameters.put(SteamApi.PARAMETER_APP_ID, Integer.toString(appId));
@@ -231,7 +234,10 @@ public class SteamDataExtractor {
 		return achievements;
 	}
 
-	// No longer used
+	/**
+	 * @deprecated use {@link #getPlayerAchievementsThreaded()} instead.
+	 */
+	@Deprecated
 	public List<GameAchievement> getPlayerAchievements(long steamId, int appId) {
 		HashMap<String, String> parameters = new HashMap<String, String>();
 		parameters.put(SteamApi.PARAMETER_APP_ID, Integer.toString(appId));

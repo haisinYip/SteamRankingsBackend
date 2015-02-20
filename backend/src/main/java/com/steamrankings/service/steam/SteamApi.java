@@ -2,10 +2,8 @@ package com.steamrankings.service.steam;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,6 +47,7 @@ public class SteamApi {
 	}
 
 	/**
+	 * @deprecated use {@link #getJSONThreaded()} instead.
 	 * Sends a single request for steam
 	 * 
 	 * @param apiInterface
@@ -66,6 +65,7 @@ public class SteamApi {
 	 *            SteamApi class.
 	 * @return A JSON string from Steam.
 	 */
+	@Deprecated
 	public String getJSON(String apiInterface, String method, int version,
 			Map<String, String> parameters) {
 		String url = String.format(
