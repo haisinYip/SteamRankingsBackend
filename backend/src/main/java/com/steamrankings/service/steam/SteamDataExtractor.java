@@ -32,6 +32,7 @@ public class SteamDataExtractor {
 			.getLogger(SteamDataExtractor.class.getName());
 
 	private SteamApi steamApi;
+	final static long INVALID_STEAMID_64 = -1;
 
 	public SteamDataExtractor(SteamApi steamApi) {
 		this.steamApi = steamApi;
@@ -338,6 +339,21 @@ public class SteamDataExtractor {
 
 		return achievements;
 
+	}
+
+	// expects either communityid or the steamid64 itself
+	public static long convertToSteamId64(String idToConvert) {
+	    long steamid64 = SteamDataExtractor.INVALID_STEAMID_64;
+	    try {
+	        return Long.parseLong(idToConvert);
+	    } catch (NumberFormatException e1) {
+	        try {
+	            steamid64 = Long.parseLong(getSteamId64FromXML(SteamApi.getXML(idToConvert)));
+	            return steamid64;
+	        } catch (Exception e2) {
+	            return SteamDataExtractor.INVALID_STEAMID_64;
+	        }
+	    }
 	}
 
 	private static String getSteamMediaUrl(int appId, String imageHash) {
