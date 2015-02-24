@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.steamrankings.service.api.APIException;
+import com.steamrankings.service.api.leaderboards.RankEntryByTotalPlayTime;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -86,5 +87,28 @@ public class Games {
             }
         }
 		return null;
+    }
+    
+    public static List<RankEntryByTotalPlayTime> getRanksByTotalPlayTime(int fromRank, int toRank) {
+    	HttpClient client = new DefaultHttpClient();
+        HttpGet request = new HttpGet("http://localhost:6789/leaderboards?type=games&from=" + fromRank + "&to=" + toRank);
+        HttpResponse response = null;
+        
+        try {
+        	response = client.execute(request);
+        	String data = EntityUtils.toString(response.getEntity());
+        	
+        	ObjectMapper mapper = new ObjectMapper();
+        	JSONArray jsonArray = new JSONArray(data);
+        	ArrayList<RankEntryByTotalPlayTime> ranks = new ArrayList<RankEntryByTotalPlayTime>();
+        	
+        	for(int i = 0; i < jsonArray.length(); i++) {
+        		ranks.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), RankEntryByTotalPlayTime.class));
+        	}
+        	
+        	return ranks;
+        } catch (Exception e) {
+        	return null;
+        }	
     }
 }
