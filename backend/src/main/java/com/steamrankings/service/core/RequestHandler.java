@@ -34,6 +34,7 @@ import com.steamrankings.service.models.ProfilesAchievements;
 import com.steamrankings.service.models.ProfilesGames;
 import com.steamrankings.service.steam.SteamApi;
 import com.steamrankings.service.steam.SteamDataExtractor;
+import com.steamrankings.service.database.Database;
 
 public class RequestHandler implements Runnable {
 	private static final Logger logger = Logger.getLogger(RequestHandler.class
@@ -97,33 +98,8 @@ public class RequestHandler implements Runnable {
 		}
 
 		if (httpRequestType.equals(HTTP_REQUEST_GET)) {
-			openDBConnection();
 			processGet(restInterface, parameters);
-
-			closeDBConnection();
 		}
-	}
-
-	private void openDBConnection() {
-		// Base.open("com.mysql.jdbc.Driver",
-		// "jdbc:mysql://" + Application.CONFIG.getProperty("server")
-		// + ":" + Application.CONFIG.getProperty("mysql_port")
-		// + "/" + "steamrankings_test_db"
-		// + "?characterEncoding=utf8",
-		// Application.CONFIG.getProperty("mysql_username"),
-		// Application.CONFIG.getProperty("mysql_password"));
-		Base.open("com.mysql.jdbc.Driver",
-				"jdbc:mysql://" + Application.CONFIG.getProperty("server")
-						+ ":" + Application.CONFIG.getProperty("mysql_port")
-						+ "/" + "steamrankings_test_db"
-						+ "?characterEncoding=utf8",
-				Application.CONFIG.getProperty("mysql_username"),
-				Application.CONFIG.getProperty("mysql_password"));
-
-	}
-
-	private void closeDBConnection() {
-		Base.close();
 	}
 
 	private void processGet(String restInterface,

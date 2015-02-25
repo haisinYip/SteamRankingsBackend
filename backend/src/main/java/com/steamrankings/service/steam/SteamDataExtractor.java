@@ -81,6 +81,79 @@ public class SteamDataExtractor {
 			return null;
 		}
 	}
+	
+	/**
+	 * Gets the profile information of several players
+	 * @param steamId SteamId of player
+	 * @return A profile object representing known information about the player.
+	 */
+	public SteamProfile getSteamProfileThreaded(long[] steamId) {
+
+				// Create a map for constant parameters that don't change every request - i.e. nothing
+				HashMap<String, String> parametersConstant = new HashMap<String, String>(0);
+				
+				// Create list for arguments that do change each request  - i.e. SteamIDs
+				// Note that we can specify up to 100 IDs per request, so there might
+				// only be a few requests at most
+				ArrayList<Map<String, String>> parameterList = new ArrayList<>(1);
+				
+				int numRequests = (steamId.length / 100) + 1;
+				int numRequestsRemaining = steamId.length;
+				for (int i = 0; i < numRequests; i++) {
+					HashMap<String, String> parametersVarying = new HashMap<String, String>(1);
+					
+					int numIdInRequest = Math.min(numRequestsRemaining, 100);
+					numRequestsRemaining -= numIdInRequest;
+					
+					String IdList = "";
+					for (int j = 0; j < numIdInRequest; j++) {
+						IdList += Long.toString(steamId[i*100 + j]);
+						if (j+1 < numIdInRequest) {
+							IdList += ',';
+						}
+						
+					}
+					
+					parametersVarying.put(SteamApi.PARAMETER_STEAM_IDS, Integer.toString(appId[i]));
+					parameterList.add(parametersVarying);
+				}
+				
+		
+		String jsonString = steamApi.getJSON(SteamApi.INTERFACE_STEAM_USER,
+				SteamApi.METHOD_GET_PLAYER_SUMMARIES, SteamApi.VERSION_TWO,
+				parameters);
+
+		JSONObject json;
+		try {
+			json = new JSONObject(jsonString).getJSONObject("response")
+					.getJSONArray("players").getJSONObject(0);
+			if (json.getInt("communityvisibilitystate") != 3) {
+				return null;
+			} else {
+				return new SteamProfile(Long.parseLong(json
+						.getString("steamid")),
+						getCommunityIdFromUrl(json.getString("profileurl")),
+						json.getString("personaname"),
+						json.has("realname") ? json.getString("realname")
+								: null,
+						json.has("loccountrycode") ? json
+								.getString("loccountrycode") : null,
+						json.has("locstatecode") ? json
+								.getString("locstatecode") : null,
+						json.has("loccityid") ? Integer.toString(json
+								.getInt("loccityid")) : null,
+						json.has("avatarfull") ? json.getString("avatarfull")
+								: null,
+						json.has("avatarmedium") ? json
+								.getString("avatarmedium") : null,
+						json.has("avatar") ? json.getString("avatar") : null,
+						json.has("lastlogoff") ? new DateTime(json
+								.getInt("lastlogoff")) : new DateTime(0));
+			}
+		} catch (JSONException e) {
+			return null;
+		}
+	}
 
 	/**
 	 * Gets a list of all games a player owns
