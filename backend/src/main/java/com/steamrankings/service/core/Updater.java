@@ -17,6 +17,10 @@ import com.steamrankings.service.models.ProfilesGames;
 import com.steamrankings.service.steam.SteamApi;
 import com.steamrankings.service.steam.SteamDataExtractor;
 
+/**
+ * Runs update tasks every so often to keep the DB up to date.
+ *
+ */
 public class Updater {
 
 	private final ScheduledExecutorService scheduler =

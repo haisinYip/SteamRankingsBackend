@@ -19,6 +19,7 @@ public class Application {
 		CONFIG.load(inputStream);
 		inputStream.close();
 		
+		// Initialize updater
 		Updater update = new Updater();
 		
 		// Open socket to receive requests from frontend
