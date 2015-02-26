@@ -559,28 +559,31 @@ public class RequestHandler implements Runnable {
 			return null;
 		}
 
-		List<Profile> listProfiles = Profile.findAll();
-		ArrayList<Profile> profiles = new ArrayList<Profile>(listProfiles);
-		HashMap<Profile, Integer> profileAchievementCounts = new HashMap<Profile, Integer>();
-		for (Profile profile : profiles) {
-			profileAchievementCounts.put(
-					profile,
-					ProfilesAchievements.where("profile_id = ?",
-							profile.getInteger("id")).size());
-		}
+//		List<Profile> listProfiles = Profile.findAll();
+//		ArrayList<Profile> profiles = new ArrayList<Profile>(listProfiles);
+//		HashMap<Profile, Integer> profileAchievementCounts = new HashMap<Profile, Integer>();
+//		for (Profile profile : profiles) {
+//			profileAchievementCounts.put(
+//					profile,
+//					ProfilesAchievements.where("profile_id = ?",
+//							profile.getInteger("id")).size());
+//		}
+		
+		HashMap<Profile, List<Integer>> profileAchievementCounts = getInfo();
 
 		int i = 1;
 		ArrayList<RankEntryByAchievements> rankEntries = new ArrayList<RankEntryByAchievements>();
-		for (Entry<Profile, Integer> profileAchievementCount : profileAchievementCounts
+		for (Entry<Profile, List<Integer>> profileAchievementCount : profileAchievementCounts
 				.entrySet()) {
 			rankEntries.add(new RankEntryByAchievements(i,
 					profileAchievementCount.getKey().getInteger("id")
 					+ SteamProfile.BASE_ID_64, profileAchievementCount
 					.getKey().getString("persona_name"),
-					profileAchievementCount.getValue(), profileAchievementCount
-					.getKey().getFloat("avg_completion_rate")
-					.toString() + '%', profileAchievementCount.getKey()
-					.getString("location_country")));
+					profileAchievementCount.getValue().get(0), 
+					profileAchievementCount
+					.getKey().getFloat("avg_completion_rate").toString() + '%',
+					profileAchievementCount.getValue().get(1),
+					profileAchievementCount.getKey().getString("location_country")));
 		}
 		Collections.sort(rankEntries,
 				new Comparator<RankEntryByAchievements>() {
@@ -605,34 +608,41 @@ public class RequestHandler implements Runnable {
 		if (from > to) {
 			return null;
 		}
-		List<Profile> listProfiles = Profile.findAll();	//get all profiles in the db
-		ArrayList<Profile> profiles = new ArrayList<Profile>(listProfiles);
+//		List<Profile> listProfiles = Profile.findAll();	//get all profiles in the db
+//		ArrayList<Profile> profiles = new ArrayList<Profile>(listProfiles);
+//
+//		HashMap<Profile, Integer> profileTotalPlayTimeCounts = new HashMap<Profile, Integer>();
+//
+//		for(Profile profile : profiles) {	//loop through all profiles
+//			int sum = 0;
+//
+//			//get all games of profile
+//			List<ProfilesGames> profileGames = ProfilesGames.where("profile_id = ?", profile.getInteger("id"));	
+//			ArrayList<ProfilesGames> games = new ArrayList<ProfilesGames>(profileGames);
+//
+//			//get total_play_time of each game and sum
+//			//possibly can optimize? Nested for loop may give slow response time
+//			for(int i = 0; i < games.size(); i++) {
+//				sum += games.get(i).getInteger("total_play_time");
+//			}	
+//			profileTotalPlayTimeCounts.put(profile, sum);	
+//		}
+		
+		HashMap<Profile, List<Integer>> profileTotalPlayTimeCounts = getInfo();
 
-		HashMap<Profile, Integer> profileTotalPlayTimeCounts = new HashMap<Profile, Integer>();
-
-		for(Profile profile : profiles) {	//loop through all profiles
-			int sum = 0;
-
-			//get all games of profile
-			List<ProfilesGames> profileGames = ProfilesGames.where("profile_id = ?", profile.getInteger("id"));	
-			ArrayList<ProfilesGames> games = new ArrayList<ProfilesGames>(profileGames);
-
-			//get total_play_time of each game and sum
-			//possibly can optimize? Nested for loop may give slow response time
-			for(int i = 0; i < games.size(); i++) {
-				sum += games.get(i).getInteger("total_play_time");
-			}	
-			profileTotalPlayTimeCounts.put(profile, sum);	
-		}	
+		
 		//make rankentries based off total play time in profileTotalPlayTimeCounts
 		int i = 1;
 		ArrayList<RankEntryByTotalPlayTime> rankEntries = new ArrayList<RankEntryByTotalPlayTime>();
-		for(Entry<Profile, Integer> profileTotalPlayTime : profileTotalPlayTimeCounts.entrySet()) {
+		for(Entry<Profile, List<Integer>> profileTotalPlayTime : profileTotalPlayTimeCounts.entrySet()) {
 			rankEntries.add(new RankEntryByTotalPlayTime(i, 
 					profileTotalPlayTime.getKey().getInteger("id") + SteamProfile.BASE_ID_64, 
-					profileTotalPlayTime.getKey().getString("persona_name"), 
-					profileTotalPlayTime.getValue(),
-					profileTotalPlayTime.getKey().getString("country_code")));
+					profileTotalPlayTime.getKey().getString("persona_name"),
+					profileTotalPlayTime.getValue().get(1),
+					profileTotalPlayTime.getValue().get(0), 
+					profileTotalPlayTime.getKey().getFloat("avg_completion_rate")
+					.toString() + '%',
+					profileTotalPlayTime.getKey().getString("location_country")));
 		}
 		//sort rankentries by total_play_time
 		Collections.sort(rankEntries,
@@ -675,6 +685,37 @@ public class RequestHandler implements Runnable {
 		output.close();
 	}
 
+	private HashMap<Profile, List<Integer>> getInfo() {
+		List<Profile> listProfiles = Profile.findAll();
+		ArrayList<Profile> profiles = new ArrayList<Profile>(listProfiles);
+		HashMap<Profile, List<Integer>> profileAchievementCounts = new HashMap<Profile, List<Integer>>();
+		for (Profile profile : profiles) {
+			List<Integer> details = new ArrayList<Integer>();
+			details.add(ProfilesAchievements.where("profile_id = ?",
+					profile.getInteger("id")).size());
+			details.add(getTotalPlayTime(profile));
+			
+			profileAchievementCounts.put(profile, details);
+		}
+		
+		return profileAchievementCounts;
+	}
+
+	private int getTotalPlayTime(Profile profile) {
+		int sum = 0;
+
+		//get all games of profile
+		List<ProfilesGames> profileGames = ProfilesGames.where("profile_id = ?", profile.getInteger("id"));	
+		ArrayList<ProfilesGames> games = new ArrayList<ProfilesGames>(profileGames);
+
+		//get total_play_time of each game and sum
+		//possibly can optimize? Nested for loop may give slow response time
+		for(int i = 0; i < games.size(); i++) {
+			sum += games.get(i).getInteger("total_play_time");
+		}
+		return sum;
+	}
+	
 	public static float mean(float[] p) {
 
 		float sum = 0;

@@ -17,8 +17,16 @@ public class Leaderboards {
 	    private static final String API_ERROR_STEAM_ID_INVALID = "3000";
 	
     public static List<RankEntryByAchievements> getRanksByAchievementTotal(int fromRank, int toRank) {
+    	return getRankingBy("achievements", fromRank, toRank);
+    }
+    
+    public static List<RankEntryByAchievements> getRanksByTotalPlayTime(int fromRank, int toRank) {
+    	return getRankingBy("games", fromRank, toRank);
+    }
+    
+    private static List<RankEntryByAchievements> getRankingBy(String type, int fromRank, int toRank) {
         HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://localhost:6789/leaderboards?type=achievements&from=" + fromRank + "&to=" + toRank);
+        HttpGet request = new HttpGet("http://localhost:6789/leaderboards?type=" + type + "&from=" + fromRank + "&to=" + toRank);
         HttpResponse response = null;
 
         try {

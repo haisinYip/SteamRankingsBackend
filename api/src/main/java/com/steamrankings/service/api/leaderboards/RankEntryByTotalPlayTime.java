@@ -12,18 +12,28 @@ public class RankEntryByTotalPlayTime extends RankEntry{
 	@JsonProperty("country_code")
 	private String countryCode;
 
+    @JsonProperty("achievements_total")
+    private int achievementsTotal;
+    
+    @JsonProperty("completion_rate")
+    private String completionRate;
+    
 	public RankEntryByTotalPlayTime() {	
 	}
 
-	public RankEntryByTotalPlayTime(int totalPlayTime, String countryCode) {
+	public RankEntryByTotalPlayTime(int totalPlayTime, int achievementsTotal, String completionRate, String countryCode) {
 		this.totalPlayTime = totalPlayTime;
 		this.countryCode = countryCode;
+		this.achievementsTotal = achievementsTotal;
+		this.completionRate = completionRate;
 	}
 
-	public RankEntryByTotalPlayTime(int rankNumber, long id64, String name, int totalPlayTime, String countryCode) {
+	public RankEntryByTotalPlayTime(int rankNumber, long id64, String name, int totalPlayTime, int achievementsTotal, String completionRate, String countryCode) {
 		super(rankNumber, id64, name);
 		this.totalPlayTime = totalPlayTime;
 		this.countryCode = countryCode;
+		this.achievementsTotal = achievementsTotal;
+		this.completionRate = completionRate;
 	}
 
 	@JsonIgnore
@@ -36,6 +46,16 @@ public class RankEntryByTotalPlayTime extends RankEntry{
 		return this.countryCode;
 	}
 
+    @JsonIgnore
+    public int getAchievementsTotal() {
+        return this.achievementsTotal;
+    }
+
+    @JsonIgnore
+    public String getCompletionRate() {
+        return this.completionRate;
+    }
+    
 	@Override
 	@JsonIgnore
 	public String toString() {
