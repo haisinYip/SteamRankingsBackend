@@ -56,6 +56,11 @@ public class RankEntryByTotalPlayTime extends RankEntry{
         return this.completionRate;
     }
     
+    @JsonIgnore
+    public float getCompletionRateWithoutPercent () {
+    	return Float.parseFloat(this.completionRate.substring(0, this.completionRate.length()-1));
+    }
+    
 	@Override
 	@JsonIgnore
 	public String toString() {

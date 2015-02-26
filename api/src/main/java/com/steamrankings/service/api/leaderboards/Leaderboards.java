@@ -24,6 +24,10 @@ public class Leaderboards {
     	return getRankingBy("games", fromRank, toRank);
     }
     
+    public static List<RankEntryByAchievements> getRanksByCompletionRate(int fromRank, int toRank) {
+    	return getRankingBy("completionrate", fromRank, toRank);
+    }   
+    
     private static List<RankEntryByAchievements> getRankingBy(String type, int fromRank, int toRank) {
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet("http://localhost:6789/leaderboards?type=" + type + "&from=" + fromRank + "&to=" + toRank);
