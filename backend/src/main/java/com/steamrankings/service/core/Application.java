@@ -18,11 +18,9 @@ public class Application {
 		InputStream inputStream = new FileInputStream("config.properties");
 		CONFIG.load(inputStream);
 		inputStream.close();
-
+		
 		Updater update = new Updater();
 		
-		// Open Database connection
-		Database.openDBConnection();
 		// Open socket to receive requests from frontend
 		ServerSocket serverSocket = new ServerSocket(Integer.parseInt(CONFIG
 				.get("server_port").toString()));
@@ -44,7 +42,6 @@ public class Application {
 		}
 
 		serverSocket.close();
-		Database.closeDBConnection();
 	}
 
 }

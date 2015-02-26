@@ -98,7 +98,9 @@ public class RequestHandler implements Runnable {
 		}
 
 		if (httpRequestType.equals(HTTP_REQUEST_GET)) {
+			Database.openDBConnection();
 			processGet(restInterface, parameters);
+			Database.closeDBConnection();
 		}
 	}
 
