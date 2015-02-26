@@ -36,6 +36,7 @@ import com.steamrankings.service.models.ProfilesAchievements;
 import com.steamrankings.service.models.ProfilesGames;
 import com.steamrankings.service.steam.SteamApi;
 import com.steamrankings.service.steam.SteamDataExtractor;
+import com.steamrankings.service.database.Database;
 
 public class RequestHandler implements Runnable {
 	private static final Logger logger = Logger.getLogger(RequestHandler.class
@@ -99,10 +100,9 @@ public class RequestHandler implements Runnable {
 		}
 
 		if (httpRequestType.equals(HTTP_REQUEST_GET)) {
-			openDBConnection();
+			Database.openDBConnection();
 			processGet(restInterface, parameters);
-
-			closeDBConnection();
+			Database.closeDBConnection();
 		}
 	}
 
@@ -127,6 +127,7 @@ public class RequestHandler implements Runnable {
 	private void closeDBConnection() {
 		Base.close();
 	}
+
 
 	private void processGet(String restInterface,
 			HashMap<String, String> parameters) throws IOException {

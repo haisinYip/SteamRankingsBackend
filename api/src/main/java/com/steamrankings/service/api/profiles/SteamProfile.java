@@ -43,9 +43,27 @@ public class SteamProfile {
     @JsonProperty("last_online")
     private DateTime lastOnline;
 
+    @JsonIgnore
+    // The "communityvisibilitystate" from Steam; 3 = public, 1 = private
+    private int profileState;
+    
     public SteamProfile() {
     }
 
+    /**
+     * Initializes Steam Profile as public profile with full info
+     * @param id64
+     * @param communityID
+     * @param personaName
+     * @param realName
+     * @param countryCode
+     * @param provinceCode
+     * @param cityCode
+     * @param fullAvatarUrl
+     * @param mediumAvatarUrl
+     * @param iconAvatarUrl
+     * @param lastOnline
+     */
     public SteamProfile(long id64, String communityID, String personaName, String realName, String countryCode, String provinceCode, String cityCode, String fullAvatarUrl, String mediumAvatarUrl,
             String iconAvatarUrl, DateTime lastOnline) {
         this.id64 = id64;
@@ -59,6 +77,31 @@ public class SteamProfile {
         this.mediumAvatarUrl = mediumAvatarUrl;
         this.iconAvatarUrl = iconAvatarUrl;
         this.lastOnline = new DateTime(lastOnline);
+        this.profileState = 3;
+    }
+    
+    /**
+     * Initializes Steam Profile as a non-public profile with limited info; profileState can be set unlike the other constructor.
+     * Generally, this will be for a private profile.
+     * @param id64
+     * @param communityID
+     * @param personaName
+     * @param fullAvatarUrl
+     * @param mediumAvatarUrl
+     * @param iconAvatarUrl
+     * @param lastOnline
+     * @param profileState
+     */
+    public SteamProfile(long id64,String communityID, String personaName,String fullAvatarUrl, String mediumAvatarUrl,
+            String iconAvatarUrl, DateTime lastOnline, int profileState) {
+        this.id64 = id64;
+        this.communityID = communityID;
+        this.personaName = personaName;
+        this.fullAvatarUrl = fullAvatarUrl;
+        this.mediumAvatarUrl = mediumAvatarUrl;
+        this.iconAvatarUrl = iconAvatarUrl;
+        this.lastOnline = new DateTime(lastOnline);
+        this.profileState = profileState;
     }
 
     @JsonIgnore
@@ -121,6 +164,11 @@ public class SteamProfile {
         return iconAvatarUrl;
     }
 
+    @JsonIgnore
+    public int getProfileState() {
+    	return profileState;
+    }
+    
     @Override
     @JsonIgnore
     public String toString() {

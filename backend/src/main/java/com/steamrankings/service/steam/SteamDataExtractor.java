@@ -40,7 +40,9 @@ public class SteamDataExtractor {
 
 	/**
 	 * Gets the profile information of a player
-	 * @param steamId SteamId of player
+	 * 
+	 * @param steamId
+	 *            SteamId of player
 	 * @return A profile object representing known information about the player.
 	 */
 	public SteamProfile getSteamProfile(long steamId) {
@@ -83,8 +85,125 @@ public class SteamDataExtractor {
 	}
 
 	/**
+	 * Gets the profile information of several players
+	 * 
+	 * @param steamId
+	 *            Array of player Steam IDs
+	 * @return A list of profile objects representing known information about
+	 *         the players.
+	 */
+	public ArrayList<SteamProfile> getSteamProfileThreaded(long[] steamId) {
+
+		// Create a map for constant parameters that don't change every request
+		// - i.e. nothing
+		HashMap<String, String> parametersConstant = new HashMap<String, String>(
+				0);
+
+		// Create list for arguments that do change each request - i.e. SteamIDs
+		// Note that we can specify up to 100 IDs per request, so there might
+		// only be a few requests at most
+		ArrayList<Map<String, String>> parameterList = new ArrayList<>(1);
+
+		// Find out how many requests we need
+		int numRequests = (steamId.length / 100) + 1;
+		int numRequestsRemaining = steamId.length;
+		// Create each request
+		for (int i = 0; i < numRequests; i++) {
+			HashMap<String, String> parametersVarying = new HashMap<String, String>(
+					1);
+
+			// Determine number of IDs in request
+			int numIdInRequest = Math.min(numRequestsRemaining, 100);
+			numRequestsRemaining -= numIdInRequest;
+
+			// Fill request
+			String IdList = "";
+			for (int j = 0; j < numIdInRequest; j++) {
+				IdList += Long.toString(steamId[i * 100 + j]);
+				if (j + 1 < numIdInRequest) {
+					IdList += ',';
+				}
+
+			}
+
+			parametersVarying.put(SteamApi.PARAMETER_STEAM_IDS, IdList);
+			parameterList.add(parametersVarying);
+		}
+
+		// Access Steam API with requests
+		String[] jsonString = steamApi.getJSONThreaded(
+				SteamApi.INTERFACE_STEAM_USER,
+				SteamApi.METHOD_GET_PLAYER_SUMMARIES, SteamApi.VERSION_TWO,
+				parametersConstant, parameterList);
+
+		ArrayList<SteamProfile> profileList = new ArrayList<>(jsonString.length);
+		// Go through each response
+		for (int i = 0; i < jsonString.length; i++) {
+			try {
+				// Each response can have up to 100 profiles, go over them now
+				JSONArray players = new JSONObject(jsonString[i])
+						.getJSONObject("response").getJSONArray("players");
+				for (int j = 0; j < players.length(); j++) {
+					JSONObject player = players.getJSONObject(j);
+					// Private Profile
+					if (player.getInt("communityvisibilitystate") != 3) {
+						profileList.add(new SteamProfile(Long.parseLong(player
+								.getString("steamid")),
+								getCommunityIdFromUrl(player
+										.getString("profileurl")), player
+										.getString("personaname"), player
+										.has("avatarfull") ? player
+										.getString("avatarfull") : null, player
+										.has("avatarmedium") ? player
+										.getString("avatarmedium") : null,
+								player.has("avatar") ? player
+										.getString("avatar") : null, player
+										.has("lastlogoff") ? new DateTime(
+										player.getInt("lastlogoff"))
+										: new DateTime(0), player
+										.getInt("communityvisibilitystate")));
+					} 
+					// Public profile
+					else {
+						profileList.add(new SteamProfile(Long.parseLong(player
+								.getString("steamid")),
+								getCommunityIdFromUrl(player
+										.getString("profileurl")), player
+										.getString("personaname"), player
+										.has("realname") ? player
+										.getString("realname") : null, player
+										.has("loccountrycode") ? player
+										.getString("loccountrycode") : null,
+								player.has("locstatecode") ? player
+										.getString("locstatecode") : null,
+								player.has("loccityid") ? Integer
+										.toString(player.getInt("loccityid"))
+										: null,
+								player.has("avatarfull") ? player
+										.getString("avatarfull") : null, player
+										.has("avatarmedium") ? player
+										.getString("avatarmedium") : null,
+								player.has("avatar") ? player
+										.getString("avatar") : null, player
+										.has("lastlogoff") ? new DateTime(
+										player.getInt("lastlogoff"))
+										: new DateTime(0)));
+					}
+				}
+
+			} catch (JSONException e) {
+				logger.warning("Error parsing JSON for profile request # " + i);
+			}
+		}
+		return profileList;
+
+	}
+
+	/**
 	 * Gets a list of all games a player owns
-	 * @param steamId The steamId64 of the player
+	 * 
+	 * @param steamId
+	 *            The steamId64 of the player
 	 * @return A mapping of all the games they own to the play time in each
 	 */
 	public Map<SteamGame, Integer> getPlayerOwnedGames(long steamId) {
@@ -94,7 +213,7 @@ public class SteamDataExtractor {
 		parameters.put(SteamApi.PARAMETER_FORMAT, "json");
 		parameters.put("include_appinfo", "1");
 		parameters.put("include_played_free_games", "1");
-		
+
 		// Call API
 		String jsonString = steamApi.getJSON(SteamApi.INTERFACE_PLAYER_SERVICE,
 				SteamApi.METHOD_GET_OWNED_GAMES, SteamApi.VERSION_ONE,
@@ -125,7 +244,8 @@ public class SteamDataExtractor {
 						jsonObject.getInt("playtime_forever"));
 			}
 		} catch (JSONException e) {
-			logger.warning("Error parsing JSON for owned games of player " + steamId);
+			logger.warning("Error parsing JSON for owned games of player "
+					+ steamId);
 		}
 
 		return games;
@@ -169,10 +289,11 @@ public class SteamDataExtractor {
 		return achievements;
 	}
 
-	
 	/**
 	 * Gets all game achievements for all specified games.
-	 * @param appId List of games to query.
+	 * 
+	 * @param appId
+	 *            List of games to query.
 	 * @return A list of all achievements for all specified games.
 	 */
 	public List<GameAchievement> getGameAchievementsThreaded(int[] appId) {
@@ -182,7 +303,8 @@ public class SteamDataExtractor {
 				1);
 		parametersConstant.put(SteamApi.PARAMETER_FORMAT, "json");
 
-		// Create and fill list for arguments that do change each request (i.e. appId)
+		// Create and fill list for arguments that do change each request (i.e.
+		// appId)
 		ArrayList<Map<String, String>> parameterList = new ArrayList<>(
 				appId.length);
 
@@ -228,7 +350,8 @@ public class SteamDataExtractor {
 									.now()));
 				}
 			} catch (JSONException e) {
-				logger.warning("Error parsing JSON, likely no achievement data for game ID " + appId[j]);
+				logger.warning("Error parsing JSON, likely no achievement data for game ID "
+						+ appId[j]);
 			}
 		}
 
@@ -269,11 +392,17 @@ public class SteamDataExtractor {
 	}
 
 	/**
-	 * Gets all achievements for the list of games, which should be owned by the player specified by steamId.
-	 * @param steamId The steamId64 of the user
-	 * @param appId A list of appIds to check achievement data
-	 * @param completionRate Array which will be filled with completion rate corresponding to each game, in the same order as appId
-	 * Please preallocate an array of the correct size before calling this method.
+	 * Gets all achievements for the list of games, which should be owned by the
+	 * player specified by steamId.
+	 * 
+	 * @param steamId
+	 *            The steamId64 of the user
+	 * @param appId
+	 *            A list of appIds to check achievement data
+	 * @param completionRate
+	 *            Array which will be filled with completion rate corresponding
+	 *            to each game, in the same order as appId Please preallocate an
+	 *            array of the correct size before calling this method.
 	 * @return All achievements the player owns
 	 */
 	public List<GameAchievement> getPlayerAchievementsThreaded(long steamId,
@@ -289,7 +418,8 @@ public class SteamDataExtractor {
 		// doesn't seem to matter, it's always English
 		parametersConstant.put(SteamApi.PARAMETER_LANGUAGE, "en");
 
-		// Create and fill list for arguments that do change each request (i.e. appId)
+		// Create and fill list for arguments that do change each request (i.e.
+		// appId)
 		ArrayList<Map<String, String>> parameterList = new ArrayList<>(
 				appId.length);
 
@@ -309,14 +439,15 @@ public class SteamDataExtractor {
 
 		// Parse everything into a nice array list
 		JSONArray json;
-		// Note we try and preallocate memory here to avoid having to reallocate during .add
+		// Note we try and preallocate memory here to avoid having to reallocate
+		// during .add
 		ArrayList<GameAchievement> achievements = new ArrayList<GameAchievement>(
 				jsonString.length * AVG_NUM_ACHEIVEMENTS_PER_GAME);
 		for (int j = 0; j < jsonString.length; j++) {
 			try {
 				// We get the achievement info; we don't care about other info
-				json = new JSONObject(jsonString[j]).getJSONObject("playerstats")
-						.getJSONArray("achievements");
+				json = new JSONObject(jsonString[j]).getJSONObject(
+						"playerstats").getJSONArray("achievements");
 				// Set achievement counter
 				float numAcheivForGame = json.length();
 				float numAcheivedByPlayer = 0;
@@ -326,14 +457,16 @@ public class SteamDataExtractor {
 					// Only add achievement if achieved and count it
 					if (jsonObject.getInt("achieved") == 1) {
 						achievements.add(new GameAchievement(appId[j],
-								jsonObject.getString("apiname"), jsonObject.getString("name")));
+								jsonObject.getString("apiname"), jsonObject
+										.getString("name")));
 						numAcheivedByPlayer++;
 					}
 				}
 				// Calculate completion rate
-				completionRate[j] = (numAcheivedByPlayer/numAcheivForGame)*100;
+				completionRate[j] = (numAcheivedByPlayer / numAcheivForGame) * 100;
 			} catch (JSONException e) {
-				logger.warning("Error parsing JSON, likely no achievement data for game ID " + appId[j]);
+				logger.warning("Error parsing JSON, likely no achievement data for game ID "
+						+ appId[j]);
 			}
 		}
 
@@ -343,17 +476,18 @@ public class SteamDataExtractor {
 
 	// expects either communityid or the steamid64 itself
 	public static long convertToSteamId64(String idToConvert) {
-	    long steamid64 = SteamDataExtractor.INVALID_STEAMID_64;
-	    try {
-	        return Long.parseLong(idToConvert);
-	    } catch (NumberFormatException e1) {
-	        try {
-	            steamid64 = Long.parseLong(getSteamId64FromXML(SteamApi.getXML(idToConvert)));
-	            return steamid64;
-	        } catch (Exception e2) {
-	            return SteamDataExtractor.INVALID_STEAMID_64;
-	        }
-	    }
+		long steamid64 = SteamDataExtractor.INVALID_STEAMID_64;
+		try {
+			return Long.parseLong(idToConvert);
+		} catch (NumberFormatException e1) {
+			try {
+				steamid64 = Long.parseLong(getSteamId64FromXML(SteamApi
+						.getXML(idToConvert)));
+				return steamid64;
+			} catch (Exception e2) {
+				return SteamDataExtractor.INVALID_STEAMID_64;
+			}
+		}
 	}
 
 	private static String getSteamMediaUrl(int appId, String imageHash) {
