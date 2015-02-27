@@ -43,6 +43,15 @@ public class GameAchievementTest {
     }
 
     @Test
+    public void testGameAchievementIntStringString() {
+        GameAchievement achievement = new GameAchievement(APP_ID, ACHIEVEMENT_ID, NAME);
+        assertNotNull(achievement);
+        assertEquals(achievement.getAppId(), APP_ID);
+        assertEquals(achievement.getAchievementId(), ACHIEVEMENT_ID);
+        assertEquals(achievement.getName(), NAME);
+    }
+    
+    @Test
     public void testGameAchievementIntStringStringStringStringStringDateTime() {
         GameAchievement achievement = new GameAchievement(APP_ID, ACHIEVEMENT_ID, NAME, DESCRIPTION, UNLOCKED_ICON_URL, LOCKED_ICON_URL, new DateTime(123456789));
         assertNotNull(achievement);
@@ -53,6 +62,18 @@ public class GameAchievementTest {
         assertEquals(achievement.getName(), NAME);
         assertEquals(achievement.getUnlockedIconUrl(), UNLOCKED_ICON_URL);
         assertEquals(achievement.getUnlockedTimestamp(), UNLOCKED_TIMESTAMP);
+    }
+    
+    @Test
+    public void testGameAchievementIntStringStringStringStringString() {
+        GameAchievement achievement = new GameAchievement(APP_ID, ACHIEVEMENT_ID, NAME, DESCRIPTION, UNLOCKED_ICON_URL, LOCKED_ICON_URL);
+        assertNotNull(achievement);
+        assertEquals(achievement.getAppId(), APP_ID);
+        assertEquals(achievement.getAchievementId(), ACHIEVEMENT_ID);
+        assertEquals(achievement.getDescription(), DESCRIPTION);
+        assertEquals(achievement.getLockedIconUrl(), LOCKED_ICON_URL);
+        assertEquals(achievement.getName(), NAME);
+        assertEquals(achievement.getUnlockedIconUrl(), UNLOCKED_ICON_URL);
     }
 
     @Test
@@ -89,15 +110,4 @@ public class GameAchievementTest {
     public void testGetUnlockedTimestamp() {
         assertEquals(achievement.getUnlockedTimestamp(), UNLOCKED_TIMESTAMP);
     }
-
-    @Test
-    public void testToString() {
-        // fail("Not yet implemented");
-    }
-
-    @Test
-    public void testToPrettyString() {
-        // fail("Not yet implemented");
-    }
-
 }

@@ -21,6 +21,7 @@ public class SteamProfileTest {
     final private static String MEDIUM_AVATAR_URL = "http//test.com/test.jpg";
     final private static String ICON_AVATAR_URL = "http//test.com/test.jpg";
     final private static String COMMUNITY_PROFILE_URL = SteamProfile.STEAM_COMMUNITY_BASE_URL + ID_64;
+    final private static int PROFILE_STATE = 3;
     final private static DateTime LAST_ONLINE = new DateTime(123456789);
 
     private static SteamProfile profile;
@@ -53,6 +54,13 @@ public class SteamProfileTest {
     public void testSteamProfileLongStringStringStringStringStringStringStringStringStringDateTime() {
         SteamProfile profile = new SteamProfile(ID_64, COMMUNITY_ID, PERSONA_NAME, REAL_NAME, COUNTRY_CODE, PROVINCE_CODE, CITY_CODE, FULL_AVATAR_URL, MEDIUM_AVATAR_URL, ICON_AVATAR_URL, LAST_ONLINE);
         assertNotNull(profile);
+    }
+    
+    @Test
+    public void testSteamProfileLongStringStringStringStringStringDateTimeInt() {
+        SteamProfile profile = new SteamProfile(ID_64, COMMUNITY_ID, PERSONA_NAME, FULL_AVATAR_URL, MEDIUM_AVATAR_URL, ICON_AVATAR_URL, LAST_ONLINE, PROFILE_STATE);
+        assertNotNull(profile);
+        assertEquals(PROFILE_STATE, profile.getProfileState());
     }
 
     /**
@@ -142,7 +150,7 @@ public class SteamProfileTest {
      */
     @Test
     public void testGetLastOnline() {
-        assertEquals(LAST_ONLINE, profile.getLastOnline());
+        assertEquals(LAST_ONLINE.getMillisOfSecond(), profile.getLastOnline().getMillisOfSecond());
     }
 
     /**
@@ -173,26 +181,5 @@ public class SteamProfileTest {
     @Test
     public void testGetIconAvatarUrl() {
         assertEquals(ICON_AVATAR_URL, profile.getIconAvatarUrl());
-    }
-
-    /**
-     * Test method for
-     * {@link com.steamrankings.service.api.profiles.SteamProfile#toString()}.
-     */
-    @Test
-    public void testToString() {
-        System.out.println(profile.toString());
-        //fail("Not yet implemented");
-    }
-
-    /**
-     * Test method for
-     * {@link com.steamrankings.service.api.profiles.SteamProfile#toPrettyString()}
-     * .
-     */
-    @Test
-    public void testToPrettyString() {
-        System.out.println(profile.toPrettyString());
-        //fail("Not yet implemented");
     }
 }
