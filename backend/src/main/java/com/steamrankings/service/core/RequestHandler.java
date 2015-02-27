@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
@@ -29,6 +28,7 @@ import com.steamrankings.service.api.games.SteamGame;
 import com.steamrankings.service.api.leaderboards.RankEntryByAchievements;
 import com.steamrankings.service.api.leaderboards.RankEntryByTotalPlayTime;
 import com.steamrankings.service.api.profiles.SteamProfile;
+import com.steamrankings.service.database.Database;
 import com.steamrankings.service.models.Achievement;
 import com.steamrankings.service.models.Game;
 import com.steamrankings.service.models.Profile;
@@ -36,7 +36,6 @@ import com.steamrankings.service.models.ProfilesAchievements;
 import com.steamrankings.service.models.ProfilesGames;
 import com.steamrankings.service.steam.SteamApi;
 import com.steamrankings.service.steam.SteamDataExtractor;
-import com.steamrankings.service.database.Database;
 
 public class RequestHandler implements Runnable {
 	private static final Logger logger = Logger.getLogger(RequestHandler.class

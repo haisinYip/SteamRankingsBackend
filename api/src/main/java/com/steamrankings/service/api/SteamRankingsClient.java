@@ -20,7 +20,7 @@ public class SteamRankingsClient {
         this.enviroment = enviroment;
 
         if (this.enviroment.equals(DEVELOPMENT_ENVIRONMENT)) {
-            this.hostName = "http://localhost:8080";
+            this.hostName = "http://localhost:6789";
         } else if (this.enviroment.equals(PRODUCTION_ENVIRONMNENT)) {
             this.hostName = "http://mikemontreal.ignorelist.com:6789";
         } else {

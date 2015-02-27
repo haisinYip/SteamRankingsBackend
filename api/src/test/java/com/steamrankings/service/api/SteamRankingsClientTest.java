@@ -21,7 +21,7 @@ public class SteamRankingsClientTest {
 
         assertNotNull(client);
         assertEquals(SteamRankingsClient.DEVELOPMENT_ENVIRONMENT, client.getEnviroment());
-        assertEquals("http://localhost:8080", client.getHostName());
+        assertEquals("http://localhost:6789", client.getHostName());
     }
 
     @Test
