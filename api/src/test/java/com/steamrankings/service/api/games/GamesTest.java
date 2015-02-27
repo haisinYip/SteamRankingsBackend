@@ -1,92 +1,64 @@
 package com.steamrankings.service.api.games;
 
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+import junit.framework.TestCase;
+
+import org.apache.http.client.ClientProtocolException;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.easymock.EasyMock;
 import org.junit.Test;
 
-import com.steamrankings.service.api.SteamIdException;
+import com.steamrankings.service.api.APIException;
 import com.steamrankings.service.api.SteamRankingsClient;
 
-public class GamesTest {
-	
-	/**
-     * Test method for
-     * {@link com.steamrankings.service.api.games.Games#getSteamGame(int, SteamRankingsClient)}
-     * 
-     */
-    @Test
-    public void testGetSteamGame(){
-    	
-    	SteamRankingsClient client=new SteamRankingsClient("Test");
-        client = createStrictMock(SteamRankingsClient.class);
-        String response="{\n\"app_id\": 20,\n\"icon_url\": \"icon/url\",\n\"logo_url\": \"logo/url\",\n\"name\": \"GameName\"\n}";
-    	try {
-			expect(client.excecuteRequest("games?appId=20")).andReturn(response);
-		} catch (SteamIdException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        replay(client);
-    	SteamGame myGame=Games.getSteamGame(20, client);
-        assertNotNull(myGame);
-        assertEquals(myGame.getName(),"GameName");
-        
-        //Testing Id not found
-        SteamRankingsClient client2=new SteamRankingsClient("Test");
-        client2 = createStrictMock(SteamRankingsClient.class);
-    	try {
-			expect(client2.excecuteRequest("games?appId=30")).andReturn(null);
-		} catch (SteamIdException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        replay(client2);
-        myGame=Games.getSteamGame(30, client2);
-        assertNull(myGame);
-    }
-    /**
-     * Test method for
-     * {@link com.steamrankings.service.api.games.Games#getPlayedSteamGames(String, SteamRankingsClient)}
-     * 
-     */
-    @Test
-    public void testGetPlayedSteamGames(){
-    	SteamRankingsClient client=new SteamRankingsClient("Test");
-        client = createStrictMock(SteamRankingsClient.class);
-        String response="[\n{\n\"app_id\": 20,\n\"icon_url\": \"icon/url\",\n\"logo_url\": \"logo/url\",\n\"name\":"
-        		+ " \"GameName\"\n},\n{\n\"app_id\": 30,\n\"icon_url\": \"icon/url\",\n\"logo_url\": \"logo/url\",\n\"name\":"
-        		+ " \"GameName\"\n}\n]";
-    	try {
-			expect(client.excecuteRequest("games?id=76561197965726621")).andReturn(response);
-		} catch (SteamIdException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        replay(client);
-        List<SteamGame> games=Games.getPlayedSteamGames("76561197965726621", client);
-        assertNotNull(games);
-        assertEquals(games.get(1).getAppId(),30);
-        
-        //Testing Id not found
-        SteamRankingsClient client2=new SteamRankingsClient("Test");
-        client2 = createStrictMock(SteamRankingsClient.class);
-    	try {
-			expect(client2.excecuteRequest("games?id=76561197960435530")).andReturn(null);
-		} catch (SteamIdException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        replay(client2);
-        games=Games.getPlayedSteamGames("76561197960435530", client2);
-        assertNull(games);
-    	
-    }
+public class GamesTest extends TestCase {
+    final private static ObjectMapper mapper = new ObjectMapper();
+    final private static SteamRankingsClient client = EasyMock.createStrictMock(SteamRankingsClient.class);
 
+    final private static SteamGame GAME_ONE = new SteamGame(1, "icon1", "logo1", "Game 1");
+    final private static SteamGame GAME_TWO = new SteamGame(2, "icon2", "logo2", "Game 2");
+
+    @Test
+    public void testGetSteamGame() throws ClientProtocolException, APIException, IOException {
+        EasyMock.resetToStrict(client);
+        EasyMock.expect(client.excecuteRequest("games?appId=1")).andReturn(mapper.writeValueAsString(GAME_ONE));
+        EasyMock.replay(client);
+
+        SteamGame testGame = Games.getSteamGame(1, client);
+        assertNotNull(testGame);
+
+        assertEquals(GAME_ONE.getAppId(), testGame.getAppId());
+        assertEquals(GAME_ONE.getIconUrl(), testGame.getIconUrl());
+        assertEquals(GAME_ONE.getLogoUrl(), testGame.getLogoUrl());
+        assertEquals(GAME_ONE.getName(), testGame.getName());
+
+        EasyMock.verify(client);
+    }
+    
+    @Test
+    public void testGetPlayedSteamGames() throws JsonGenerationException, JsonMappingException, ClientProtocolException, APIException, IOException {
+        ArrayList<SteamGame> games = new ArrayList<SteamGame>();
+        games.add(GAME_ONE);
+        games.add(GAME_TWO);
+        
+        EasyMock.resetToStrict(client);
+        EasyMock.expect(client.excecuteRequest("games?id=1234")).andReturn(mapper.writeValueAsString(games));
+        EasyMock.replay(client);
+        
+        List<SteamGame> gamesToTest = Games.getPlayedSteamGames("1234", client);
+        
+        assertEquals(games.size(), gamesToTest.size());
+        
+        for(int i = 0; i < games.size(); i++) {
+            assertEquals(games.get(i).getAppId(), gamesToTest.get(i).getAppId());
+            assertEquals(games.get(i).getIconUrl(), gamesToTest.get(i).getIconUrl());
+            assertEquals(games.get(i).getLogoUrl(), gamesToTest.get(i).getLogoUrl());
+            assertEquals(games.get(i).getName(), gamesToTest.get(i).getName());
+        }
+    }
 }

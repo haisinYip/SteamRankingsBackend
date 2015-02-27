@@ -14,20 +14,6 @@ import org.json.JSONException;
 import com.steamrankings.service.api.APIException;
 import com.steamrankings.service.api.SteamRankingsClient;
 
-/*
- public class Achievements {
-
- private static final String API_ERROR_BAD_ARGUMENTS_CODE = "1000";
- private static final String API_ERROR_STEAM_USER_DOES_NOT_EXIST = "2000";
- private static final String API_ERROR_STEAM_ID_INVALID = "3000";
-
-
- public static List<GameAchievement> getGameAchievements(int appId) {
- HttpClient client = new DefaultHttpClient();
- HttpGet request = new HttpGet("http://localhost:6789/achievements?appid=" + appId);
- HttpResponse response = null;
- */
-
 public class Achievements {
     public static List<GameAchievement> getGameAchievements(int appId, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
         String data = client.excecuteRequest("achievements?appid=" + appId);
@@ -58,7 +44,7 @@ public class Achievements {
             return null;
         }
     }
-    
+
     private static List<GameAchievement> deserializeJSONData(String data) throws JsonParseException, JsonMappingException, JSONException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         JSONArray jsonArray = new JSONArray(data);

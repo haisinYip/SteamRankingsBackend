@@ -26,18 +26,15 @@ public class Leaderboards {
 
     private static List<RankEntryByAchievements> getRankingBy(String type, int fromRank, int toRank, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
         String data = client.excecuteRequest("leaderboards?type=" + type + "&from=" + fromRank + "&to=" + toRank);
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JSONArray jsonArray = new JSONArray(data);
-            ArrayList<RankEntryByAchievements> ranks = new ArrayList<RankEntryByAchievements>();
 
-            for (int i = 0; i < jsonArray.length(); i++) {
-                ranks.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), RankEntryByAchievements.class));
-            }
+        ObjectMapper mapper = new ObjectMapper();
+        JSONArray jsonArray = new JSONArray(data);
+        ArrayList<RankEntryByAchievements> ranks = new ArrayList<RankEntryByAchievements>();
 
-            return ranks;
-        } catch (Exception e) {
-            return null;
+        for (int i = 0; i < jsonArray.length(); i++) {
+            ranks.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), RankEntryByAchievements.class));
         }
+
+        return ranks;
     }
 }
