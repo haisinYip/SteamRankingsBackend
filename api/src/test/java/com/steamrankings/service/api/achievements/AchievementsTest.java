@@ -2,144 +2,133 @@ package com.steamrankings.service.api.achievements;
 
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+import junit.framework.TestCase;
+
+import org.apache.http.client.ClientProtocolException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.easymock.EasyMock;
 import org.junit.Test;
 
+import com.steamrankings.service.api.APIException;
 import com.steamrankings.service.api.SteamRankingsClient;
 
-public class AchievementsTest {
-	/**
-     * Test method for
-     * {@link com.steamrankings.service.api.achievements.Achievements#getGameAchievements(int, SteamRankingsClient)}
-     * 
-     */
+public class AchievementsTest extends TestCase {
+    final private static GameAchievement achievementOne = new GameAchievement(1, "One", "Achievement One", "First Achievement", "unlocked url", "locked url");
+    final private static GameAchievement achievementTwo = new GameAchievement(1, "Two", "Achievement Two", "Second Achievement", "unlocked url", "locked url");
+    final private static GameAchievement achievementThree = new GameAchievement(1, "Three", "Achievement Three", "Third Achievement", "unlocked url", "locked url");
+    final private static SteamRankingsClient client = EasyMock.createStrictMock(SteamRankingsClient.class);
+    final private static ObjectMapper mapper = new ObjectMapper();
+    
     @Test
-    public void testGetGameAchievements(){
-    	
-    	SteamRankingsClient client=new SteamRankingsClient("Test");
-        client = EasyMock.createStrictMock(SteamRankingsClient.class);
-        String response="{\n\"achievements\":[\n{\"app_id\": 20,\n\"achievement_id\": \"123456\",\n\"unlocked_icon_url\": "
-        		+ "\"unlocked/icon/url\",\n\"locked_icon_url\": \"locked/icon/url\",\n\"name\": "
-        		+ "\"flames\",\n\"description\": \"here is the desciption\",\n\"unlocked_timestamp\": "
-        		+ "1423275897\n},\n{\"app_id\": 20,\n\"achievement_id\": \"123456\",\n\"unlocked_icon_url\": "
-        		+ "\"unlocked/icon/url\",\n\"locked_icon_url\": \"locked/icon/url\",\n\"name\": "
-        		+ "\"powerups\",\n\"description\": \"here is the desciption\",\n\"unlocked_timestamp\": "
-        		+ "1423275897\n}]\n}";
-    	try {
-			expect(client.excecuteRequest("achievements?appid=20")).andReturn(response);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        replay(client);
-        List<GameAchievement> myachievments=Achievements.getGameAchievements(20, client);
-        assertNotNull(myachievments);
-        assertEquals(myachievments.get(1).getName(),"powerups");
+    public void testGetGameAchievements() throws ClientProtocolException, APIException, IOException{
+        ArrayList<GameAchievement> achievements = new ArrayList<GameAchievement>();
+        achievements.add(achievementOne);
+        achievements.add(achievementTwo);
+        achievements.add(achievementThree);
         
-        //Testing Id not found
-        SteamRankingsClient client2=new SteamRankingsClient("Test");
-        client2 = createStrictMock(SteamRankingsClient.class);
-    	try {
-			expect(client2.excecuteRequest("achievements?appid=30")).andReturn(null);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        replay(client2);
-        myachievments=Achievements.getGameAchievements(30, client2);
-        assertNull(myachievments);
-    }
-	/**
-     * Test method for
-     * {@link com.steamrankings.service.api.achievements.Achievements#getUnlockedAchievements(String, SteamRankingsClient)}
-     * 
-     */
-    @Test
-    public void testGeteUnlockedAchievments(){
-    	
-    	SteamRankingsClient client=new SteamRankingsClient("Test");
-        client = EasyMock.createStrictMock(SteamRankingsClient.class);
-        String response="[\n{\"app_id\": 20,\n\"achievement_id\": \"123456\",\n\"unlocked_icon_url\": "
-        		+ "\"unlocked/icon/url\",\n\"locked_icon_url\": \"locked/icon/url\",\n\"name\": "
-        		+ "\"flames\",\n\"description\": \"here is the desciption\",\n\"unlocked_timestamp\": "
-        		+ "1423275897\n},\n{\"app_id\": 20,\n\"achievement_id\": \"123456\",\n\"unlocked_icon_url\": "
-        		+ "\"unlocked/icon/url\",\n\"locked_icon_url\": \"locked/icon/url\",\n\"name\": "
-        		+ "\"powerups\",\n\"description\": \"here is the desciption\",\n\"unlocked_timestamp\": "
-        		+ "1423275897}\n]";
-        System.out.println(response);
-    	try {
-			expect(client.excecuteRequest("achievements?id=1233764898948")).andReturn(response);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        EasyMock.resetToStrict(client);
+        expect(client.excecuteRequest("achievements?appid=100")).andReturn(mapper.writeValueAsString(achievements));
         replay(client);
-        List<GameAchievement> myachievments=Achievements.getUnlockedAchievements("1233764898948", client);
-        assertNotNull(myachievments);
-        assertEquals(myachievments.get(1).getName(),"powerups");
         
-        //Testing Id not found
-        SteamRankingsClient client2=new SteamRankingsClient("Test");
-        client2 = createStrictMock(SteamRankingsClient.class);
-    	try {
-			expect(client2.excecuteRequest("achievements?id=1233764898949")).andReturn(null);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        replay(client2);
-        myachievments=Achievements.getUnlockedAchievements("1233764898949", client2);
-        assertNull(myachievments);
+        List<GameAchievement> achievementsToTest = Achievements.getGameAchievements(100, client);
+        assertEquals(achievements.size(), achievementsToTest.size());
+        for(int i = 0; i < achievementsToTest.size(); i ++) {
+            assertEquals(achievements.get(i).getAchievementId(), achievementsToTest.get(i).getAchievementId());
+            assertEquals(achievements.get(i).getAppId(), achievementsToTest.get(i).getAppId());
+            assertEquals(achievements.get(i).getDescription(), achievementsToTest.get(i).getDescription());
+            assertEquals(achievements.get(i).getLockedIconUrl(), achievementsToTest.get(i).getLockedIconUrl());
+            assertEquals(achievements.get(i).getName(), achievementsToTest.get(i).getName());
+            assertEquals(achievements.get(i).getUnlockedIconUrl(), achievementsToTest.get(i).getUnlockedIconUrl());
+        }
+        
+        EasyMock.verify(client);
     }
     
-	/**
-     * Test method for
-     * {@link com.steamrankings.service.api.achievements.Achievements#getUnlockedAchievements(String,int, SteamRankingsClient)}
-     * 
-     */
     @Test
-    public void testGetUnlockedAchievments(){
-    	
-    	SteamRankingsClient client=new SteamRankingsClient("Test");
-        client = EasyMock.createStrictMock(SteamRankingsClient.class);
-        String response="[\n{\"app_id\": 20,\n\"achievement_id\": \"123456\",\n\"unlocked_icon_url\": "
-        		+ "\"unlocked/icon/url\",\n\"locked_icon_url\": \"locked/icon/url\",\n\"name\": "
-        		+ "\"flames\",\n\"description\": \"here is the desciption\",\n\"unlocked_timestamp\": "
-        		+ "1423275897\n},\n{\"app_id\": 20,\n\"achievement_id\": \"123456\",\n\"unlocked_icon_url\": "
-        		+ "\"unlocked/icon/url\",\n\"locked_icon_url\": \"locked/icon/url\",\n\"name\": "
-        		+ "\"powerups\",\n\"description\": \"here is the desciption\",\n\"unlocked_timestamp\": "
-        		+ "1423275897}\n]";
-        System.out.println(response);
-    	try {
-			expect(client.excecuteRequest("achievements?id=1233764898948&appid=20")).andReturn(response);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        replay(client);
-        List<GameAchievement> myachievments=Achievements.getUnlockedAchievements("1233764898948",20, client);
-        assertNotNull(myachievments);
-        assertEquals(myachievments.get(1).getName(),"powerups");
+    public void testGetUnlockedAchievementsForUser() throws ClientProtocolException, APIException, IOException{
+        ArrayList<GameAchievement> achievements = new ArrayList<GameAchievement>();
+        achievements.add(achievementOne);
+        achievements.add(achievementTwo);
+        achievements.add(achievementThree);
         
-        //Testing appid not found
-        SteamRankingsClient client2=new SteamRankingsClient("Test");
-        client2 = EasyMock.createStrictMock(SteamRankingsClient.class);
-    	try {
-			expect(client2.excecuteRequest("achievements?id=1233764898948&appid=30")).andReturn(null);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        replay(client2);
-        myachievments=Achievements.getUnlockedAchievements("1233764898948",30, client2);
-        assertNull(myachievments);
+        EasyMock.resetToStrict(client);
+        expect(client.excecuteRequest("achievements?id=1234")).andReturn(mapper.writeValueAsString(achievements));
+        replay(client);
+        
+        List<GameAchievement> achievementsToTest = Achievements.getUnlockedAchievements("1234", client);
+        assertEquals(achievements.size(), achievementsToTest.size());
+        for(int i = 0; i < achievementsToTest.size(); i ++) {
+            assertEquals(achievements.get(i).getAchievementId(), achievementsToTest.get(i).getAchievementId());
+            assertEquals(achievements.get(i).getAppId(), achievementsToTest.get(i).getAppId());
+            assertEquals(achievements.get(i).getDescription(), achievementsToTest.get(i).getDescription());
+            assertEquals(achievements.get(i).getLockedIconUrl(), achievementsToTest.get(i).getLockedIconUrl());
+            assertEquals(achievements.get(i).getName(), achievementsToTest.get(i).getName());
+            assertEquals(achievements.get(i).getUnlockedIconUrl(), achievementsToTest.get(i).getUnlockedIconUrl());
+        }
+        
+        EasyMock.verify(client);
     }
     
-
+    @Test
+    public void testGetUnlockedAchievementsForUserAndGame() throws ClientProtocolException, APIException, IOException{
+        ArrayList<GameAchievement> achievements = new ArrayList<GameAchievement>();
+        achievements.add(achievementOne);
+        achievements.add(achievementTwo);
+        achievements.add(achievementThree);
+        
+        EasyMock.resetToStrict(client);
+        expect(client.excecuteRequest("achievements?id=1234&appid=100")).andReturn(mapper.writeValueAsString(achievements));
+        replay(client);
+        
+        List<GameAchievement> achievementsToTest = Achievements.getUnlockedAchievements("1234", 100, client);
+        assertEquals(achievements.size(), achievementsToTest.size());
+        for(int i = 0; i < achievementsToTest.size(); i ++) {
+            assertEquals(achievements.get(i).getAchievementId(), achievementsToTest.get(i).getAchievementId());
+            assertEquals(achievements.get(i).getAppId(), achievementsToTest.get(i).getAppId());
+            assertEquals(achievements.get(i).getDescription(), achievementsToTest.get(i).getDescription());
+            assertEquals(achievements.get(i).getLockedIconUrl(), achievementsToTest.get(i).getLockedIconUrl());
+            assertEquals(achievements.get(i).getName(), achievementsToTest.get(i).getName());
+            assertEquals(achievements.get(i).getUnlockedIconUrl(), achievementsToTest.get(i).getUnlockedIconUrl());
+        }
+        
+        EasyMock.verify(client);
+    }
+    
+    @Test
+    public void testGetGameAchievementsException() throws ClientProtocolException, APIException, IOException{
+        EasyMock.resetToStrict(client);
+        expect(client.excecuteRequest("achievements?appid=100")).andReturn("bad json data");
+        replay(client);
+        
+        assertNull(Achievements.getGameAchievements(100, client));
+        
+        EasyMock.verify(client);
+    }
+    
+    @Test
+    public void testGetUnlockedAchievementsForUserException() throws ClientProtocolException, APIException, IOException{
+        EasyMock.resetToStrict(client);
+        expect(client.excecuteRequest("achievements?id=1234")).andReturn("bad json data");
+        replay(client);
+        
+        assertNull(Achievements.getUnlockedAchievements("1234", client));
+        
+        EasyMock.verify(client);
+    }
+    
+    @Test
+    public void testGetUnlockedAchievementsForUserAndGameException() throws ClientProtocolException, APIException, IOException{
+        EasyMock.resetToStrict(client);
+        expect(client.excecuteRequest("achievements?id=1234&appid=100")).andReturn("bad json data");
+        replay(client);
+        
+        assertNull(Achievements.getUnlockedAchievements("1234", 100, client));
+        
+        EasyMock.verify(client);
+    }
 }

@@ -1,4 +1,4 @@
-package com.steamrankings.service.api.profiles;
+package com.steamrankings.service.api.leaderboards;
 import static org.junit.Assert.*;
 
 import java.io.IOException;

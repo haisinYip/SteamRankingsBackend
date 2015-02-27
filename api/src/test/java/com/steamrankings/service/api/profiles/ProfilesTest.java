@@ -4,22 +4,20 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
 import java.io.IOException;
-import java.util.List;
 
 import junit.framework.TestCase;
 
 import org.apache.http.client.ClientProtocolException;
 import org.easymock.EasyMock;
 import org.joda.time.DateTime;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.steamrankings.service.api.APIException;
 import com.steamrankings.service.api.SteamRankingsClient;
 
 public class ProfilesTest extends TestCase {
-    private static final SteamProfile TEST_PROFILE = new SteamProfile(1234, "TestUser", "TestPersona", "TestName", "TestLand", "TestProvince", "TestCity", "avatar", "avatar", "avatar",
-            new DateTime(1424973029));
+    private static final SteamProfile TEST_PROFILE = new SteamProfile(1234, "TestUser", "TestPersona", "TestName", "TestLand", "TestProvince", "TestCity", "avatar", "avatar", "avatar", new DateTime(
+            1424973029));
 
     /**
      * Test method for

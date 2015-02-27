@@ -174,25 +174,4 @@ public class SteamProfileTest {
     public void testGetIconAvatarUrl() {
         assertEquals(ICON_AVATAR_URL, profile.getIconAvatarUrl());
     }
-
-    /**
-     * Test method for
-     * {@link com.steamrankings.service.api.profiles.SteamProfile#toString()}.
-     */
-    @Test
-    public void testToString() {
-        System.out.println(profile.toString());
-        //fail("Not yet implemented");
-    }
-
-    /**
-     * Test method for
-     * {@link com.steamrankings.service.api.profiles.SteamProfile#toPrettyString()}
-     * .
-     */
-    @Test
-    public void testToPrettyString() {
-        System.out.println(profile.toPrettyString());
-        //fail("Not yet implemented");
-    }
 }

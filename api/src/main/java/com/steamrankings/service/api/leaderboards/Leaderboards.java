@@ -13,8 +13,19 @@ import com.steamrankings.service.api.SteamRankingsClient;
 
 public class Leaderboards {
     public static List<RankEntryByAchievements> getRanksByAchievementTotal(int fromRank, int toRank, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
+        return getRankingBy("achievements", fromRank, toRank, client);
+    }
 
-        String data = client.excecuteRequest("leaderboards?type=achievements&from=" + fromRank + "&to=" + toRank);
+    public static List<RankEntryByAchievements> getRanksByTotalPlayTime(int fromRank, int toRank, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
+        return getRankingBy("games", fromRank, toRank, client);
+    }
+
+    public static List<RankEntryByAchievements> getRanksByCompletionRate(int fromRank, int toRank, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
+        return getRankingBy("completionrate", fromRank, toRank, client);
+    }
+
+    private static List<RankEntryByAchievements> getRankingBy(String type, int fromRank, int toRank, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
+        String data = client.excecuteRequest("leaderboards?type=" + type + "&from=" + fromRank + "&to=" + toRank);
         try {
             ObjectMapper mapper = new ObjectMapper();
             JSONArray jsonArray = new JSONArray(data);

@@ -89,15 +89,4 @@ public class GameAchievementTest {
     public void testGetUnlockedTimestamp() {
         assertEquals(achievement.getUnlockedTimestamp(), UNLOCKED_TIMESTAMP);
     }
-
-    @Test
-    public void testToString() {
-        // fail("Not yet implemented");
-    }
-
-    @Test
-    public void testToPrettyString() {
-        // fail("Not yet implemented");
-    }
-
 }

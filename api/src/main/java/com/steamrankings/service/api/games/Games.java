@@ -12,9 +12,10 @@ import com.steamrankings.service.api.APIException;
 import com.steamrankings.service.api.SteamRankingsClient;
 
 public class Games {
-    public static SteamGame getSteamGame(int appId, SteamRankingsClient client) {
+    public static SteamGame getSteamGame(int appId, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
+        String data = client.excecuteRequest("games?appId=" + appId);
+        
         try {
-            String data = client.excecuteRequest("games?appId=" + appId);
             ObjectMapper mapper = new ObjectMapper();
 
             return mapper.readValue(data, SteamGame.class);

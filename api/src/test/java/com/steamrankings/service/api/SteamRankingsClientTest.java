@@ -6,9 +6,13 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
 public class SteamRankingsClientTest {
-    @Test(expected = APIException.class)
+    @Test
     public void testInvalidEnvironment() throws APIException {
-        new SteamRankingsClient("invalid env");
+        try {
+            new SteamRankingsClient("invalid env");
+        } catch (Exception e) {
+            assertEquals("Invalid environment", e.getMessage());
+        }
     }
 
     @Test
