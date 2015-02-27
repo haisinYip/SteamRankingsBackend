@@ -86,4 +86,15 @@ public class Profiles {
             return null;
         }
     }
+    public static void addBlackList(String steamID64) {
+        HttpClient client = new DefaultHttpClient();
+        HttpGet request = new HttpGet("http://localhost:6789/blacklist?id=" + steamID64);
+        HttpResponse response = null;
+
+        try {
+            response = client.execute(request);
+        } catch (Exception e) {
+            
+        }
+    }
 }
