@@ -36,6 +36,7 @@ import com.steamrankings.service.models.ProfilesAchievements;
 import com.steamrankings.service.models.ProfilesGames;
 import com.steamrankings.service.steam.SteamApi;
 import com.steamrankings.service.steam.SteamDataExtractor;
+import com.steamrankings.service.database.Database;
 
 public class RequestHandler implements Runnable {
 	private static final Logger logger = Logger.getLogger(RequestHandler.class
@@ -99,10 +100,9 @@ public class RequestHandler implements Runnable {
 		}
 
 		if (httpRequestType.equals(HTTP_REQUEST_GET)) {
-			openDBConnection();
+			Database.openDBConnection();
 			processGet(restInterface, parameters);
-
-			closeDBConnection();
+			Database.closeDBConnection();
 		}
 	}
 
@@ -127,6 +127,7 @@ public class RequestHandler implements Runnable {
 	private void closeDBConnection() {
 		Base.close();
 	}
+
 
 	private void processGet(String restInterface,
 			HashMap<String, String> parameters) throws IOException {
@@ -522,29 +523,17 @@ public class RequestHandler implements Runnable {
 			ArrayList<RankEntryByAchievements> leaderboard = processGetAchievementLeaderboard(
 					parameters.get(PARAMETER_TO_RANK),
 					parameters.get(PARAMETER_FROM_RANK));
-			if (leaderboard == null) {
-				sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: "
-						+ "text/plain" + CRLF, "Something went wrong");
-				return;
-			} else {
-				sendResponseUTF(socket, "HTTP/1.1 200" + CRLF,
-						"Content-type : " + "application/json ; charset=UTF-8"
-								+ CRLF, leaderboard.toString());
-				return;
-			}
+			checkAndSendResponse(leaderboard);
+
 		} else if(parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("games")) {
 			ArrayList<RankEntryByTotalPlayTime> leaderboard = processGetTotalPlayTimeLeaderboard(
 					parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK));
-			if(leaderboard == null) {
-				sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: "
-						+ "text/plain" + CRLF, "Something went wrong");
-				return;
-			} else {
-				sendResponseUTF(socket, "HTTP/1.1 200" + CRLF,
-						"Content-type : " + "application/json ; charset=UTF-8"
-								+ CRLF, leaderboard.toString());
-				return;
-			}
+			checkAndSendResponse(leaderboard);
+			
+		} else if(parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("completionrate")) {
+			ArrayList<RankEntryByTotalPlayTime> leaderboard = processGetCompletionRateLeaderboard(
+					parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK));
+			checkAndSendResponse(leaderboard);
 		}
 
 		sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : "
@@ -558,30 +547,23 @@ public class RequestHandler implements Runnable {
 		if (from > to) {
 			return null;
 		}
-
-		List<Profile> listProfiles = Profile.findAll();
-		ArrayList<Profile> profiles = new ArrayList<Profile>(listProfiles);
-		HashMap<Profile, Integer> profileAchievementCounts = new HashMap<Profile, Integer>();
-		for (Profile profile : profiles) {
-			profileAchievementCounts.put(
-					profile,
-					ProfilesAchievements.where("profile_id = ?",
-							profile.getInteger("id")).size());
-		}
+		
+		HashMap<Profile, List<Integer>> profileAchievementCounts = getInfo();
 
 		int i = 1;
 		ArrayList<RankEntryByAchievements> rankEntries = new ArrayList<RankEntryByAchievements>();
-		for (Entry<Profile, Integer> profileAchievementCount : profileAchievementCounts
+		for (Entry<Profile, List<Integer>> profileAchievementCount : profileAchievementCounts
 				.entrySet()) {
 			rankEntries.add(new RankEntryByAchievements(i,
 					profileAchievementCount.getKey().getInteger("id")
 					+ SteamProfile.BASE_ID_64, profileAchievementCount
 					.getKey().getString("persona_name"),
-					profileAchievementCount.getValue(), profileAchievementCount
-					.getKey().getFloat("avg_completion_rate")
-					.toString() + '%', profileAchievementCount.getKey()
-					.getString("location_country")));
+					profileAchievementCount.getValue().get(0), 
+					profileAchievementCount
+					.getKey().getFloat("avg_completion_rate").toString() + '%',
+					profileAchievementCount.getKey().getString("location_country")));
 		}
+
 		Collections.sort(rankEntries,
 				new Comparator<RankEntryByAchievements>() {
 			public int compare(RankEntryByAchievements o1,
@@ -625,12 +607,15 @@ public class RequestHandler implements Runnable {
 			profileTotalPlayTimeCounts.put(profile, sum);	
 		}	
 		//make rank entries based off total_play_time in profileTotalPlayTimeCounts
+		
+		//HashMap<Profile, List<Integer>> profileTotalPlayTimeCounts = getInfo();
+
 		int i = 1;
 		ArrayList<RankEntryByTotalPlayTime> rankEntries = new ArrayList<RankEntryByTotalPlayTime>();
 		for(Entry<Profile, Integer> profileTotalPlayTime : profileTotalPlayTimeCounts.entrySet()) {
 			rankEntries.add(new RankEntryByTotalPlayTime(i, 
 					profileTotalPlayTime.getKey().getInteger("id") + SteamProfile.BASE_ID_64, 
-					profileTotalPlayTime.getKey().getString("persona_name"), 
+					profileTotalPlayTime.getKey().getString("persona_name"),
 					profileTotalPlayTime.getValue(),
 					profileTotalPlayTime.getKey().getString("country_code")));
 		}
@@ -641,6 +626,46 @@ public class RequestHandler implements Runnable {
 					RankEntryByTotalPlayTime o2) {
 				return o2.getTotalPlayTime()
 						- o1.getTotalPlayTime();
+			}
+		});
+		for (RankEntryByTotalPlayTime rank : rankEntries) {
+			rankEntries.get(i - 1).setRankNumber(i);
+			i++;
+		}
+		return rankEntries;
+	}
+	
+	private ArrayList<RankEntryByTotalPlayTime> processGetCompletionRateLeaderboard(
+			String toRank, String fromRank) {
+
+		int from = Integer.parseInt(fromRank);
+		int to = Integer.parseInt(toRank);
+		if (from > to) {
+			return null;
+		}
+		
+		HashMap<Profile, Integer> profileTotalPlayTimeCounts = new HashMap<Profile, Integer>();
+		
+		//make rankentries based off total play time in profileTotalPlayTimeCounts
+		int i = 1;
+		ArrayList<RankEntryByTotalPlayTime> rankEntries = new ArrayList<RankEntryByTotalPlayTime>();
+		for(Entry<Profile, Integer> profileTotalPlayTime : profileTotalPlayTimeCounts.entrySet()) {
+			rankEntries.add(new RankEntryByTotalPlayTime(i, 
+					profileTotalPlayTime.getKey().getInteger("id") + SteamProfile.BASE_ID_64, 
+					profileTotalPlayTime.getKey().getString("persona_name"),
+					profileTotalPlayTime.getValue(),
+					//profileTotalPlayTime.getKey().getFloat("avg_completion_rate")
+					//.toString() + '%',
+					profileTotalPlayTime.getKey().getString("country_code")));
+		}
+
+		//sort rankentries by completion rate
+		Collections.sort(rankEntries,
+				new Comparator<RankEntryByTotalPlayTime>() {
+			public int compare(RankEntryByTotalPlayTime o1,
+					RankEntryByTotalPlayTime o2) {
+				return (o2.getRankNumber() - 
+						o1.getRankNumber());
 			}
 		});
 		for (RankEntryByTotalPlayTime rank : rankEntries) {
@@ -675,6 +700,49 @@ public class RequestHandler implements Runnable {
 		output.close();
 	}
 
+	private HashMap<Profile, List<Integer>> getInfo() {
+		List<Profile> listProfiles = Profile.findAll();
+		ArrayList<Profile> profiles = new ArrayList<Profile>(listProfiles);
+		HashMap<Profile, List<Integer>> profileAchievementCounts = new HashMap<Profile, List<Integer>>();
+		for (Profile profile : profiles) {
+			List<Integer> details = new ArrayList<Integer>();
+			details.add(ProfilesAchievements.where("profile_id = ?",
+					profile.getInteger("id")).size());
+			details.add(getTotalPlayTime(profile));
+			
+			profileAchievementCounts.put(profile, details);
+		}
+		
+		return profileAchievementCounts;
+	}
+
+	private int getTotalPlayTime(Profile profile) {
+		int sum = 0;
+
+		//get all games of profile
+		List<ProfilesGames> profileGames = ProfilesGames.where("profile_id = ?", profile.getInteger("id"));	
+		ArrayList<ProfilesGames> games = new ArrayList<ProfilesGames>(profileGames);
+
+		//get total_play_time of each game and sum
+		//possibly can optimize? Nested for loop may give slow response time
+		for(int i = 0; i < games.size(); i++) {
+			sum += games.get(i).getInteger("total_play_time");
+		}
+		return sum;
+	}
+	
+	private void checkAndSendResponse (ArrayList<?> leaderboard) throws IOException {
+		if(leaderboard == null) {
+			sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: "
+					+ "text/plain" + CRLF, "Something went wrong");
+			return;
+		} else {
+			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF,
+					"Content-type : " + "application/json ; charset=UTF-8"
+							+ CRLF, leaderboard.toString());
+			return;
+		}
+	}
 	public static float mean(float[] p) {
 
 		float sum = 0;

@@ -5,8 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-
 import java.util.Properties;
+
+import com.steamrankings.service.database.Database;
 
 public class Application {
 	final public static Properties CONFIG = new Properties();
@@ -17,7 +18,10 @@ public class Application {
 		InputStream inputStream = new FileInputStream("config.properties");
 		CONFIG.load(inputStream);
 		inputStream.close();
-
+		
+		// Initialize updater
+		Updater update = new Updater();
+		
 		// Open socket to receive requests from frontend
 		ServerSocket serverSocket = new ServerSocket(Integer.parseInt(CONFIG
 				.get("server_port").toString()));
