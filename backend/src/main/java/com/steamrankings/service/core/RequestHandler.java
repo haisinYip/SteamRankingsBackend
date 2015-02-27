@@ -616,7 +616,7 @@ public class RequestHandler implements Runnable {
 			//get all games of profile
 			List<ProfilesGames> profileGames = ProfilesGames.where("profile_id = ?", profile.getInteger("id"));	
 			ArrayList<ProfilesGames> games = new ArrayList<ProfilesGames>(profileGames);
-
+			//LazyList<ProfilesGames> listhing = profile.getAll(ProfilesGames.class);
 			//get total_play_time of each game and sum
 			//possibly can optimize? Nested for loop may give slow response time
 			for(int i = 0; i < games.size(); i++) {
@@ -624,7 +624,7 @@ public class RequestHandler implements Runnable {
 			}	
 			profileTotalPlayTimeCounts.put(profile, sum);	
 		}	
-		//make rankentries based off total play time in profileTotalPlayTimeCounts
+		//make rank entries based off total_play_time in profileTotalPlayTimeCounts
 		int i = 1;
 		ArrayList<RankEntryByTotalPlayTime> rankEntries = new ArrayList<RankEntryByTotalPlayTime>();
 		for(Entry<Profile, Integer> profileTotalPlayTime : profileTotalPlayTimeCounts.entrySet()) {
@@ -634,7 +634,7 @@ public class RequestHandler implements Runnable {
 					profileTotalPlayTime.getValue(),
 					profileTotalPlayTime.getKey().getString("country_code")));
 		}
-		//sort rankentries by total_play_time
+		//sort rank entries by total_play_time
 		Collections.sort(rankEntries,
 				new Comparator<RankEntryByTotalPlayTime>() {
 			public int compare(RankEntryByTotalPlayTime o1,
