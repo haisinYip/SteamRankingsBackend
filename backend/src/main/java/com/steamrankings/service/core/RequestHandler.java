@@ -561,6 +561,7 @@ public class RequestHandler implements Runnable {
 					profileAchievementCount.getValue().get(0), 
 					profileAchievementCount
 					.getKey().getFloat("avg_completion_rate").toString() + '%',
+					profileAchievementCount.getValue().get(1),
 					profileAchievementCount.getKey().getString("location_country")));
 		}
 
@@ -587,37 +588,24 @@ public class RequestHandler implements Runnable {
 		if (from > to) {
 			return null;
 		}
-		List<Profile> listProfiles = Profile.findAll();	//get all profiles in the db
-		ArrayList<Profile> profiles = new ArrayList<Profile>(listProfiles);
 
-		HashMap<Profile, Integer> profileTotalPlayTimeCounts = new HashMap<Profile, Integer>();
-
-		for(Profile profile : profiles) {	//loop through all profiles
-			int sum = 0;
-
-			//get all games of profile
-			List<ProfilesGames> profileGames = ProfilesGames.where("profile_id = ?", profile.getInteger("id"));	
-			ArrayList<ProfilesGames> games = new ArrayList<ProfilesGames>(profileGames);
-			//LazyList<ProfilesGames> listhing = profile.getAll(ProfilesGames.class);
-			//get total_play_time of each game and sum
-			//possibly can optimize? Nested for loop may give slow response time
-			for(int i = 0; i < games.size(); i++) {
-				sum += games.get(i).getInteger("total_play_time");
-			}	
-			profileTotalPlayTimeCounts.put(profile, sum);	
-		}	
-		//make rank entries based off total_play_time in profileTotalPlayTimeCounts
 		
-		//HashMap<Profile, List<Integer>> profileTotalPlayTimeCounts = getInfo();
+		//make rank entries based off total_play_time in profileTotalPlayTimeCounts
+
+		
+		HashMap<Profile, List<Integer>> profileTotalPlayTimeCounts = getInfo();
 
 		int i = 1;
 		ArrayList<RankEntryByTotalPlayTime> rankEntries = new ArrayList<RankEntryByTotalPlayTime>();
-		for(Entry<Profile, Integer> profileTotalPlayTime : profileTotalPlayTimeCounts.entrySet()) {
+		for(Entry<Profile, List<Integer>> profileTotalPlayTime : profileTotalPlayTimeCounts.entrySet()) {
 			rankEntries.add(new RankEntryByTotalPlayTime(i, 
 					profileTotalPlayTime.getKey().getInteger("id") + SteamProfile.BASE_ID_64, 
 					profileTotalPlayTime.getKey().getString("persona_name"),
-					profileTotalPlayTime.getValue(),
-					profileTotalPlayTime.getKey().getString("country_code")));
+					profileTotalPlayTime.getValue().get(1),
+					profileTotalPlayTime.getValue().get(0), 
+					profileTotalPlayTime.getKey().getFloat("avg_completion_rate")
+					.toString() + '%',
+					profileTotalPlayTime.getKey().getString("location_country")));
 		}
 		//sort rank entries by total_play_time
 		Collections.sort(rankEntries,
@@ -644,19 +632,20 @@ public class RequestHandler implements Runnable {
 			return null;
 		}
 		
-		HashMap<Profile, Integer> profileTotalPlayTimeCounts = new HashMap<Profile, Integer>();
+		HashMap<Profile, List<Integer>> profileTotalPlayTimeCounts = getInfo();
 		
 		//make rankentries based off total play time in profileTotalPlayTimeCounts
 		int i = 1;
 		ArrayList<RankEntryByTotalPlayTime> rankEntries = new ArrayList<RankEntryByTotalPlayTime>();
-		for(Entry<Profile, Integer> profileTotalPlayTime : profileTotalPlayTimeCounts.entrySet()) {
+		for(Entry<Profile, List<Integer>> profileTotalPlayTime : profileTotalPlayTimeCounts.entrySet()) {
 			rankEntries.add(new RankEntryByTotalPlayTime(i, 
 					profileTotalPlayTime.getKey().getInteger("id") + SteamProfile.BASE_ID_64, 
 					profileTotalPlayTime.getKey().getString("persona_name"),
-					profileTotalPlayTime.getValue(),
-					//profileTotalPlayTime.getKey().getFloat("avg_completion_rate")
-					//.toString() + '%',
-					profileTotalPlayTime.getKey().getString("country_code")));
+					profileTotalPlayTime.getValue().get(1),
+					profileTotalPlayTime.getValue().get(0), 
+					profileTotalPlayTime.getKey().getFloat("avg_completion_rate")
+					.toString() + '%',
+					profileTotalPlayTime.getKey().getString("location_country")));
 		}
 
 		//sort rankentries by completion rate
@@ -664,8 +653,8 @@ public class RequestHandler implements Runnable {
 				new Comparator<RankEntryByTotalPlayTime>() {
 			public int compare(RankEntryByTotalPlayTime o1,
 					RankEntryByTotalPlayTime o2) {
-				return (o2.getRankNumber() - 
-						o1.getRankNumber());
+				return Float.compare(o2.getCompletionRateWithoutPercent(), 
+						o1.getCompletionRateWithoutPercent());
 			}
 		});
 		for (RankEntryByTotalPlayTime rank : rankEntries) {
