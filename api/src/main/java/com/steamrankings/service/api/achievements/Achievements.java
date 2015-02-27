@@ -3,14 +3,10 @@ package com.steamrankings.service.api.achievements;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 
+import com.steamrankings.service.api.SteamRankingsClient;
 /*
 public class Achievements {
 	
@@ -24,7 +20,6 @@ public class Achievements {
         HttpGet request = new HttpGet("http://localhost:6789/achievements?appid=" + appId);
         HttpResponse response = null;
 */
-import com.steamrankings.service.api.client.SteamRankingsClient;
 
 public class Achievements {
     public static List<GameAchievement> getGameAchievements(int appId, SteamRankingsClient client) {

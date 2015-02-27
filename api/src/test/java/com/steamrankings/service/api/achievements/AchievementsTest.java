@@ -1,6 +1,5 @@
 package com.steamrankings.service.api.achievements;
 
-import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
@@ -9,12 +8,10 @@ import static org.junit.Assert.assertNull;
 
 import java.util.List;
 
+import org.easymock.EasyMock;
 import org.junit.Test;
 
-import com.steamrankings.service.api.client.SteamIdException;
-import com.steamrankings.service.api.client.SteamRankingsClient;
-import com.steamrankings.service.api.games.Games;
-import com.steamrankings.service.api.games.SteamGame;
+import com.steamrankings.service.api.SteamRankingsClient;
 
 public class AchievementsTest {
 	/**
@@ -26,7 +23,7 @@ public class AchievementsTest {
     public void testGetGameAchievements(){
     	
     	SteamRankingsClient client=new SteamRankingsClient("Test");
-        client = createStrictMock(SteamRankingsClient.class);
+        client = EasyMock.createStrictMock(SteamRankingsClient.class);
         String response="{\n\"achievements\":[\n{\"app_id\": 20,\n\"achievement_id\": \"123456\",\n\"unlocked_icon_url\": "
         		+ "\"unlocked/icon/url\",\n\"locked_icon_url\": \"locked/icon/url\",\n\"name\": "
         		+ "\"flames\",\n\"description\": \"here is the desciption\",\n\"unlocked_timestamp\": "
@@ -36,7 +33,7 @@ public class AchievementsTest {
         		+ "1423275897\n}]\n}";
     	try {
 			expect(client.excecuteRequest("achievements?appid=20")).andReturn(response);
-		} catch (SteamIdException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -50,7 +47,7 @@ public class AchievementsTest {
         client2 = createStrictMock(SteamRankingsClient.class);
     	try {
 			expect(client2.excecuteRequest("achievements?appid=30")).andReturn(null);
-		} catch (SteamIdException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -67,7 +64,7 @@ public class AchievementsTest {
     public void testGeteUnlockedAchievments(){
     	
     	SteamRankingsClient client=new SteamRankingsClient("Test");
-        client = createStrictMock(SteamRankingsClient.class);
+        client = EasyMock.createStrictMock(SteamRankingsClient.class);
         String response="[\n{\"app_id\": 20,\n\"achievement_id\": \"123456\",\n\"unlocked_icon_url\": "
         		+ "\"unlocked/icon/url\",\n\"locked_icon_url\": \"locked/icon/url\",\n\"name\": "
         		+ "\"flames\",\n\"description\": \"here is the desciption\",\n\"unlocked_timestamp\": "
@@ -78,7 +75,7 @@ public class AchievementsTest {
         System.out.println(response);
     	try {
 			expect(client.excecuteRequest("achievements?id=1233764898948")).andReturn(response);
-		} catch (SteamIdException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -92,7 +89,7 @@ public class AchievementsTest {
         client2 = createStrictMock(SteamRankingsClient.class);
     	try {
 			expect(client2.excecuteRequest("achievements?id=1233764898949")).andReturn(null);
-		} catch (SteamIdException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -110,7 +107,7 @@ public class AchievementsTest {
     public void testGetUnlockedAchievments(){
     	
     	SteamRankingsClient client=new SteamRankingsClient("Test");
-        client = createStrictMock(SteamRankingsClient.class);
+        client = EasyMock.createStrictMock(SteamRankingsClient.class);
         String response="[\n{\"app_id\": 20,\n\"achievement_id\": \"123456\",\n\"unlocked_icon_url\": "
         		+ "\"unlocked/icon/url\",\n\"locked_icon_url\": \"locked/icon/url\",\n\"name\": "
         		+ "\"flames\",\n\"description\": \"here is the desciption\",\n\"unlocked_timestamp\": "
@@ -121,7 +118,7 @@ public class AchievementsTest {
         System.out.println(response);
     	try {
 			expect(client.excecuteRequest("achievements?id=1233764898948&appid=20")).andReturn(response);
-		} catch (SteamIdException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -132,10 +129,10 @@ public class AchievementsTest {
         
         //Testing appid not found
         SteamRankingsClient client2=new SteamRankingsClient("Test");
-        client2 = createStrictMock(SteamRankingsClient.class);
+        client2 = EasyMock.createStrictMock(SteamRankingsClient.class);
     	try {
 			expect(client2.excecuteRequest("achievements?id=1233764898948&appid=30")).andReturn(null);
-		} catch (SteamIdException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

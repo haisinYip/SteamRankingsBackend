@@ -76,7 +76,7 @@ public class SteamProfile {
         this.fullAvatarUrl = fullAvatarUrl;
         this.mediumAvatarUrl = mediumAvatarUrl;
         this.iconAvatarUrl = iconAvatarUrl;
-        this.lastOnline = new DateTime(lastOnline);
+        this.lastOnline = new DateTime(lastOnline.getMillisOfSecond());
         this.profileState = 3;
     }
     

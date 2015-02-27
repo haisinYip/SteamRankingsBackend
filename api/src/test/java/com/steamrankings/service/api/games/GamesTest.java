@@ -3,16 +3,16 @@ package com.steamrankings.service.api.games;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.List;
 
 import org.junit.Test;
 
-import com.steamrankings.service.api.client.SteamIdException;
-import com.steamrankings.service.api.client.SteamRankingsClient;
-import com.steamrankings.service.api.profiles.Profiles;
-import com.steamrankings.service.api.profiles.SteamProfile;
+import com.steamrankings.service.api.SteamIdException;
+import com.steamrankings.service.api.SteamRankingsClient;
 
 public class GamesTest {
 	
