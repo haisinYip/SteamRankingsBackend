@@ -128,7 +128,7 @@ public class SteamDataExtractorTest {
         Assert.assertEquals(TEST_USER_ONE_AVATAR_FULL, profile.getFullAvatarUrl());
         Assert.assertEquals(TEST_USER_ONE_AVATAR_MEDIUM, profile.getMediumAvatarUrl());
         Assert.assertEquals(TEST_USER_ONE_AVATAR_ICON, profile.getIconAvatarUrl());
-        Assert.assertEquals(new DateTime(Long.parseLong(TEST_USER_ONE_LAST_LOG_OFF)), profile.getLastOnline());
+        Assert.assertEquals(new DateTime(Long.parseLong(TEST_USER_ONE_LAST_LOG_OFF)).getMillisOfSecond(), profile.getLastOnline().getMillisOfSecond());
 
         EasyMock.verify(api);
     }
