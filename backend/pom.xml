@@ -3,7 +3,6 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<scm>
-    <!-- Replace the connection below with your project connection -->
 		<url>https://github.com/nikolaosbukas/SteamRankingsService</url>
 		<connection>scm:git:git://github.com/nikolaosbukas/SteamRankingsService.git</connection>
 		 <developerConnection>scm:git:ssh://git@github.com:nikolaosbukas/SteamRankingsService.git</developerConnection>
