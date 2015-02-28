@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
@@ -23,8 +24,6 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
-
-import com.jcabi.manifests.Manifests;
 
 import com.steamrankings.service.api.achievements.GameAchievement;
 import com.steamrankings.service.api.games.SteamGame;
@@ -128,7 +127,9 @@ public class RequestHandler implements Runnable {
         } else if (restInterface.equals(REST_API_INTERFACE_BLACKLIST)) {
             processBlackList(parameters);
         } else if (restInterface.equals(REST_API_INTERFACE_VERSION)) {
-            sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: ; charset=UTF-8" + CRLF, Manifests.read("Git-SHA-1"));
+        	Properties properties = new Properties();
+        	properties.load(Application.class.getResourceAsStream("/buildNumber.properties"));
+            sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: ; charset=UTF-8" + CRLF, properties.getProperty("git-sha-1"));
         }
     }
 
