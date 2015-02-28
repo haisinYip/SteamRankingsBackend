@@ -23,6 +23,8 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.joda.time.DateTime;
 
+import com.jcabi.manifests.Manifests;
+
 import com.steamrankings.service.api.achievements.GameAchievement;
 import com.steamrankings.service.api.games.SteamGame;
 import com.steamrankings.service.api.leaderboards.RankEntryByAchievements;
@@ -50,6 +52,7 @@ public class RequestHandler implements Runnable {
 	private static final String REST_API_INTERFACE_ACHIEVEMENTS = "/achievements";
 	private static final String REST_API_INTERFACE_COUNTRIES = "/countries";
 	private static final String REST_API_INTERFACE_BLACKLIST = "/blacklist";
+	private static final String REST_API_INTERFACE_VERSION = "/version";
 
 	private static final String PARAMETERS_USER_ID = "id";
 	private static final String PARAMETERS_APP_ID = "appId";
@@ -63,7 +66,7 @@ public class RequestHandler implements Runnable {
 	private static final String API_ERROR_STEAM_ID_INVALID = "3000";
 	private static final String API_ERROR_STEAM_ID_BLACKLIST = "4000";
 	private static final String API_ERROR_STEAM_ID_COUNTRY = "5000";
-	
+
 
 	private static final int AVG_NUM_GAMES_NOT_IN_DB = 50;
 	private Socket socket;
@@ -125,6 +128,9 @@ public class RequestHandler implements Runnable {
 		} else if (restInterface.equals(REST_API_INTERFACE_BLACKLIST)) {
 			processBlackList(parameters);
 		}
+		else if (restInterface.equals(REST_API_INTERFACE_VERSION)) {
+			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: ; charset=UTF-8" + CRLF, Manifests.read("Git-SHA-1"));
+		}
 	}
 
 	private void processGetProfiles(HashMap<String, String> parameters)
@@ -148,13 +154,13 @@ public class RequestHandler implements Runnable {
 		SteamApi steamApi = new SteamApi(
 				Application.CONFIG.getProperty("apikey"));
 		SteamDataExtractor steamDataExtractor = new SteamDataExtractor(steamApi);
-		
-		if(isUserInBlackList(steamId)){
+
+		if (isUserInBlackList(steamId)) {
 			sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: "
 					+ "text/plain" + CRLF, API_ERROR_STEAM_ID_BLACKLIST);
 			return;
 		}
-		
+
 		Profile profile = Profile
 				.findById((int) (steamId - SteamProfile.BASE_ID_64));
 		SteamProfile steamProfile = null;
@@ -265,11 +271,10 @@ public class RequestHandler implements Runnable {
 			// the Class)
 			// to ensure enough variation for hashing. Some apinames are only
 			// 2-3 characters long which leads to collisions
-			Base.addBatch(ps, (achievement.getAchievementId() + achievement.getName()).hashCode(),
-					achievement.getAppId(), achievement.getName(),
-					achievement.getDescription(),
-					achievement.getUnlockedIconUrl(),
-					achievement.getLockedIconUrl());
+			Base.addBatch(ps, (achievement.getAchievementId() + achievement
+					.getName()).hashCode(), achievement.getAppId(), achievement
+					.getName(), achievement.getDescription(), achievement
+					.getUnlockedIconUrl(), achievement.getLockedIconUrl());
 		}
 
 		Base.executeBatch(ps);
@@ -301,8 +306,9 @@ public class RequestHandler implements Runnable {
 		for (GameAchievement achievement : playerAchievements) {
 			// TODO: Timestamp is a placeholder
 			Base.addBatch(ps, profile.getId(),
-					(achievement.getAchievementId() + achievement.getName()).hashCode(), achievement.getAppId(),
-					new Timestamp(659836800).toString());
+					(achievement.getAchievementId() + achievement.getName())
+							.hashCode(), achievement.getAppId(), new Timestamp(
+							659836800).toString());
 		}
 
 		Base.executeBatch(ps);
@@ -354,7 +360,7 @@ public class RequestHandler implements Runnable {
 			List<ProfilesGames> list = ProfilesGames
 					.where("profile_id = ?",
 							(int) (steamId - SteamProfile.BASE_ID_64))
-							.orderBy("total_play_time desc").limit(30);
+					.orderBy("total_play_time desc").limit(30);
 			ArrayList<ProfilesGames> profilesGames = new ArrayList<ProfilesGames>(
 					list);
 			if (profilesGames != null) {
@@ -364,8 +370,8 @@ public class RequestHandler implements Runnable {
 					if (game != null) {
 						steamGames.add(new SteamGame(game.getInteger("id"),
 								game.getString("icon_url"), game
-								.getString("logo_url"), game
-								.getString("name")));
+										.getString("logo_url"), game
+										.getString("name")));
 					}
 				}
 				ObjectMapper mapper = new ObjectMapper();
@@ -411,7 +417,7 @@ public class RequestHandler implements Runnable {
 					"profile_id = ? AND game_id = ?",
 					(int) (steamId - SteamProfile.BASE_ID_64),
 					Integer.parseInt(parameters.get(PARAMETERS_APP_ID))).limit(
-							15);
+					15);
 			ArrayList<ProfilesAchievements> profilesAchievements = new ArrayList<ProfilesAchievements>(
 					list);
 			if (profilesAchievements != null) {
@@ -426,8 +432,8 @@ public class RequestHandler implements Runnable {
 								.getInteger("game_id"), achievement
 								.getString("id"),
 								achievement.getString("name"), achievement
-								.getString("description"), achievement
-								.getString("unlocked_icon_url"),
+										.getString("description"), achievement
+										.getString("unlocked_icon_url"),
 								achievement.getString("locked_icon_url"),
 								new DateTime(profilesAchievement.getTimestamp(
 										"unlocked_timestamp").getTime())));
@@ -437,14 +443,14 @@ public class RequestHandler implements Runnable {
 				sendResponseUTF(socket, "HTTP/1.1 200" + CRLF,
 						"Content-type : " + "application/json ; charset=UTF-8"
 								+ CRLF,
-								mapper.writeValueAsString(gameAchievements));
+						mapper.writeValueAsString(gameAchievements));
 				return;
 			}
 		} else if (parameters.containsKey(PARAMETERS_USER_ID)) {
 			List<ProfilesAchievements> list = ProfilesAchievements
 					.where("profile_id = ?",
 							(int) (steamId - SteamProfile.BASE_ID_64))
-							.limit(30);
+					.limit(30);
 			ArrayList<ProfilesAchievements> profilesAchievements = new ArrayList<ProfilesAchievements>(
 					list);
 			if (profilesAchievements != null) {
@@ -459,8 +465,8 @@ public class RequestHandler implements Runnable {
 								.getInteger("game_id"), achievement
 								.getString("id"),
 								achievement.getString("name"), achievement
-								.getString("description"), achievement
-								.getString("unlocked_icon_url"),
+										.getString("description"), achievement
+										.getString("unlocked_icon_url"),
 								achievement.getString("locked_icon_url"),
 								new DateTime(profilesAchievement.getTimestamp(
 										"unlocked_timestamp").getTime())));
@@ -470,7 +476,7 @@ public class RequestHandler implements Runnable {
 				sendResponseUTF(socket, "HTTP/1.1 200" + CRLF,
 						"Content-type : " + "application/json ; charset=UTF-8"
 								+ CRLF,
-								mapper.writeValueAsString(gameAchievements));
+						mapper.writeValueAsString(gameAchievements));
 				return;
 			}
 		} else if (parameters.containsKey(PARAMETERS_APP_ID)) {
@@ -483,9 +489,9 @@ public class RequestHandler implements Runnable {
 				gameAchievements.add(new GameAchievement(achievement
 						.getInteger("game_id"), achievement.getString("id"),
 						achievement.getString("name"), achievement
-						.getString("description"), achievement
-						.getString("unlocked_icon_url"), achievement
-						.getString("locked_icon_url")));
+								.getString("description"), achievement
+								.getString("unlocked_icon_url"), achievement
+								.getString("locked_icon_url")));
 			}
 			ObjectMapper mapper = new ObjectMapper();
 			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : "
@@ -516,14 +522,17 @@ public class RequestHandler implements Runnable {
 					parameters.get(PARAMETER_FROM_RANK));
 			checkAndSendResponse(leaderboard);
 
-		} else if(parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("games")) {
+		} else if (parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("games")) {
 			ArrayList<RankEntryByTotalPlayTime> leaderboard = processGetTotalPlayTimeLeaderboard(
-					parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK));
+					parameters.get(PARAMETER_TO_RANK),
+					parameters.get(PARAMETER_FROM_RANK));
 			checkAndSendResponse(leaderboard);
-			
-		} else if(parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("completionrate")) {
+
+		} else if (parameters.get(PARAMETER_LEADERBOARD_TYPE).equals(
+				"completionrate")) {
 			ArrayList<RankEntryByTotalPlayTime> leaderboard = processGetCompletionRateLeaderboard(
-					parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK));
+					parameters.get(PARAMETER_TO_RANK),
+					parameters.get(PARAMETER_FROM_RANK));
 			checkAndSendResponse(leaderboard);
 		} else if(parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("countries")) {
 			ArrayList<RankEntryByTotalPlayTime> leaderboard = processGetCountryLeaderboard(
@@ -543,7 +552,7 @@ public class RequestHandler implements Runnable {
 		if (from > to) {
 			return null;
 		}
-		
+
 		HashMap<Profile, List<Integer>> profileAchievementCounts = getInfo();
 
 		int i = 1;
@@ -552,29 +561,30 @@ public class RequestHandler implements Runnable {
 				.entrySet()) {
 			rankEntries.add(new RankEntryByAchievements(i,
 					profileAchievementCount.getKey().getInteger("id")
-					+ SteamProfile.BASE_ID_64, profileAchievementCount
-					.getKey().getString("persona_name"),
-					profileAchievementCount.getValue().get(0), 
-					profileAchievementCount
-					.getKey().getFloat("avg_completion_rate").toString() + '%',
+							+ SteamProfile.BASE_ID_64, profileAchievementCount
+							.getKey().getString("persona_name"),
+					profileAchievementCount.getValue().get(0),
+					profileAchievementCount.getKey()
+							.getFloat("avg_completion_rate").toString() + '%',
 					profileAchievementCount.getValue().get(1),
-					profileAchievementCount.getKey().getString("location_country")));
+					profileAchievementCount.getKey().getString(
+							"location_country")));
 		}
 
 		Collections.sort(rankEntries,
 				new Comparator<RankEntryByAchievements>() {
-			public int compare(RankEntryByAchievements o1,
-					RankEntryByAchievements o2) {
-				return o2.getAchievementsTotal()
-						- o1.getAchievementsTotal();
-			}
-		});
-		
+					public int compare(RankEntryByAchievements o1,
+							RankEntryByAchievements o2) {
+						return o2.getAchievementsTotal()
+								- o1.getAchievementsTotal();
+					}
+				});
+
 		for (RankEntryByAchievements rank : rankEntries) {
 			rankEntries.get(i - 1).setRankNumber(i);
 			i++;
 		}
-		
+
 		return rankEntries;
 	}
 
@@ -587,40 +597,44 @@ public class RequestHandler implements Runnable {
 			return null;
 		}
 
-		
-		//make rank entries based off total_play_time in profileTotalPlayTimeCounts
+		// make rank entries based off total_play_time in
+		// profileTotalPlayTimeCounts
 
-		
 		HashMap<Profile, List<Integer>> profileTotalPlayTimeCounts = getInfo();
 
 		int i = 1;
 		ArrayList<RankEntryByTotalPlayTime> rankEntries = new ArrayList<RankEntryByTotalPlayTime>();
-		for(Entry<Profile, List<Integer>> profileTotalPlayTime : profileTotalPlayTimeCounts.entrySet()) {
-			rankEntries.add(new RankEntryByTotalPlayTime(i, 
-					profileTotalPlayTime.getKey().getInteger("id") + SteamProfile.BASE_ID_64, 
-					profileTotalPlayTime.getKey().getString("persona_name"),
-					profileTotalPlayTime.getValue().get(1),
-					profileTotalPlayTime.getValue().get(0), 
-					profileTotalPlayTime.getKey().getFloat("avg_completion_rate")
-					.toString() + '%',
-					profileTotalPlayTime.getKey().getString("location_country")));
+		for (Entry<Profile, List<Integer>> profileTotalPlayTime : profileTotalPlayTimeCounts
+				.entrySet()) {
+			rankEntries
+					.add(new RankEntryByTotalPlayTime(
+							i,
+							profileTotalPlayTime.getKey().getInteger("id")
+									+ SteamProfile.BASE_ID_64,
+							profileTotalPlayTime.getKey().getString(
+									"persona_name"),
+							profileTotalPlayTime.getValue().get(1),
+							profileTotalPlayTime.getValue().get(0),
+							profileTotalPlayTime.getKey()
+									.getFloat("avg_completion_rate").toString() + '%',
+							profileTotalPlayTime.getKey().getString(
+									"location_country")));
 		}
-		//sort rank entries by total_play_time
+		// sort rank entries by total_play_time
 		Collections.sort(rankEntries,
 				new Comparator<RankEntryByTotalPlayTime>() {
-			public int compare(RankEntryByTotalPlayTime o1,
-					RankEntryByTotalPlayTime o2) {
-				return o2.getTotalPlayTime()
-						- o1.getTotalPlayTime();
-			}
-		});
+					public int compare(RankEntryByTotalPlayTime o1,
+							RankEntryByTotalPlayTime o2) {
+						return o2.getTotalPlayTime() - o1.getTotalPlayTime();
+					}
+				});
 		for (RankEntryByTotalPlayTime rank : rankEntries) {
 			rankEntries.get(i - 1).setRankNumber(i);
 			i++;
 		}
 		return rankEntries;
 	}
-	
+
 	private ArrayList<RankEntryByTotalPlayTime> processGetCompletionRateLeaderboard(
 			String toRank, String fromRank) {
 
@@ -629,32 +643,40 @@ public class RequestHandler implements Runnable {
 		if (from > to) {
 			return null;
 		}
-		
+
 		HashMap<Profile, List<Integer>> profileTotalPlayTimeCounts = getInfo();
-		
-		//make rankentries based off total play time in profileTotalPlayTimeCounts
+
+		// make rankentries based off total play time in
+		// profileTotalPlayTimeCounts
 		int i = 1;
 		ArrayList<RankEntryByTotalPlayTime> rankEntries = new ArrayList<RankEntryByTotalPlayTime>();
-		for(Entry<Profile, List<Integer>> profileTotalPlayTime : profileTotalPlayTimeCounts.entrySet()) {
-			rankEntries.add(new RankEntryByTotalPlayTime(i, 
-					profileTotalPlayTime.getKey().getInteger("id") + SteamProfile.BASE_ID_64, 
-					profileTotalPlayTime.getKey().getString("persona_name"),
-					profileTotalPlayTime.getValue().get(1),
-					profileTotalPlayTime.getValue().get(0), 
-					profileTotalPlayTime.getKey().getFloat("avg_completion_rate")
-					.toString() + '%',
-					profileTotalPlayTime.getKey().getString("location_country")));
+		for (Entry<Profile, List<Integer>> profileTotalPlayTime : profileTotalPlayTimeCounts
+				.entrySet()) {
+			rankEntries
+					.add(new RankEntryByTotalPlayTime(
+							i,
+							profileTotalPlayTime.getKey().getInteger("id")
+									+ SteamProfile.BASE_ID_64,
+							profileTotalPlayTime.getKey().getString(
+									"persona_name"),
+							profileTotalPlayTime.getValue().get(1),
+							profileTotalPlayTime.getValue().get(0),
+							profileTotalPlayTime.getKey()
+									.getFloat("avg_completion_rate").toString() + '%',
+							profileTotalPlayTime.getKey().getString(
+									"location_country")));
 		}
 
-		//sort rankentries by completion rate
+		// sort rankentries by completion rate
 		Collections.sort(rankEntries,
 				new Comparator<RankEntryByTotalPlayTime>() {
-			public int compare(RankEntryByTotalPlayTime o1,
-					RankEntryByTotalPlayTime o2) {
-				return Float.compare(o2.getCompletionRateWithoutPercent(), 
-						o1.getCompletionRateWithoutPercent());
-			}
-		});
+					public int compare(RankEntryByTotalPlayTime o1,
+							RankEntryByTotalPlayTime o2) {
+						return Float.compare(
+								o2.getCompletionRateWithoutPercent(),
+								o1.getCompletionRateWithoutPercent());
+					}
+				});
 		for (RankEntryByTotalPlayTime rank : rankEntries) {
 			rankEntries.get(i - 1).setRankNumber(i);
 			i++;
@@ -714,40 +736,44 @@ public class RequestHandler implements Runnable {
 			details.add(ProfilesAchievements.where("profile_id = ?",
 					profile.getInteger("id")).size());
 			details.add(getTotalPlayTime(profile));
-			
+
 			profileAchievementCounts.put(profile, details);
 		}
-		
+
 		return profileAchievementCounts;
 	}
 
 	private int getTotalPlayTime(Profile profile) {
 		int sum = 0;
 
-		//get all games of profile
-		List<ProfilesGames> profileGames = ProfilesGames.where("profile_id = ?", profile.getInteger("id"));	
-		ArrayList<ProfilesGames> games = new ArrayList<ProfilesGames>(profileGames);
+		// get all games of profile
+		List<ProfilesGames> profileGames = ProfilesGames.where(
+				"profile_id = ?", profile.getInteger("id"));
+		ArrayList<ProfilesGames> games = new ArrayList<ProfilesGames>(
+				profileGames);
 
-		//get total_play_time of each game and sum
-		//possibly can optimize? Nested for loop may give slow response time
-		for(int i = 0; i < games.size(); i++) {
+		// get total_play_time of each game and sum
+		// possibly can optimize? Nested for loop may give slow response time
+		for (int i = 0; i < games.size(); i++) {
 			sum += games.get(i).getInteger("total_play_time");
 		}
 		return sum;
 	}
-	
-	private void checkAndSendResponse (ArrayList<?> leaderboard) throws IOException {
-		if(leaderboard == null) {
+
+	private void checkAndSendResponse(ArrayList<?> leaderboard)
+			throws IOException {
+		if (leaderboard == null) {
 			sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: "
 					+ "text/plain" + CRLF, "Something went wrong");
 			return;
 		} else {
-			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF,
-					"Content-type : " + "application/json ; charset=UTF-8"
-							+ CRLF, leaderboard.toString());
+			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : "
+					+ "application/json ; charset=UTF-8" + CRLF,
+					leaderboard.toString());
 			return;
 		}
 	}
+
 	public static float mean(float[] p) {
 
 		float sum = 0;
@@ -757,10 +783,10 @@ public class RequestHandler implements Runnable {
 		}
 		return sum / p.length;
 	}
-	
+
 	private void processBlackList(HashMap<String, String> parameters)
 			throws IOException {
-		
+
 		System.out.println("Blacklist method began");
 		if (parameters == null || parameters.isEmpty()
 				|| !parameters.containsKey(PARAMETERS_USER_ID)) {
@@ -776,44 +802,46 @@ public class RequestHandler implements Runnable {
 					+ "text/plain" + CRLF, API_ERROR_STEAM_ID_INVALID);
 			return;
 		}
-		//add id to the blacklist table if it exists and show an error if it doesn't exist
-		SteamApi steamApi = new SteamApi(Application.CONFIG.getProperty("apikey"));
+		// add id to the blacklist table if it exists and show an error if it
+		// doesn't exist
+		SteamApi steamApi = new SteamApi(
+				Application.CONFIG.getProperty("apikey"));
 		SteamDataExtractor steamDataExtractor = new SteamDataExtractor(steamApi);
 		SteamProfile steamProfile = steamDataExtractor.getSteamProfile(steamId);
-			if (steamProfile == null) {
-				sendResponse(socket, "HTTP/1.1 404" + CRLF, "Content-type: "
-						+ "text/plain" + CRLF,
-						API_ERROR_STEAM_USER_DOES_NOT_EXIST);
-				return;
-			}
-		//remove profile from the database if it exists
-		//everytime you add new user we have to check in a function that the user doesn't exist in the blacklist 
-		Blacklist blacklist=Blacklist.findById(steamId-SteamProfile.BASE_ID_64);
-		if(!isUserInBlackList(steamId))
-		{
-			blacklist=new Blacklist();
-			blacklist.set("id", (int)(steamId-SteamProfile.BASE_ID_64));
+		if (steamProfile == null) {
+			sendResponse(socket, "HTTP/1.1 404" + CRLF, "Content-type: "
+					+ "text/plain" + CRLF, API_ERROR_STEAM_USER_DOES_NOT_EXIST);
+			return;
+		}
+		// remove profile from the database if it exists
+		// everytime you add new user we have to check in a function that the
+		// user doesn't exist in the blacklist
+		Blacklist blacklist = Blacklist.findById(steamId
+				- SteamProfile.BASE_ID_64);
+		if (!isUserInBlackList(steamId)) {
+			blacklist = new Blacklist();
+			blacklist.set("id", (int) (steamId - SteamProfile.BASE_ID_64));
 			blacklist.insert();
 		}
 		Profile profile = Profile
 				.findById((int) (steamId - SteamProfile.BASE_ID_64));
 
-		if(profile!= null)
-		{
+		if (profile != null) {
 			profile.deleteCascadeShallow();
 			System.out.println("Blacklist method is done");
 		}
-		sendResponseUTF(socket, "HTTP/1.1 200" + CRLF,
-				"Content-type : " + "application/json ; charset=UTF-8"
-						+ CRLF, steamProfile.toString());
+		sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : "
+				+ "application/json ; charset=UTF-8" + CRLF,
+				steamProfile.toString());
 		return;
 	}
-	private boolean isUserInBlackList(long steamId64)
-	{
-		Blacklist blackListedUser= Blacklist.findById((int)(steamId64-SteamProfile.BASE_ID_64));
-		if(blackListedUser == null)
+
+	private boolean isUserInBlackList(long steamId64) {
+		Blacklist blackListedUser = Blacklist
+				.findById((int) (steamId64 - SteamProfile.BASE_ID_64));
+		if (blackListedUser == null)
 			return false;
 		return true;
 	}
-	
+
 }
