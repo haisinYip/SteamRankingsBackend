@@ -303,9 +303,9 @@ public class RequestHandler implements Runnable {
 
     private void processGetGames(HashMap<String, String> parameters) throws IOException {
         // Check to see if parameters are correct
-        if (parameters == null || parameters.isEmpty()) {
-            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
-            return;
+
+        if (parameters == null) {
+        	sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
         }
 
         long steamId = SteamDataExtractor.convertToSteamId64(parameters.get("id"));
