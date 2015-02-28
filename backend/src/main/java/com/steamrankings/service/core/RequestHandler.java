@@ -22,6 +22,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.joda.time.DateTime;
+import org.json.JSONArray;
 
 import com.steamrankings.service.api.achievements.GameAchievement;
 import com.steamrankings.service.api.games.SteamGame;
@@ -395,7 +396,20 @@ public class RequestHandler implements Runnable {
 								+ CRLF, mapper.writeValueAsString(steamGames));
 				return;
 			}
-		} else {
+		} else if(parameters.containsKey(PARAMETERS_APP_ID)) {
+			try {
+				processGetGameLeaderboard(Integer.parseInt((parameters.get(PARAMETERS_APP_ID))));
+			} catch (NumberFormatException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
+		else {
 			List<Game> list = Game.findAll();
 			ArrayList<Game> games = new ArrayList<Game>(list);
 			if (games != null) {
@@ -537,11 +551,11 @@ public class RequestHandler implements Runnable {
 					parameters.get(PARAMETER_FROM_RANK));
 			checkAndSendResponse(leaderboard);
 
-		} else if(parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("games")) {
+		} else if(parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("totalplaytime")) {
 			ArrayList<RankEntryByTotalPlayTime> leaderboard = processGetTotalPlayTimeLeaderboard(
 					parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK));
 			checkAndSendResponse(leaderboard);
-			
+
 		} else if(parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("completionrate")) {
 			ArrayList<RankEntryByTotalPlayTime> leaderboard = processGetCompletionRateLeaderboard(
 					parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK));
@@ -559,7 +573,7 @@ public class RequestHandler implements Runnable {
 		if (from > to) {
 			return null;
 		}
-		
+
 		HashMap<Profile, List<Integer>> profileAchievementCounts = getInfo();
 
 		int i = 1;
@@ -601,10 +615,8 @@ public class RequestHandler implements Runnable {
 			return null;
 		}
 
-		
 		//make rank entries based off total_play_time in profileTotalPlayTimeCounts
 
-		
 		HashMap<Profile, List<Integer>> profileTotalPlayTimeCounts = getInfo();
 
 		int i = 1;
@@ -634,7 +646,7 @@ public class RequestHandler implements Runnable {
 		}
 		return rankEntries;
 	}
-	
+
 	private ArrayList<RankEntryByTotalPlayTime> processGetCompletionRateLeaderboard(
 			String toRank, String fromRank) {
 
@@ -643,9 +655,9 @@ public class RequestHandler implements Runnable {
 		if (from > to) {
 			return null;
 		}
-		
+
 		HashMap<Profile, List<Integer>> profileTotalPlayTimeCounts = getInfo();
-		
+
 		//make rankentries based off total play time in profileTotalPlayTimeCounts
 		int i = 1;
 		ArrayList<RankEntryByTotalPlayTime> rankEntries = new ArrayList<RankEntryByTotalPlayTime>();
@@ -674,6 +686,38 @@ public class RequestHandler implements Runnable {
 			i++;
 		}
 		return rankEntries;
+	}
+
+	//returns JSONArray of sorted hashmaps; hashmap<steamprofile, Integer(completion_rate)>
+	private void processGetGameLeaderboard(int appid) throws Exception {
+
+		SteamProfile sp = null;
+
+		JSONArray js = new JSONArray();
+
+		List<ProfilesGames> profilesgames = ProfilesGames.where("game_id = ?", appid).orderBy("completion_rate desc");
+
+		for(ProfilesGames profilegame : profilesgames) {
+
+			Profile profile = Profile.findById(profilegame.getId());
+
+			sp = new SteamProfile(profile.getInteger("profile_id") + SteamProfile.BASE_ID_64,
+					profile.getString("community_id"), profilegame.getString("persona_name"),
+					profile.getString("real_name"), profile.getString("location_country"), 
+					profile.getString("location_province"), profile.getString("location_city"),
+					profile.getString("avatar_full_url"), 
+					profile.getString("avatar_medium_url"), profile.getString("avatar_icon_url"), 
+					new DateTime(profile.getString("last_logoff")));
+
+			HashMap<SteamProfile, Float> ranks = new HashMap<SteamProfile, Float>();
+
+			ranks.put(sp, profilegame.getFloat("completion_rate"));
+			js.put(ranks);
+		}
+
+		sendResponseUTF(socket, "HTTP/1.1 200" + CRLF,
+				"Content-type : " + "application/json ; charset=UTF-8"
+						+ CRLF, js.toString());
 	}
 
 	private void sendResponse(Socket socket, String statusLine,
@@ -710,10 +754,10 @@ public class RequestHandler implements Runnable {
 			details.add(ProfilesAchievements.where("profile_id = ?",
 					profile.getInteger("id")).size());
 			details.add(getTotalPlayTime(profile));
-			
+
 			profileAchievementCounts.put(profile, details);
 		}
-		
+
 		return profileAchievementCounts;
 	}
 
@@ -731,7 +775,7 @@ public class RequestHandler implements Runnable {
 		}
 		return sum;
 	}
-	
+
 	private void checkAndSendResponse (ArrayList<?> leaderboard) throws IOException {
 		if(leaderboard == null) {
 			sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: "
