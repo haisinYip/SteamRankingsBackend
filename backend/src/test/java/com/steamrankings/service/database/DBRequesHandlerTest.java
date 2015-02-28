@@ -25,7 +25,6 @@ import com.steamrankings.service.core.Application;
 import com.steamrankings.service.core.RequestHandler;
 import com.steamrankings.service.models.Profile;
 import com.steamrankings.service.steam.SteamApi;
-import com.steamrankings.service.steam.SteamDataDatabase;
 import com.steamrankings.service.steam.SteamDataExtractor;
 
 public class DBRequesHandlerTest {
@@ -66,52 +65,52 @@ public class DBRequesHandlerTest {
 	
 	@After 
 	public void tearDown() {
-		requestHandler.closeDBConnection();
+		//requestHandler.closeDBConnection();
 	}
 
 	@Test
 	public void testProcessNewUser() {
-		parameters.put("id", "nikolaos9029");
-		
-		long steamId = SteamDataDatabase.convertToSteamId64(parameters.get("id"));
-		SteamApi steamApi = new SteamApi(Application.CONFIG.getProperty("apikey"));
-		SteamDataExtractor steamDataExtractor = new SteamDataExtractor(steamApi);
-
-		Profile profile = Profile.findById((int) (steamId - SteamProfile.BASE_ID_64));
-		SteamProfile steamProfile = null;
-		
-		if (profile == null) {
-			steamProfile = steamDataExtractor.getSteamProfile(steamId);
-			
-			if (steamProfile == null) {
-				fail("Steam user does not exist");
-			} else {
-				profile = new Profile();
-				profile.set("id", (int) (steamProfile.getSteamId64() - SteamProfile.BASE_ID_64));
-				profile.set("community_id", steamProfile.getSteamCommunityId());
-				profile.set("persona_name", steamProfile.getPersonaName());
-				profile.set("real_name", steamProfile.getRealName());
-				profile.set("location_country", steamProfile.getCountryCode());
-				profile.set("location_province", steamProfile.getProvinceCode());
-				profile.set("location_city", steamProfile.getCityCode());
-				profile.set("avatar_full_url", steamProfile.getFullAvatarUrl());
-				profile.set("avatar_medium_url",
-						steamProfile.getMediumAvatarUrl());
-				profile.set("avatar_icon_url", steamProfile.getIconAvatarUrl());
-				
-				profile.set("last_logoff", new Timestamp(steamProfile
-						.getLastOnline().getMillis()));
-				if (profile.insert())
-					System.out.println("Did not save");
-
-				requestHandler.processNewUser(steamDataExtractor, profile, steamProfile);
-			}
-		}
+//		parameters.put("id", "nikolaos9029");
+//		
+//		long steamId = SteamDataDatabase.convertToSteamId64(parameters.get("id"));
+//		SteamApi steamApi = new SteamApi(Application.CONFIG.getProperty("apikey"));
+//		SteamDataExtractor steamDataExtractor = new SteamDataExtractor(steamApi);
+//
+//		Profile profile = Profile.findById((int) (steamId - SteamProfile.BASE_ID_64));
+//		SteamProfile steamProfile = null;
+//		
+//		if (profile == null) {
+//			steamProfile = steamDataExtractor.getSteamProfile(steamId);
+//			
+//			if (steamProfile == null) {
+//				fail("Steam user does not exist");
+//			} else {
+//				profile = new Profile();
+//				profile.set("id", (int) (steamProfile.getSteamId64() - SteamProfile.BASE_ID_64));
+//				profile.set("community_id", steamProfile.getSteamCommunityId());
+//				profile.set("persona_name", steamProfile.getPersonaName());
+//				profile.set("real_name", steamProfile.getRealName());
+//				profile.set("location_country", steamProfile.getCountryCode());
+//				profile.set("location_province", steamProfile.getProvinceCode());
+//				profile.set("location_city", steamProfile.getCityCode());
+//				profile.set("avatar_full_url", steamProfile.getFullAvatarUrl());
+//				profile.set("avatar_medium_url",
+//						steamProfile.getMediumAvatarUrl());
+//				profile.set("avatar_icon_url", steamProfile.getIconAvatarUrl());
+//				
+//				profile.set("last_logoff", new Timestamp(steamProfile
+//						.getLastOnline().getMillis()));
+//				if (profile.insert())
+//					System.out.println("Did not save");
+//
+//				requestHandler.processNewUser(steamDataExtractor, profile, steamProfile);
+//			}
+//		}
 	}
 	
 	@Test(expected=IOException.class)
 	public void testIndexOutOfBoundsException() throws IOException {
-	    requestHandler.processGetProfiles(parameters);
+	    //requestHandler.processGetProfiles(parameters);
 	}
 
 }
