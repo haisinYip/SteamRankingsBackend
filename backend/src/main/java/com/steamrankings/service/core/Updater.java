@@ -1,7 +1,6 @@
 package com.steamrankings.service.core;
 
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -12,8 +11,6 @@ import org.javalite.activejdbc.LazyList;
 import com.steamrankings.service.api.profiles.SteamProfile;
 import com.steamrankings.service.database.Database;
 import com.steamrankings.service.models.Profile;
-import com.steamrankings.service.models.ProfilesAchievements;
-import com.steamrankings.service.models.ProfilesGames;
 import com.steamrankings.service.steam.SteamApi;
 import com.steamrankings.service.steam.SteamDataExtractor;
 
