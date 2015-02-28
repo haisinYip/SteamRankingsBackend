@@ -749,6 +749,7 @@ public class RequestHandler implements Runnable {
 		if (steamId == -1) {
 			sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: "
 					+ "text/plain" + CRLF, API_ERROR_STEAM_ID_INVALID);
+			System.out.println("blacklist: steam id invalid");
 			return;
 		}
 		//add id to the blacklist table if it exists and show an error if it doesn't exist
@@ -769,6 +770,13 @@ public class RequestHandler implements Runnable {
 			blacklist=new Blacklist();
 			blacklist.set("id", (int)(steamId-SteamProfile.BASE_ID_64));
 			blacklist.insert();
+		}
+		else
+		{
+			sendResponse(socket, "HTTP/1.1 404" + CRLF, "Content-type: "
+					+ "text/plain" + CRLF,
+					API_ERROR_STEAM_ID_BLACKLIST);
+			return;
 		}
 		Profile profile = Profile
 				.findById((int) (steamId - SteamProfile.BASE_ID_64));
