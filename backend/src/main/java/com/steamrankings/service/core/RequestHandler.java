@@ -50,6 +50,7 @@ public class RequestHandler implements Runnable {
 	private static final String REST_API_INTERFACE_LEADERBOARDS = "/leaderboards";
 	private static final String REST_API_INTERFACE_GAMES = "/games";
 	private static final String REST_API_INTERFACE_ACHIEVEMENTS = "/achievements";
+	private static final String REST_API_INTERFACE_COUNTRIES = "/countries";
 	private static final String REST_API_INTERFACE_BLACKLIST = "/blacklist";
 	private static final String REST_API_INTERFACE_VERSION = "/version";
 
@@ -58,11 +59,14 @@ public class RequestHandler implements Runnable {
 	private static final String PARAMETER_LEADERBOARD_TYPE = "type";
 	private static final String PARAMETER_TO_RANK = "to";
 	private static final String PARAMETER_FROM_RANK = "from";
+	private static final String PARAMETER_COUNTRY_ID = "id";
 
 	private static final String API_ERROR_BAD_ARGUMENTS_CODE = "1000";
 	private static final String API_ERROR_STEAM_USER_DOES_NOT_EXIST = "2000";
 	private static final String API_ERROR_STEAM_ID_INVALID = "3000";
 	private static final String API_ERROR_STEAM_ID_BLACKLIST = "4000";
+	private static final String API_ERROR_STEAM_ID_COUNTRY = "5000";
+
 
 	private static final int AVG_NUM_GAMES_NOT_IN_DB = 50;
 	private Socket socket;
@@ -121,8 +125,7 @@ public class RequestHandler implements Runnable {
 			processGetGames(parameters);
 		} else if (restInterface.equals(REST_API_INTERFACE_ACHIEVEMENTS)) {
 			processGetAchievements(parameters);
-		}
-		else if (restInterface.equals(REST_API_INTERFACE_BLACKLIST)) {
+		} else if (restInterface.equals(REST_API_INTERFACE_BLACKLIST)) {
 			processBlackList(parameters);
 		}
 		else if (restInterface.equals(REST_API_INTERFACE_VERSION)) {
@@ -531,6 +534,11 @@ public class RequestHandler implements Runnable {
 					parameters.get(PARAMETER_TO_RANK),
 					parameters.get(PARAMETER_FROM_RANK));
 			checkAndSendResponse(leaderboard);
+		} else if(parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("countries")) {
+			ArrayList<RankEntryByTotalPlayTime> leaderboard = processGetCountryLeaderboard(
+					parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK), parameters.get(PARAMETER_COUNTRY_ID));
+			System.out.println(parameters.get(PARAMETER_COUNTRY_ID));
+			checkAndSendResponse(leaderboard);
 		}
 
 		sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : "
@@ -673,6 +681,24 @@ public class RequestHandler implements Runnable {
 			rankEntries.get(i - 1).setRankNumber(i);
 			i++;
 		}
+		return rankEntries;
+	}
+	
+	private ArrayList<RankEntryByTotalPlayTime> processGetCountryLeaderboard(
+			String toRank, String fromRank, String countryCode) {
+		
+		int from = Integer.parseInt(fromRank);
+		int to = Integer.parseInt(toRank);
+		if (from > to) {
+			return null;
+		}
+		
+		ArrayList<RankEntryByTotalPlayTime> rankEntries = processGetTotalPlayTimeLeaderboard(fromRank, toRank);
+		for(int i=0; i<rankEntries.size(); i++) {
+			if (!rankEntries.get(i).getCountryCode().equals(countryCode))
+				rankEntries.remove(i);
+		
+	}
 		return rankEntries;
 	}
 
