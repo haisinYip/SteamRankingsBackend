@@ -4,9 +4,9 @@ import java.io.IOException;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 public class SteamRankingsClient {
@@ -31,7 +31,7 @@ public class SteamRankingsClient {
     public String excecuteRequest(String requestString) throws APIException, ClientProtocolException, IOException {
         String myRequest = this.hostName + "/" + requestString;
         
-        HttpClient client = new DefaultHttpClient();
+        CloseableHttpClient client = HttpClients.createDefault();
         HttpGet request = new HttpGet(myRequest);
         HttpResponse response = null;
 

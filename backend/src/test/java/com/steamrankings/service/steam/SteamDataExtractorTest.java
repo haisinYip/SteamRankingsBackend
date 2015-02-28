@@ -19,9 +19,6 @@ public class SteamDataExtractorTest {
 
     private static final JSONObject TEST_USER_ONE = new JSONObject();
     private static final JSONObject TEST_USER_TWO = new JSONObject();
-    private static final JSONObject TEST_USER_THREE = new JSONObject();
-    private static final JSONObject TEST_USER_FOUR = new JSONObject();
-    private static final JSONObject TEST_USER_FIVE = new JSONObject();
 
     private static final String TEST_USER_ONE_STEAM_ID = "1234";
     private static final String TEST_USER_ONE_COMMUNITY_VISIBILITY = "3";

@@ -105,29 +105,6 @@ public class RequestHandler implements Runnable {
 		}
 	}
 
-	private void openDBConnection() {
-		// Base.open("com.mysql.jdbc.Driver",
-		// "jdbc:mysql://" + Application.CONFIG.getProperty("server")
-		// + ":" + Application.CONFIG.getProperty("mysql_port")
-		// + "/" + "steamrankings_test_db"
-		// + "?characterEncoding=utf8",
-		// Application.CONFIG.getProperty("mysql_username"),
-		// Application.CONFIG.getProperty("mysql_password"));
-		Base.open("com.mysql.jdbc.Driver",
-				"jdbc:mysql://" + Application.CONFIG.getProperty("server")
-				+ ":" + Application.CONFIG.getProperty("mysql_port")
-				+ "/" + "steamrankings_test_db"
-				+ "?characterEncoding=utf8",
-				Application.CONFIG.getProperty("mysql_username"),
-				Application.CONFIG.getProperty("mysql_password"));
-
-	}
-
-	private void closeDBConnection() {
-		Base.close();
-	}
-
-
 	private void processGet(String restInterface,
 			HashMap<String, String> parameters) throws IOException {
 		if (restInterface.equals(REST_API_INTERFACE_PROFILES)) {
@@ -572,10 +549,12 @@ public class RequestHandler implements Runnable {
 						- o1.getAchievementsTotal();
 			}
 		});
+		
 		for (RankEntryByAchievements rank : rankEntries) {
 			rankEntries.get(i - 1).setRankNumber(i);
 			i++;
 		}
+		
 		return rankEntries;
 	}
 
