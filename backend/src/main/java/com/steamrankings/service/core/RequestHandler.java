@@ -22,6 +22,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.joda.time.DateTime;
+import org.json.JSONArray;
 
 import com.jcabi.manifests.Manifests;
 
@@ -791,64 +792,52 @@ public class RequestHandler implements Runnable {
 		return sum / p.length;
 	}
 
-	private void processBlackList(HashMap<String, String> parameters)
-			throws IOException {
 
-		System.out.println("Blacklist method began");
-		if (parameters == null || parameters.isEmpty()
-				|| !parameters.containsKey(PARAMETERS_USER_ID)) {
-			sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: "
-					+ "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
-			return;
-		}
+    private void processBlackList(HashMap<String, String> parameters) throws IOException {
 
-		long steamId = SteamDataExtractor.convertToSteamId64(parameters
-				.get(PARAMETERS_USER_ID));
-		if (steamId == -1) {
-			sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: "
-					+ "text/plain" + CRLF, API_ERROR_STEAM_ID_INVALID);
-			return;
-		}
-		// add id to the blacklist table if it exists and show an error if it
-		// doesn't exist
-		SteamApi steamApi = new SteamApi(
-				Application.CONFIG.getProperty("apikey"));
-		SteamDataExtractor steamDataExtractor = new SteamDataExtractor(steamApi);
-		SteamProfile steamProfile = steamDataExtractor.getSteamProfile(steamId);
-		if (steamProfile == null) {
-			sendResponse(socket, "HTTP/1.1 404" + CRLF, "Content-type: "
-					+ "text/plain" + CRLF, API_ERROR_STEAM_USER_DOES_NOT_EXIST);
-			return;
-		}
-		// remove profile from the database if it exists
-		// everytime you add new user we have to check in a function that the
-		// user doesn't exist in the blacklist
-		Blacklist blacklist = Blacklist.findById(steamId
-				- SteamProfile.BASE_ID_64);
-		if (!isUserInBlackList(steamId)) {
-			blacklist = new Blacklist();
-			blacklist.set("id", (int) (steamId - SteamProfile.BASE_ID_64));
-			blacklist.insert();
-		}
-		Profile profile = Profile
-				.findById((int) (steamId - SteamProfile.BASE_ID_64));
+        System.out.println("Blacklist method began");
+        if (parameters == null || parameters.isEmpty() || !parameters.containsKey(PARAMETERS_USER_ID)) {
+            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
+            return;
+        }
 
-		if (profile != null) {
-			profile.deleteCascadeShallow();
-			System.out.println("Blacklist method is done");
-		}
-		sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : "
-				+ "application/json ; charset=UTF-8" + CRLF,
-				steamProfile.toString());
-		return;
-	}
+        long steamId = SteamDataExtractor.convertToSteamId64(parameters.get(PARAMETERS_USER_ID));
+        if (steamId == -1) {
+            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: " + "text/plain" + CRLF, API_ERROR_STEAM_ID_INVALID);
+            return;
+        }
+        // add id to the blacklist table if it exists and show an error if it
+        // doesn't exist
+        SteamApi steamApi = new SteamApi(Application.CONFIG.getProperty("apikey"));
+        SteamDataExtractor steamDataExtractor = new SteamDataExtractor(steamApi);
+        SteamProfile steamProfile = steamDataExtractor.getSteamProfile(steamId);
+        if (steamProfile == null) {
+            sendResponse(socket, "HTTP/1.1 404" + CRLF, "Content-type: " + "text/plain" + CRLF, API_ERROR_STEAM_USER_DOES_NOT_EXIST);
+            return;
+        }
+        // remove profile from the database if it exists
+        // everytime you add new user we have to check in a function that the
+        // user doesn't exist in the blacklist
+        Blacklist blacklist = Blacklist.findById(steamId - SteamProfile.BASE_ID_64);
+        if (!isUserInBlackList(steamId)) {
+            blacklist = new Blacklist();
+            blacklist.set("id", (int) (steamId - SteamProfile.BASE_ID_64));
+            blacklist.insert();
+        }
+        Profile profile = Profile.findById((int) (steamId - SteamProfile.BASE_ID_64));
 
-	private boolean isUserInBlackList(long steamId64) {
-		Blacklist blackListedUser = Blacklist
-				.findById((int) (steamId64 - SteamProfile.BASE_ID_64));
-		if (blackListedUser == null)
-			return false;
-		return true;
-	}
+        if (profile != null) {
+            profile.deleteCascadeShallow();
+            System.out.println("Blacklist method is done");
+        }
+        sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json ; charset=UTF-8" + CRLF, steamProfile.toString());
+        return;
+    }
 
+    private boolean isUserInBlackList(long steamId64) {
+        Blacklist blackListedUser = Blacklist.findById((int) (steamId64 - SteamProfile.BASE_ID_64));
+        if (blackListedUser == null)
+            return false;
+        return true;
+    }
 }
