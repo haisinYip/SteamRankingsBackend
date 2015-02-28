@@ -53,6 +53,6 @@ public class SteamRankingsClient {
     }
     
     public String getBuildVersion() throws ClientProtocolException, APIException, IOException {
-        return this.excecuteRequest(this.hostName + "/version");
+        return this.excecuteRequest("version");
     }
 }
