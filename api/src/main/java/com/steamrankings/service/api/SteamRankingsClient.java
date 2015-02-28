@@ -38,8 +38,11 @@ public class SteamRankingsClient {
         response = client.execute(request);
         
         if (response.getStatusLine().getStatusCode() == 400 || response.getStatusLine().getStatusCode() == 404) {
+        	System.out.println("error");
             throw new APIException(EntityUtils.toString(response.getEntity()));
         }
+        
+        System.out.println(EntityUtils.toString(response.getEntity()));
         
         return EntityUtils.toString(response.getEntity());
     }
