@@ -89,6 +89,57 @@ public class Games {
 		return null;
     }
     
+    public static List<SteamGame> getSteamGames(int appid) throws Exception {
+
+        HttpClient client = new DefaultHttpClient();
+        HttpGet request = new HttpGet("http://localhost:6789/games");
+        HttpResponse response = null;
+
+        try {
+            response = client.execute(request);
+            		
+            String data = EntityUtils.toString(response.getEntity());
+            
+            if (response.getStatusLine().getStatusCode() == 400) {
+            	if (data.equals(API_ERROR_STEAM_ID_INVALID)) {
+            		throw new APIException("Invalid or private Steam ID");
+            	}
+            	
+            	else if (data.equals(API_ERROR_BAD_ARGUMENTS_CODE)) {
+            		throw new APIException("Bad arguments passed to API");
+            	}
+            	else {
+            		throw new APIException("Unknown API exception; HTTP 400 error");
+            	}
+            }
+            else if (response.getStatusLine().getStatusCode() == 404)
+            {
+            	if (data.equals(API_ERROR_STEAM_USER_DOES_NOT_EXIST))
+            	{
+            		throw new APIException("Steam user does not exist");
+            	}
+            	else {
+            		throw new APIException("Unknown API exception; HTTP 404 error");
+            	}
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            JSONArray jsonArray = new JSONArray(data);
+            ArrayList<SteamGame> games = new ArrayList<SteamGame>();
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                games.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), SteamGame.class));
+            }
+
+            return games;
+        } catch (Exception e) {
+            if (e instanceof APIException) {
+            	throw e;
+            }
+        }
+		return null;
+    }
+    
     public static List<RankEntryByTotalPlayTime> getRanksByTotalPlayTime(int fromRank, int toRank) {
     	HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet("http://localhost:6789/leaderboards?type=games&from=" + fromRank + "&to=" + toRank);
