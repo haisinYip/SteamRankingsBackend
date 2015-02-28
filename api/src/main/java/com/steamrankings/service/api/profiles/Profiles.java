@@ -4,7 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 
@@ -34,6 +38,17 @@ public class Profiles {
             return profiles;
         } catch (Exception e) {
             return null;
+        }
+    }
+    public static void addBlackList(String steamID64) {
+        HttpClient client = new DefaultHttpClient();
+        HttpGet request = new HttpGet("http://localhost:6789/blacklist?id=" + steamID64);
+        HttpResponse response = null;
+
+        try {
+            response = client.execute(request);
+        } catch (Exception e) {
+            
         }
     }
 }
