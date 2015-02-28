@@ -24,6 +24,20 @@ public class Leaderboards {
         return getRankingBy("completionrate", fromRank, toRank, client);
     }
 
+    public static List<RankEntryByAchievements> getRanksByCountry(String countryCode, int fromRank, int toRank, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
+    	String data = client.excecuteRequest("leaderboards?type=countries&id=" + countryCode + "&from=" + fromRank + "&to=" + toRank);
+
+        ObjectMapper mapper = new ObjectMapper();
+        JSONArray jsonArray = new JSONArray(data);
+        ArrayList<RankEntryByAchievements> ranks = new ArrayList<RankEntryByAchievements>();
+
+        for (int i = 0; i < jsonArray.length(); i++) {
+            ranks.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), RankEntryByAchievements.class));
+        }
+
+        return ranks;
+    }
+    
     private static List<RankEntryByAchievements> getRankingBy(String type, int fromRank, int toRank, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
         String data = client.excecuteRequest("leaderboards?type=" + type + "&from=" + fromRank + "&to=" + toRank);
 
