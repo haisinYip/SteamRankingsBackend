@@ -38,8 +38,8 @@ public class Leaderboards {
         return ranks;
     }
     
-    public static List<RankEntryByAchievements> getRanksByGame(String gameId, int fromRank, int toRank, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
-    	String data = client.excecuteRequest("games?id=" + gameId + "&from=" + fromRank + "&to=" + toRank);
+    public static List<RankEntryByAchievements> getRanksByGame(int gameId, int fromRank, int toRank, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
+    	String data = client.excecuteRequest("games&id=" + gameId + "&from=" + fromRank + "&to=" + toRank);
 
         ObjectMapper mapper = new ObjectMapper();
         JSONArray jsonArray = new JSONArray(data);
