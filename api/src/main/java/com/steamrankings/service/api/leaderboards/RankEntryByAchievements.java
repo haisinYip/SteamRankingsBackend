@@ -17,6 +17,9 @@ public class RankEntryByAchievements extends RankEntry {
 
 	@JsonProperty("total_play_time")
 	private int totalPlayTime;
+	
+	@JsonProperty("appId")
+	private int gameId;
 
     public RankEntryByAchievements() {
     }
@@ -54,6 +57,11 @@ public class RankEntryByAchievements extends RankEntry {
 	@JsonIgnore
 	public int getTotalPlayTime() {
 		return this.totalPlayTime;
+	}
+	
+	@JsonIgnore
+	public int getGameId() {
+		return this.gameId;
 	}
     
     @Override
