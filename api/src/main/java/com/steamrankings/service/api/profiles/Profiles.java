@@ -4,11 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 
@@ -44,5 +40,12 @@ public class Profiles {
     	String data = client.excecuteRequest("blacklist?id=" + steamID64);
 
         return data;
+    }
+    
+    public static SteamProfile updateUser(String steamID64, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
+        String data = client.excecuteRequest("update?id=" + steamID64);
+        ObjectMapper mapper = new ObjectMapper();
+
+        return mapper.readValue(data, SteamProfile.class);
     }
 }
