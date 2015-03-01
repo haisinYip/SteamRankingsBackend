@@ -59,7 +59,7 @@ public class RequestHandler implements Runnable {
 	private static final String PARAMETER_TO_RANK = "to";
 	private static final String PARAMETER_FROM_RANK = "from";
 	private static final String PARAMETER_COUNTRY_ID = "id";
-	private static final String PARAMETER_GAME_ID = "id";
+	private static final String PARAMETER_GAME_ID = "gid";
 
 	private static final String API_ERROR_BAD_ARGUMENTS_CODE = "1000";
 	private static final String API_ERROR_STEAM_USER_DOES_NOT_EXIST = "2000";
@@ -328,16 +328,6 @@ public class RequestHandler implements Runnable {
 				sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json ; charset=UTF-8" + CRLF, mapper.writeValueAsString(steamGames));
 				return;
 			}
-		} else if ( parameters.containsKey(PARAMETER_GAME_ID)
-				&& parameters.containsKey(PARAMETER_TO_RANK)
-				&& parameters.containsKey(PARAMETER_FROM_RANK)) {
-
-			ArrayList<RankEntryByAchievements> leaderboard = processGetGamesLeaderboard(
-					parameters.get(PARAMETER_TO_RANK),
-					parameters.get(PARAMETER_FROM_RANK),
-					parameters.get(PARAMETER_GAME_ID));
-			checkAndSendResponse(leaderboard);
-
 		} else {
 			List<Game> list = Game.findAll();
 			ArrayList<Game> games = new ArrayList<Game>(list);
@@ -454,7 +444,7 @@ public class RequestHandler implements Runnable {
 			checkAndSendResponse(leaderboard);
 
 		} else if (parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("games")) {
-			ArrayList<RankEntryByTotalPlayTime> leaderboard = processGetTotalPlayTimeLeaderboard(parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK));
+			ArrayList<RankEntryByAchievements> leaderboard = processGetGamesLeaderboard(parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK), parameters.get(PARAMETER_GAME_ID));
 			checkAndSendResponse(leaderboard);
 
 		} else if (parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("completionrate")) {
