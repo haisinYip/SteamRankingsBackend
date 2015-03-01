@@ -314,25 +314,51 @@ public class RequestHandler implements Runnable {
 
 	private void processGetGames(HashMap<String, String> parameters) throws IOException {
 		// Check to see if parameters are correct
-		if (parameters == null || parameters.isEmpty()
-				|| !parameters.containsKey(PARAMETER_GAME_ID)
-				|| !parameters.containsKey(PARAMETER_TO_RANK)
-				|| !parameters.containsKey(PARAMETER_FROM_RANK)) {
-			sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : "
-					+ "text/plain" + CRLF, "Invalid parameters");
-			return;
+
+		if (parameters == null) {
+			sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
 		}
 
-		ArrayList<RankEntryByAchievements> leaderboard = processGetGamesLeaderboard(
-				parameters.get(PARAMETER_TO_RANK),
-				parameters.get(PARAMETER_FROM_RANK),
-				parameters.get(PARAMETER_GAME_ID));
-		checkAndSendResponse(leaderboard);
+		long steamId = SteamDataExtractor.convertToSteamId64(parameters.get("id"));
 
+		if (parameters.containsKey(PARAMETERS_USER_ID)) {
+			List<ProfilesGames> list = ProfilesGames.where("profile_id = ?", (int) (steamId - SteamProfile.BASE_ID_64)).orderBy("total_play_time desc").limit(30);
+			ArrayList<ProfilesGames> profilesGames = new ArrayList<ProfilesGames>(list);
+			if (profilesGames != null) {
+				ArrayList<SteamGame> steamGames = new ArrayList<SteamGame>();
+				for (ProfilesGames profilesGame : profilesGames) {
+					Game game = Game.findById(profilesGame.get("game_id"));
+					if (game != null) {
+						steamGames.add(new SteamGame(game.getInteger("id"), game.getString("icon_url"), game.getString("logo_url"), game.getString("name")));
+					}
+				}
+				ObjectMapper mapper = new ObjectMapper();
+				sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json ; charset=UTF-8" + CRLF, mapper.writeValueAsString(steamGames));
+				return;
+			}
+		} else if ( parameters.containsKey(PARAMETER_GAME_ID)
+				&& parameters.containsKey(PARAMETER_TO_RANK)
+				&& parameters.containsKey(PARAMETER_FROM_RANK)) {
 
-		sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : "
-				+ "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
+			ArrayList<RankEntryByAchievements> leaderboard = processGetGamesLeaderboard(
+					parameters.get(PARAMETER_TO_RANK),
+					parameters.get(PARAMETER_FROM_RANK),
+					parameters.get(PARAMETER_GAME_ID));
+			checkAndSendResponse(leaderboard);
 
+		} else {
+			List<Game> list = Game.findAll();
+			ArrayList<Game> games = new ArrayList<Game>(list);
+			if (games != null) {
+				ArrayList<SteamGame> steamGames = new ArrayList<SteamGame>();
+				for (Game game : games) {
+					steamGames.add(new SteamGame(game.getInteger("id"), game.getString("icon_url"), game.getString("logo_url"), game.getString("name")));
+				}
+				ObjectMapper mapper = new ObjectMapper();
+				sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json ; charset=UTF-8" + CRLF, mapper.writeValueAsString(steamGames));
+				return;
+			}
+		}
 	}
 
 	private ArrayList<RankEntryByAchievements> processGetGamesLeaderboard(
@@ -364,7 +390,7 @@ public class RequestHandler implements Runnable {
 
 		return updatedRankEntries;
 	}
-	
+
 	private void processGetAchievements(HashMap<String, String> parameters) throws IOException {
 		// Check to see if parameters are correct
 		if (parameters == null || parameters.isEmpty()) {
