@@ -53,7 +53,7 @@ public class Leaderboards {
     }
     
     public static List<RankEntryByAchievements> getRanksByGameLeaderboard(int gameId, int fromRank, int toRank, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
-    	String data = client.excecuteRequest("leaderboards?type=games?&gid=" + gameId + "&from=" + fromRank + "&to=" + toRank);
+    	String data = client.excecuteRequest("leaderboards?type=games&gid=" + gameId + "&from=" + fromRank + "&to=" + toRank);
 
         ObjectMapper mapper = new ObjectMapper();
         JSONArray jsonArray = new JSONArray(data);
