@@ -52,6 +52,7 @@ public class RequestHandler implements Runnable {
 	private static final String REST_API_INTERFACE_COUNTRIES = "/countries";
 	private static final String REST_API_INTERFACE_BLACKLIST = "/blacklist";
 	private static final String REST_API_INTERFACE_VERSION = "/version";
+	private static final String REST_API_INTERFACE_UPDATE_PROFILE ="/update";
 
 	private static final String PARAMETERS_USER_ID = "id";
 	private static final String PARAMETERS_APP_ID = "appId";
@@ -132,10 +133,42 @@ public class RequestHandler implements Runnable {
 			Properties properties = new Properties();
 			properties.load(Application.class.getResourceAsStream("/buildNumber.properties"));
 			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: ; charset=UTF-8" + CRLF, properties.getProperty("git-sha-1"));
+		} else if (restInterface.equals(REST_API_INTERFACE_UPDATE_PROFILE)) {
+		    processUserUpdate(parameters);
 		}
 	}
 
-	private void processGetProfiles(HashMap<String, String> parameters) throws IOException {
+	private void processUserUpdate(HashMap<String, String> parameters) {
+	    long id = SteamDataExtractor.convertToSteamId64(parameters.get("id"));
+	    
+	    Profile user = Profile.findById(id - SteamProfile.BASE_ID_64);
+	    user.deleteCascadeShallow();
+	    
+	    SteamDataExtractor steamDataExtractor = new SteamDataExtractor(new SteamApi(Application.CONFIG.getProperty("apikey")));
+	    
+	    SteamProfile steamProfile = steamDataExtractor.getSteamProfile(id);
+	    
+        user = new Profile();
+        user.set("id", (int) (steamProfile.getSteamId64() - SteamProfile.BASE_ID_64));
+        user.set("community_id", steamProfile.getSteamCommunityId());
+        user.set("persona_name", steamProfile.getPersonaName());
+        user.set("real_name", steamProfile.getRealName());
+        user.set("location_country", steamProfile.getCountryCode());
+        user.set("location_province", steamProfile.getProvinceCode());
+        user.set("location_city", steamProfile.getCityCode());
+        user.set("avatar_full_url", steamProfile.getFullAvatarUrl());
+        user.set("avatar_medium_url", steamProfile.getMediumAvatarUrl());
+        user.set("avatar_icon_url", steamProfile.getIconAvatarUrl());
+    
+        user.set("last_logoff", new Timestamp(steamProfile.getLastOnline().getMillis()));
+        user.set("avg_completion_rate", 0);
+        
+        user.insert();
+
+	    processNewUser(steamDataExtractor, user, id);;
+    }
+
+    private void processGetProfiles(HashMap<String, String> parameters) throws IOException {
 		// Check to see if parameters are correct
 		if (parameters == null || parameters.isEmpty() || !parameters.containsKey(PARAMETERS_USER_ID)) {
 			sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
@@ -182,7 +215,7 @@ public class RequestHandler implements Runnable {
 				profile.insert();
 
 				logger.info(profile.toString());
-				processNewUser(steamDataExtractor, profile, steamProfile);
+				processNewUser(steamDataExtractor, profile, steamProfile.getSteamId64());
 			}
 		}
 
@@ -194,11 +227,11 @@ public class RequestHandler implements Runnable {
 		return;
 	}
 
-	private void processNewUser(SteamDataExtractor steamDataExtractor, Profile profile, SteamProfile steamProfile) {
+	private void processNewUser(SteamDataExtractor steamDataExtractor, Profile profile, long steamID64) {
 
 		long time = System.currentTimeMillis();
 		// Get user game list
-		HashMap<SteamGame, Integer> ownedGames = (HashMap<SteamGame, Integer>) steamDataExtractor.getPlayerOwnedGames(steamProfile.getSteamId64());
+		HashMap<SteamGame, Integer> ownedGames = (HashMap<SteamGame, Integer>) steamDataExtractor.getPlayerOwnedGames(steamID64);
 
 		// Get list of all games + achievements in DB, convert to array of IDs
 		LazyList<Game> gamesDB = Game.findAll();
@@ -265,7 +298,7 @@ public class RequestHandler implements Runnable {
 		float[] completionRate = new float[ownedGames.size()];
 
 		// Call Steam API to get all achievements for all games player owns
-		ArrayList<GameAchievement> playerAchievements = (ArrayList<GameAchievement>) steamDataExtractor.getPlayerAchievementsThreaded(steamProfile.getSteamId64(), ownedGamesIdList, completionRate);
+		ArrayList<GameAchievement> playerAchievements = (ArrayList<GameAchievement>) steamDataExtractor.getPlayerAchievementsThreaded(steamID64, ownedGamesIdList, completionRate);
 
 		// Add profile -> achievement links to DB
 		ps = Base.startBatch("insert into profiles_achievements (profile_id, achievement_id, game_id, unlocked_timestamp) values (?,?,?,?)");
@@ -301,7 +334,6 @@ public class RequestHandler implements Runnable {
 		}
 
 		System.out.println("Time taken to add new user: " + (System.currentTimeMillis() - time));
-
 	}
 
 	private void processGetGames(HashMap<String, String> parameters) throws IOException {
