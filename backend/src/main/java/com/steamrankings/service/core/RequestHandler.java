@@ -139,9 +139,33 @@ public class RequestHandler implements Runnable {
 	}
 
 	private void processUserUpdate(HashMap<String, String> parameters) {
-	    Profile user = Profile.findById(Long.parseLong(parameters.get("id")) - SteamProfile.BASE_ID_64);
+	    long id = SteamDataExtractor.convertToSteamId64(parameters.get("id"));
+	    
+	    Profile user = Profile.findById(id - SteamProfile.BASE_ID_64);
 	    user.deleteCascadeShallow();
-	    processNewUser(new SteamDataExtractor(new SteamApi(Application.CONFIG.getProperty("apikey"))), user, Long.parseLong(parameters.get("id")));;
+	    
+	    SteamDataExtractor steamDataExtractor = new SteamDataExtractor(new SteamApi(Application.CONFIG.getProperty("apikey")));
+	    
+	    SteamProfile steamProfile = steamDataExtractor.getSteamProfile(id);
+	    
+        user = new Profile();
+        user.set("id", (int) (steamProfile.getSteamId64() - SteamProfile.BASE_ID_64));
+        user.set("community_id", steamProfile.getSteamCommunityId());
+        user.set("persona_name", steamProfile.getPersonaName());
+        user.set("real_name", steamProfile.getRealName());
+        user.set("location_country", steamProfile.getCountryCode());
+        user.set("location_province", steamProfile.getProvinceCode());
+        user.set("location_city", steamProfile.getCityCode());
+        user.set("avatar_full_url", steamProfile.getFullAvatarUrl());
+        user.set("avatar_medium_url", steamProfile.getMediumAvatarUrl());
+        user.set("avatar_icon_url", steamProfile.getIconAvatarUrl());
+    
+        user.set("last_logoff", new Timestamp(steamProfile.getLastOnline().getMillis()));
+        user.set("avg_completion_rate", 0);
+        
+        user.insert();
+
+	    processNewUser(steamDataExtractor, user, id);;
     }
 
     private void processGetProfiles(HashMap<String, String> parameters) throws IOException {
