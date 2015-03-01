@@ -328,9 +328,9 @@ public class RequestHandler implements Runnable {
 				sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "application/json ; charset=UTF-8" + CRLF, mapper.writeValueAsString(steamGames));
 				return;
 			}
-		} else if ( !parameters.containsKey(PARAMETER_GAME_ID)
-				|| !parameters.containsKey(PARAMETER_TO_RANK)
-				|| !parameters.containsKey(PARAMETER_FROM_RANK)) {
+		} else if ( parameters.containsKey(PARAMETER_GAME_ID)
+				&& parameters.containsKey(PARAMETER_TO_RANK)
+				&& parameters.containsKey(PARAMETER_FROM_RANK)) {
 
 			ArrayList<RankEntryByAchievements> leaderboard = processGetGamesLeaderboard(
 					parameters.get(PARAMETER_TO_RANK),
