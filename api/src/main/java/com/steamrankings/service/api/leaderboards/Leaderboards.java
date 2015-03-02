@@ -17,7 +17,7 @@ public class Leaderboards {
     }
 
     public static List<RankEntryByAchievements> getRanksByTotalPlayTime(int fromRank, int toRank, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
-        return getRankingBy("games", fromRank, toRank, client);
+        return getRankingBy("playtime", fromRank, toRank, client);
     }
 
     public static List<RankEntryByAchievements> getRanksByCompletionRate(int fromRank, int toRank, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {

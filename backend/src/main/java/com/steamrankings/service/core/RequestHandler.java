@@ -525,9 +525,11 @@ public class RequestHandler implements Runnable {
         } else if (parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("games")) {
             ArrayList<RankEntryByAchievements> leaderboard = processGetGamesLeaderboard(parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK), parameters.get(PARAMETER_GAME_ID));
             checkAndSendResponse(leaderboard);
-
         } else if (parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("completionrate")) {
             ArrayList<RankEntryByTotalPlayTime> leaderboard = processGetCompletionRateLeaderboard(parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK));
+            checkAndSendResponse(leaderboard);
+        } else if (parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("playtime")) {
+            ArrayList<RankEntryByTotalPlayTime> leaderboard = processGetTotalPlayTimeLeaderboard(parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK));
             checkAndSendResponse(leaderboard);
         } else if (parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("countries")) {
             ArrayList<RankEntryByAchievements> leaderboard = processGetCountryLeaderboard(parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK), parameters.get(PARAMETER_COUNTRY_ID));

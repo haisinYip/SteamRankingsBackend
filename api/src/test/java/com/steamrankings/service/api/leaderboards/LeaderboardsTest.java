@@ -57,7 +57,7 @@ public class LeaderboardsTest extends TestCase {
         ranks.add(RANK_ENTRY_THREE);
         
         EasyMock.resetToStrict(client);
-        EasyMock.expect(client.excecuteRequest("leaderboards?type=games&from=0&to=0")).andReturn(mapper.writeValueAsString(ranks));
+        EasyMock.expect(client.excecuteRequest("leaderboards?type=playtime&from=0&to=0")).andReturn(mapper.writeValueAsString(ranks));
         EasyMock.replay(client);
         
         List<RankEntryByAchievements> ranksToTest = Leaderboards.getRanksByTotalPlayTime(0, 0, client);
