@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.client.ClientProtocolException;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 
@@ -47,5 +49,13 @@ public class Profiles {
         ObjectMapper mapper = new ObjectMapper();
 
         return mapper.readValue(data, SteamProfile.class);
+    }
+    
+    public static String getTopCountryPlayer(String countryCode, SteamRankingsClient client) throws JsonParseException, JsonMappingException, IOException, APIException {
+    	return client.excecuteRequest("topplayer?country=" + countryCode);
+    }
+    
+    public static String getTopGamePlayer(String gameId, SteamRankingsClient client) throws JsonParseException, JsonMappingException, IOException, APIException {
+    	return client.excecuteRequest("topplayer?game=" + gameId);
     }
 }
