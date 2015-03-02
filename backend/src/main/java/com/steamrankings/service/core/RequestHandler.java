@@ -257,6 +257,11 @@ public class RequestHandler implements Runnable {
         // Get user game list
         HashMap<SteamGame, Integer> ownedGames = (HashMap<SteamGame, Integer>) steamDataExtractor.getPlayerOwnedGames(steamID64);
 
+        // If user has no games -> no games,achievements and links between them to add so we exit here
+        if (ownedGames == null) {
+        	return;
+        }
+        
         // Get list of all games + achievements in DB, convert to array of IDs
         LazyList<Game> gamesDB = Game.findAll();
 
@@ -272,6 +277,7 @@ public class RequestHandler implements Runnable {
                 notContain.add(game);
             }
         }
+
 
         // Define list of IDs from not games not in DB
         int[] idListNotContain = new int[notContain.size()];
