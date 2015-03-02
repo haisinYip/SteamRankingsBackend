@@ -382,8 +382,16 @@ public class RequestHandler implements Runnable {
         }
 
         long steamId = SteamDataExtractor.convertToSteamId64(parameters.get("id"));
-
-        if (parameters.containsKey(PARAMETERS_USER_ID)) {
+        if(parameters.containsKey(PARAMETERS_APP_ID)) {
+        	Game game = Game.findById(parameters.get("appId"));
+        	if(game == null) {
+        		sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type : " + "text/plain" + CRLF, "A game with an ID " + parameters.get("appId") + "does not exist");
+        	} else {
+        		ObjectMapper mapper = new ObjectMapper();
+        		SteamGame steamGame = new SteamGame(game.getInteger("id"), game.getString("icon_url"), game.getString("logo_url"), game.getString("name"));
+        		sendResponse(socket, "HTTP/1.1 200" + CRLF, "Content-type : " + "text/plain" + CRLF, mapper.writeValueAsString(steamGame));
+        	}
+        } else if (parameters.containsKey(PARAMETERS_USER_ID)) {
             List<ProfilesGames> list = ProfilesGames.where("profile_id = ?", (int) (steamId - SteamProfile.BASE_ID_64)).orderBy("total_play_time desc").limit(30);
             ArrayList<ProfilesGames> profilesGames = new ArrayList<ProfilesGames>(list);
             if (profilesGames != null) {
