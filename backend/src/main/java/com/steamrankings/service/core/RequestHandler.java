@@ -239,11 +239,14 @@ public class RequestHandler implements Runnable {
 
         // Go through all games owned by player, check for missing ones with DB
         ArrayList<SteamGame> notContain = new ArrayList<>(AVG_NUM_GAMES_NOT_IN_DB);
-        for (SteamGame game : ownedGames.keySet()) {
-            if (!idListDB.contains((long) game.getAppId())) {
-                notContain.add(game);
+        if (ownedGames.size() != 0) {
+            for (SteamGame game : ownedGames.keySet()) {
+                if (!idListDB.contains((long) game.getAppId())) {
+                    notContain.add(game);
+                }
             }
         }
+
 
         // Define list of IDs from not games not in DB
         int[] idListNotContain = new int[notContain.size()];
