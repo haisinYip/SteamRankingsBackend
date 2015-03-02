@@ -130,10 +130,38 @@ public class RequestHandler implements Runnable {
             sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: ; charset=UTF-8" + CRLF, properties.getProperty("git-sha-1"));
         } else if (restInterface.equals(REST_API_INTERFACE_UPDATE_PROFILE)) {
             processUserUpdate(parameters);
+        } else if(restInterface.equals("topplayer")) {
+        	processGetTopPlayer(parameters);
         }
     }
 
-    private void processUserUpdate(HashMap<String, String> parameters) {
+    private void processGetTopPlayer(HashMap<String, String> parameters) throws IOException {
+    	if (parameters == null || parameters.isEmpty()) {
+            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
+            return;
+        }
+    	
+    	if(parameters.containsKey("country")) {
+    		List<RankEntryByAchievements> rankEntries = processGetCountryLeaderboard("0", "0", parameters.get("country"));
+    		if(rankEntries == null || rankEntries.isEmpty()) {
+    			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json ; charset=UTF-8" + CRLF, "No players");
+    		} else {
+    			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json ; charset=UTF-8" + CRLF, rankEntries.get(0).getName());
+    		}
+    	} else if(parameters.containsKey("game")) {
+    		List<RankEntryByAchievements> rankEntries = processGetGamesLeaderboard("0", "0", parameters.get("game"));
+    		if(rankEntries == null || rankEntries.isEmpty()) {
+    			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json ; charset=UTF-8" + CRLF, "No players");
+    		} else {
+    			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json ; charset=UTF-8" + CRLF, rankEntries.get(0).getName());
+    		}
+    	} else {
+            sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
+            return;
+    	}
+	}
+
+	private void processUserUpdate(HashMap<String, String> parameters) {
         long id = SteamDataExtractor.convertToSteamId64(parameters.get("id"));
 
         Profile user = Profile.findById(id - SteamProfile.BASE_ID_64);
@@ -510,7 +538,7 @@ public class RequestHandler implements Runnable {
             ArrayList<RankEntryByTotalPlayTime> leaderboard = processGetCompletionRateLeaderboard(parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK));
             checkAndSendResponse(leaderboard);
         } else if (parameters.get(PARAMETER_LEADERBOARD_TYPE).equals("countries")) {
-            ArrayList<RankEntryByTotalPlayTime> leaderboard = processGetCountryLeaderboard(parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK), parameters.get(PARAMETER_COUNTRY_ID));
+            ArrayList<RankEntryByAchievements> leaderboard = processGetCountryLeaderboard(parameters.get(PARAMETER_TO_RANK), parameters.get(PARAMETER_FROM_RANK), parameters.get(PARAMETER_COUNTRY_ID));
             checkAndSendResponse(leaderboard);
         }
 
@@ -614,7 +642,7 @@ public class RequestHandler implements Runnable {
         return rankEntries;
     }
 
-    private ArrayList<RankEntryByTotalPlayTime> processGetCountryLeaderboard(String toRank, String fromRank, String countryCode) {
+    private ArrayList<RankEntryByAchievements> processGetCountryLeaderboard(String toRank, String fromRank, String countryCode) {
 
         int from = Integer.parseInt(fromRank);
         int to = Integer.parseInt(toRank);
@@ -623,8 +651,8 @@ public class RequestHandler implements Runnable {
         }
 
         ArrayList<Integer> indicesToDelete = new ArrayList<Integer>();
-        ArrayList<RankEntryByTotalPlayTime> rankEntries = processGetTotalPlayTimeLeaderboard(fromRank, toRank);
-        ArrayList<RankEntryByTotalPlayTime> updatedRankEntries = new ArrayList<RankEntryByTotalPlayTime>();
+        ArrayList<RankEntryByAchievements> rankEntries = processGetAchievementLeaderboard(fromRank, toRank);
+        ArrayList<RankEntryByAchievements> updatedRankEntries = new ArrayList<RankEntryByAchievements>();
         for (int i = 0; i < rankEntries.size(); i++) {
             if (rankEntries.get(i).getCountryCode() == null || !rankEntries.get(i).getCountryCode().equals(countryCode))
                 indicesToDelete.add(i);
