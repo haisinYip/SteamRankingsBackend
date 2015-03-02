@@ -189,7 +189,15 @@ public class RequestHandler implements Runnable {
         user.insert();
 
         processNewUser(steamDataExtractor, user, id);
-        ;
+        steamProfile = new SteamProfile(user.getInteger("id") + SteamProfile.BASE_ID_64, user.getString("community_id"), user.getString("persona_name"), user.getString("real_name"),
+        		user.getString("location_country"), user.getString("location_province"), user.getString("location_citys"), user.getString("avatar_full_url"),
+        		user.getString("avatar_medium_url"), user.getString("avatar_icon_url"), new DateTime(user.getTimestamp("last_logoff").getTime()));
+        try {
+			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json ; charset=UTF-8" + CRLF, steamProfile.toString());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     private void processGetProfiles(HashMap<String, String> parameters) throws IOException {
