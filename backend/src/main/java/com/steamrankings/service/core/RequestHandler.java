@@ -130,7 +130,7 @@ public class RequestHandler implements Runnable {
             sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: ; charset=UTF-8" + CRLF, properties.getProperty("git-sha-1"));
         } else if (restInterface.equals(REST_API_INTERFACE_UPDATE_PROFILE)) {
             processUserUpdate(parameters);
-        } else if(restInterface.equals("topplayer")) {
+        } else if(restInterface.equals("/topplayer")) {
         	processGetTopPlayer(parameters);
         }
     }
@@ -148,13 +148,24 @@ public class RequestHandler implements Runnable {
     		} else {
     			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json ; charset=UTF-8" + CRLF, rankEntries.get(0).getName());
     		}
+    		
+    		
     	} else if(parameters.containsKey("game")) {
-    		List<RankEntryByAchievements> rankEntries = processGetGamesLeaderboard("0", "0", parameters.get("game"));
-    		if(rankEntries == null || rankEntries.isEmpty()) {
+//    		List<RankEntryByAchievements> rankEntries = processGetGamesLeaderboard("0", "0", parameters.get("game"));
+//    		if(rankEntries == null || rankEntries.isEmpty()) {
+//    			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json ; charset=UTF-8" + CRLF, "No players");
+//    		} else {
+//    			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json ; charset=UTF-8" + CRLF, rankEntries.get(0).getName());
+//    		}
+    		// Hack by Michael
+    		LazyList<ProfilesGames> listOfGames = ProfilesGames.where("game_id = ?", parameters.get("game")).orderBy("completion_rate desc");
+    		if (listOfGames.size() == 0) {
     			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json ; charset=UTF-8" + CRLF, "No players");
-    		} else {
-    			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json ; charset=UTF-8" + CRLF, rankEntries.get(0).getName());
     		}
+    		else {
+    			sendResponseUTF(socket, "HTTP/1.1 200" + CRLF, "Content-type: " + "application/json ; charset=UTF-8" + CRLF, listOfGames.get(0).parent(Profile.class).getString("persona_name"));
+    		}
+    		
     	} else {
             sendResponse(socket, "HTTP/1.1 400" + CRLF, "Content-type: " + "text/plain" + CRLF, API_ERROR_BAD_ARGUMENTS_CODE);
             return;
