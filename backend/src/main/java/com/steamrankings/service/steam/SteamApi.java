@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -20,246 +21,239 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 public class SteamApi {
-	private String apiKey;
 
-	final public static String INTERFACE_STEAM_USER = "ISteamUser";
-	final public static String INTERFACE_STEAM_USER_STATS = "ISteamUserStats";
-	final public static String INTERFACE_PLAYER_SERVICE = "IPlayerService";
+    private String apiKey;
 
-	final public static String METHOD_GET_PLAYER_SUMMARIES = "GetPlayerSummaries";
-	final public static String METHOD_GET_OWNED_GAMES = "GetOwnedGames";
-	final public static String METHOD_PLAYER_ACHIEVEMENTS = "GetPlayerAchievements";
-	final public static String METHOD_GET_SCHEMA_FOR_GAME = "GetSchemaForGame";
+    final public static String INTERFACE_STEAM_USER = "ISteamUser";
+    final public static String INTERFACE_STEAM_USER_STATS = "ISteamUserStats";
+    final public static String INTERFACE_PLAYER_SERVICE = "IPlayerService";
 
-	final public static int VERSION_ONE = 1;
-	final public static int VERSION_TWO = 2;
+    final public static String METHOD_GET_PLAYER_SUMMARIES = "GetPlayerSummaries";
+    final public static String METHOD_GET_OWNED_GAMES = "GetOwnedGames";
+    final public static String METHOD_PLAYER_ACHIEVEMENTS = "GetPlayerAchievements";
+    final public static String METHOD_GET_SCHEMA_FOR_GAME = "GetSchemaForGame";
 
-	final public static String PARAMETER_STEAM_IDS = "steamids";
-	final public static String PARAMETER_STEAM_ID = "steamid";
-	final public static String PARAMETER_APP_ID = "appid";
-	final public static String PARAMETER_FORMAT = "format";
-	final public static String PARAMETER_LANGUAGE = "l";
+    final public static int VERSION_ONE = 1;
+    final public static int VERSION_TWO = 2;
 
-	final private static int MAX_NUMBER_OF_CONNECTIONS = 25;
+    final public static String PARAMETER_STEAM_IDS = "steamids";
+    final public static String PARAMETER_STEAM_ID = "steamid";
+    final public static String PARAMETER_APP_ID = "appid";
+    final public static String PARAMETER_FORMAT = "format";
+    final public static String PARAMETER_LANGUAGE = "l";
 
-	public SteamApi(String apiKey) {
-		this.apiKey = apiKey;
-	}
+    final private static int MAX_NUMBER_OF_CONNECTIONS = 25;
 
-	/**
-	 * @deprecated use {@link #getJSONThreaded()} instead.
-	 * Sends a single request for steam
-	 * 
-	 * @param apiInterface
-	 *            Interface to use. Possible values specified by INTERFACE_* in
-	 *            the SteamApi class.
-	 * @param method
-	 *            The method to call. Possible values specified by METHOD_* in
-	 *            the SteamApi class.
-	 * @param version
-	 *            The version to use; often directly associated with the method.
-	 *            Possible values specified by VERSION_* in the SteamApi class.
-	 * @param parameters
-	 *            Arguments to send to steam along with the values. Possible
-	 *            arguments vary by method, but may be one of PARAMETER_* in the
-	 *            SteamApi class.
-	 * @return A JSON string from Steam.
-	 */
-	@Deprecated
-	public String getJSON(String apiInterface, String method, int version,
-			Map<String, String> parameters) {
-		String url = String.format(
-				"https://api.steampowered.com/%s/%s/v%04d/?", apiInterface,
-				method, version);
-		parameters.put("key", apiKey);
+    public SteamApi(String apiKey) {
+        this.apiKey = apiKey;
+    }
 
-		boolean first = true;
-		for (Entry<String, String> parameter : parameters.entrySet()) {
-			if (first) {
-				first = false;
-			} else {
-				url += '&';
-			}
+    /**
+     * @deprecated use {@link #getJSONThreaded()} instead. Sends a single
+     * request for steam
+     *
+     * @param apiInterface Interface to use. Possible values specified by
+     * INTERFACE_* in the SteamApi class.
+     * @param method The method to call. Possible values specified by METHOD_*
+     * in the SteamApi class.
+     * @param version The version to use; often directly associated with the
+     * method. Possible values specified by VERSION_* in the SteamApi class.
+     * @param parameters Arguments to send to steam along with the values.
+     * Possible arguments vary by method, but may be one of PARAMETER_* in the
+     * SteamApi class.
+     * @return A JSON string from Steam.
+     */
+    @Deprecated
+    public String getJSON(String apiInterface, String method, int version,
+            Map<String, String> parameters) {
+        String url = String.format(
+                "https://api.steampowered.com/%s/%s/v%04d/?", apiInterface,
+                method, version);
+        parameters.put("key", apiKey);
 
-			url += String.format("%s=%s", parameter.getKey(),
-					parameter.getValue());
-		}
+        boolean first = true;
+        for (Entry<String, String> parameter : parameters.entrySet()) {
+            if (first) {
+                first = false;
+            } else {
+                url += '&';
+            }
 
-		String data = null;
+            url += String.format("%s=%s", parameter.getKey(),
+                    parameter.getValue());
+        }
 
-		try {
-			CloseableHttpClient httpclient = HttpClients.createDefault();
-			HttpGet httpget = new HttpGet(url);
-			CloseableHttpResponse response = httpclient.execute(httpget);
+        String data = null;
 
-			data = EntityUtils.toString(response.getEntity());
-		} catch (Exception e) {
-			return null;
-		}
+        try {
+            CloseableHttpClient httpclient = HttpClients.createDefault();
+            HttpGet httpget = new HttpGet(url);
+            CloseableHttpResponse response = httpclient.execute(httpget);
 
-		return data;
-	}
+            data = EntityUtils.toString(response.getEntity());
+        } catch (IOException | ParseException e) {
+            return null;
+        }
 
-	/**
-	 * Send multiple requests to Steam.
-	 * 
-	 * @param apiInterface
-	 *            Interface to use. Possible values specified by INTERFACE_* in
-	 *            the SteamApi class.
-	 * @param method
-	 *            The method to call. Possible values specified by METHOD_* in
-	 *            the SteamApi class.
-	 * @param version
-	 *            The version to use; often directly associated with the method.
-	 *            Possible values specified by VERSION_* in the SteamApi class.
-	 * @param parametersConstant
-	 *            Arguments to send to steam that don't change each request,
-	 *            along with the values. Possible arguments vary by method, but
-	 *            may be one of PARAMETER_* in the SteamApi class.
-	 * @param parameterList
-	 *            Arguments to send to steam that change every request, along
-	 *            with the values. Note that this is an ArrayList, one entry per
-	 *            request to send. Each request is a Map<String,String> of the
-	 *            same format as parametersConstant, following the
-	 *            argument-value format of that variable.
-	 * @return
-	 */
-	public String[] getJSONThreaded(String apiInterface, String method,
-			int version, Map<String, String> parametersConstant,
-			ArrayList<Map<String, String>> parameterList) {
+        return data;
+    }
 
-		// Define base URL
-		String url = String.format(
-				"https://api.steampowered.com/%s/%s/v%04d/?", apiInterface,
-				method, version);
-		parametersConstant.put("key", apiKey);
+    /**
+     * Send multiple requests to Steam.
+     *
+     * @param apiInterface Interface to use. Possible values specified by
+     * INTERFACE_* in the SteamApi class.
+     * @param method The method to call. Possible values specified by METHOD_*
+     * in the SteamApi class.
+     * @param version The version to use; often directly associated with the
+     * method. Possible values specified by VERSION_* in the SteamApi class.
+     * @param parametersConstant Arguments to send to steam that don't change
+     * each request, along with the values. Possible arguments vary by method,
+     * but may be one of PARAMETER_* in the SteamApi class.
+     * @param parameterList Arguments to send to steam that change every
+     * request, along with the values. Note that this is an ArrayList, one entry
+     * per request to send. Each request is a Map<String,String> of the same
+     * format as parametersConstant, following the argument-value format of that
+     * variable.
+     * @return
+     */
+    public String[] getJSONThreaded(String apiInterface, String method,
+            int version, Map<String, String> parametersConstant,
+            ArrayList<Map<String, String>> parameterList) {
+
+        // Define base URL
+        String url = String.format(
+                "https://api.steampowered.com/%s/%s/v%04d/?", apiInterface,
+                method, version);
+        parametersConstant.put("key", apiKey);
 
 		// Add additional parameters that will remain the same across all
-		// requests
-		boolean first = true;
-		for (Entry<String, String> parameter : parametersConstant.entrySet()) {
-			if (first) {
-				first = false;
-			} else {
-				url += '&';
-			}
+        // requests
+        boolean first = true;
+        for (Entry<String, String> parameter : parametersConstant.entrySet()) {
+            if (first) {
+                first = false;
+            } else {
+                url += '&';
+            }
 
-			url += String.format("%s=%s", parameter.getKey(),
-					parameter.getValue());
-		}
-		url += '&';
+            url += String.format("%s=%s", parameter.getKey(),
+                    parameter.getValue());
+        }
+        url += '&';
 
-		// create an array of URIs to perform GETs on
-		String[] urisToGet = new String[parameterList.size()];
+        // create an array of URIs to perform GETs on
+        String[] urisToGet = new String[parameterList.size()];
 
-		// Populate array
-		int k = 0;
-		for (Map<String, String> map : parameterList) {
-			for (Entry<String, String> parameter : map.entrySet()) {
-				urisToGet[k++] = url
-						+ String.format("%s=%s", parameter.getKey(),
-								parameter.getValue());
-			}
-		}
+        // Populate array
+        int k = 0;
+        for (Map<String, String> map : parameterList) {
+            for (Entry<String, String> parameter : map.entrySet()) {
+                urisToGet[k++] = url
+                        + String.format("%s=%s", parameter.getKey(),
+                                parameter.getValue());
+            }
+        }
 
-		// String to return is defined
-		String[] data = new String[urisToGet.length];
+        // String to return is defined
+        String[] data = new String[urisToGet.length];
 
 		// Create an HttpClient with the ThreadSafeClientConnManager.
-		// This connection manager must be used if more than one thread will
-		// be using the HttpClient.
-		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-		cm.setMaxTotal(MAX_NUMBER_OF_CONNECTIONS);
-		cm.setDefaultMaxPerRoute(MAX_NUMBER_OF_CONNECTIONS);
+        // This connection manager must be used if more than one thread will
+        // be using the HttpClient.
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(MAX_NUMBER_OF_CONNECTIONS);
+        cm.setDefaultMaxPerRoute(MAX_NUMBER_OF_CONNECTIONS);
 
-		CloseableHttpClient httpclient = HttpClients.custom()
-				.setConnectionManager(cm).build();
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .setConnectionManager(cm).build();
 
-		try {
+        try {
 
-			// create a thread for each URI
-			ExecutorService executorService = Executors
-					.newWorkStealingPool(MAX_NUMBER_OF_CONNECTIONS*2);
+            // create a thread for each URI
+            ExecutorService executorService = Executors
+                    .newWorkStealingPool(MAX_NUMBER_OF_CONNECTIONS * 2);
 
-			ArrayList<Future<String>> futureList = new ArrayList<Future<String>>(urisToGet.length);
-			
-			for (String uri : urisToGet) {
-				Callable<String> callable = new httpGetCallable(httpclient, new HttpGet(uri));
-				futureList.add(executorService.submit(callable));
-			}
+            ArrayList<Future<String>> futureList = new ArrayList<>(urisToGet.length);
 
-			int j = 0;
-			for (Future<String> future : futureList) {
-				data[j++] = future.get();
-			}
-			executorService.shutdown();
+            for (String uri : urisToGet) {
+                Callable<String> callable = new httpGetCallable(httpclient, new HttpGet(uri));
+                futureList.add(executorService.submit(callable));
+            }
 
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			try {
-				httpclient.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return data;
-	}
+            int j = 0;
+            for (Future<String> future : futureList) {
+                data[j++] = future.get();
+            }
+            executorService.shutdown();
 
-	public static String getXML(String communityId) {
-		String url = String.format("http://steamcommunity.com/id/%s/?xml=1",
-				communityId);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } finally {
+            try {
+                httpclient.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        return data;
+    }
 
-		String data = null;
+    public static String getXML(String communityId) {
+        String url = String.format("http://steamcommunity.com/id/%s/?xml=1",
+                communityId);
 
-		try {
+        String data = null;
 
-			CloseableHttpClient httpclient = HttpClients.createDefault();
-			HttpGet httpget = new HttpGet(url);
-			CloseableHttpResponse response = httpclient.execute(httpget);
-			data = EntityUtils.toString(response.getEntity());
-		} catch (Exception e) {
-			return null;
-		}
+        try {
 
-		return data;
-	}
+            CloseableHttpClient httpclient = HttpClients.createDefault();
+            HttpGet httpget = new HttpGet(url);
+            CloseableHttpResponse response = httpclient.execute(httpget);
+            data = EntityUtils.toString(response.getEntity());
+        } catch (Exception e) {
+            return null;
+        }
 
-	public static class httpGetCallable implements Callable<String> {
+        return data;
+    }
 
-		private final CloseableHttpClient httpClient;
-		private final HttpContext context;
-		private final HttpGet httpget;
+    public static class httpGetCallable implements Callable<String> {
 
-		public httpGetCallable(CloseableHttpClient httpClient, HttpGet httpget) {
-			this.httpClient = httpClient;
-			this.context = new BasicHttpContext();
-			this.httpget = httpget;
-		}
+        private final CloseableHttpClient httpClient;
+        private final HttpContext context;
+        private final HttpGet httpget;
 
-		public String call() {
-			String responseString = null;
-			try {
-				CloseableHttpResponse response = httpClient.execute(httpget,
-						context);
-				try {
+        public httpGetCallable(CloseableHttpClient httpClient, HttpGet httpget) {
+            this.httpClient = httpClient;
+            this.context = new BasicHttpContext();
+            this.httpget = httpget;
+        }
+
+        @Override
+        public String call() {
+            String responseString = null;
+            try {
+                CloseableHttpResponse response = httpClient.execute(httpget,
+                        context);
+                try {
 					// get the response, set the string as a class variable for
-					// later retrieval
-					HttpEntity entity = response.getEntity();
-					if (entity != null) {
-						responseString = EntityUtils.toString(entity);
+                    // later retrieval
+                    HttpEntity entity = response.getEntity();
+                    if (entity != null) {
+                        responseString = EntityUtils.toString(entity);
 
-					}
-				} finally {
-					response.close();
-				}
-			} catch (Exception e) {
-				System.out.println("HTTP Threaded Get - error: " + e);
-			}
-			return responseString;
-		}
-	}
+                    }
+                } finally {
+                    response.close();
+                }
+            } catch (IOException | ParseException e) {
+                System.out.println("HTTP Threaded Get - error: " + e);
+            }
+            return responseString;
+        }
+    }
 
 }
