@@ -50,7 +50,8 @@ SteamProfile steamProfile = steamDataExtractor.getSteamProfile(76561198013815387
         * Interface: ISteamUser
         * Method: GetPlayerSummaries
         * Version: 2
-    The API key has to be handled when SteamApi is initialized in the code that calls your new method, so you don't worry about that here.  Moving on, we add the interface and method to the SteamApi code under INTERFACE_STEAM_USER and METHOD_GET_PLAYER_SUMMARIES in this example.  Now that that's done, we can tell the SteamApi to go get our data, feeding it the interface and method constants along with our new HashMap:
+    
+	The API key has to be handled when SteamApi is initialized in the code that calls your new method, so you don't worry about that here.  Moving on, we add the interface and method to the SteamApi code under INTERFACE_STEAM_USER and METHOD_GET_PLAYER_SUMMARIES in this example.  Now that that's done, we can tell the SteamApi to go get our data, feeding it the interface and method constants along with our new HashMap:
     
     ```Java
     String jsonString = steamApi.getJSON(SteamApi.INTERFACE_STEAM_USER, SteamApi.METHOD_GET_PLAYER_SUMMARIES, SteamApi.VERSION_TWO, parameters);
