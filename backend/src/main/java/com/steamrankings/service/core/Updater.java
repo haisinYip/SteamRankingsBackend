@@ -64,7 +64,7 @@ public class Updater {
 			}
 			
 			// Ask steam for new info
-			SteamApi api = new SteamApi(Application.CONFIG.getProperty("apikey"));
+			SteamApi api = new SteamApi(Initialization.CONFIG.getProperty("apikey"));
 			SteamDataExtractor steam = new SteamDataExtractor(api);
 			ArrayList<SteamProfile> profileList = steam.getSteamProfileThreaded(idList);
 			

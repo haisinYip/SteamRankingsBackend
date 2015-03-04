@@ -380,12 +380,11 @@ public class SteamDataExtractor {
 
     // expects either communityid or the steamid64 itself
     public static long convertToSteamId64(String idToConvert) {
-        long steamid64 = SteamDataExtractor.INVALID_STEAMID_64;
         try {
             return Long.parseLong(idToConvert);
         } catch (NumberFormatException e1) {
             try {
-                steamid64 = Long.parseLong(getSteamId64FromXML(SteamApi.getXML(idToConvert)));
+                long steamid64 = Long.parseLong(getSteamId64FromXML(SteamApi.getXML(idToConvert)));
                 return steamid64;
             } catch (Exception e2) {
                 return SteamDataExtractor.INVALID_STEAMID_64;
