@@ -33,10 +33,10 @@ import org.joda.time.DateTime;
  *
  * @author Michael
  */
-public class AchievementsHandler extends AbstractHandler{
-    
+public class AchievementsHandler extends AbstractHandler {
+
     private final static Logger LOGGER = Logger.getLogger(AchievementsHandler.class.getName());
-    
+
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
@@ -60,13 +60,13 @@ public class AchievementsHandler extends AbstractHandler{
         if (param.containsKey(PARAMETERS_USER_ID) && param.containsKey(PARAMETERS_APP_ID)) {
             List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ? AND game_id = ?", (int) (steamId - SteamProfile.BASE_ID_64),
                     Integer.parseInt(param.get(PARAMETERS_APP_ID)[0])).limit(15);
-            
+
             ArrayList<ProfilesAchievements> profilesAchievements = new ArrayList<>(list);
-            
+
             if (profilesAchievements != null) {
-                
+
                 ArrayList<GameAchievement> gameAchievements = new ArrayList<>();
-                
+
                 for (ProfilesAchievements profilesAchievement : profilesAchievements) {
                     Achievement achievement = Achievement.findFirst("id = ? AND game_id = ?", profilesAchievement.getInteger("achievement_id"), profilesAchievement.getInteger("game_id"));
                     if (achievement != null) {
@@ -77,18 +77,16 @@ public class AchievementsHandler extends AbstractHandler{
                 ObjectMapper mapper = new ObjectMapper();
                 sendData(mapper.writeValueAsString(gameAchievements), response, baseRequest);
             }
-        } 
-        
-        else if (param.containsKey(PARAMETERS_USER_ID)) {
-            
+        } else if (param.containsKey(PARAMETERS_USER_ID)) {
+
             List<ProfilesAchievements> list = ProfilesAchievements.where("profile_id = ?", (int) (steamId - SteamProfile.BASE_ID_64)).limit(30);
             ArrayList<ProfilesAchievements> profilesAchievements = new ArrayList<>(list);
-            
+
             if (profilesAchievements != null) {
                 ArrayList<GameAchievement> gameAchievements = new ArrayList<>();
-                
+
                 for (ProfilesAchievements profilesAchievement : profilesAchievements) {
-                    
+
                     Achievement achievement = Achievement.findFirst("id = ? AND game_id = ?", profilesAchievement.getInteger("achievement_id"), profilesAchievement.getInteger("game_id"));
                     if (achievement != null) {
                         gameAchievements.add(new GameAchievement(achievement.getInteger("game_id"), achievement.getString("id"), achievement.getString("name"), achievement.getString("description"),
@@ -98,27 +96,25 @@ public class AchievementsHandler extends AbstractHandler{
                 ObjectMapper mapper = new ObjectMapper();
                 sendData(mapper.writeValueAsString(gameAchievements), response, baseRequest);
             }
-        } 
-        
-        else if (param.containsKey(PARAMETERS_APP_ID)) {
-            
+        } else if (param.containsKey(PARAMETERS_APP_ID)) {
+
             List<Achievement> list = ProfilesAchievements.where("game_id = ?", Integer.parseInt(param.get(PARAMETERS_APP_ID)[0]));
-            
+
             ArrayList<Achievement> achievements = new ArrayList<>(list);
             ArrayList<GameAchievement> gameAchievements = new ArrayList<>();
-            
+
             for (Achievement achievement : achievements) {
                 gameAchievements.add(new GameAchievement(achievement.getInteger("game_id"), achievement.getString("id"), achievement.getString("name"), achievement.getString("description"),
                         achievement.getString("unlocked_icon_url"), achievement.getString("locked_icon_url")));
             }
-            
+
             ObjectMapper mapper = new ObjectMapper();
             sendData(mapper.writeValueAsString(gameAchievements), response, baseRequest);
 
         } else {
             sendError(ErrorCodes.API_ERROR_BAD_ARGUMENTS, response, baseRequest);
         }
-        
+
         Database.closeDBConnection();
     }
 }

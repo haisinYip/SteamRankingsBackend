@@ -27,7 +27,6 @@ public class VersionHandler extends AbstractHandler {
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
-        
         Properties properties = new Properties();
         String version = null;
         try {
@@ -44,7 +43,7 @@ public class VersionHandler extends AbstractHandler {
             response.setContentType("text/plain");
             response.setCharacterEncoding("UTF-8");
             PrintWriter out = response.getWriter();
-            
+
             if (version.equals("${buildNumber}")) {
                 out.print("DEV");
             } else {

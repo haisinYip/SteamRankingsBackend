@@ -17,6 +17,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 
 /**
  * Responds with the key/value map sent for debugging.
+ *
  * @author Michael
  */
 public class EchoHandler extends AbstractHandler {

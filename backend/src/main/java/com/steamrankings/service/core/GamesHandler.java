@@ -5,7 +5,6 @@
  */
 package com.steamrankings.service.core;
 
-import com.steamrankings.service.api.ErrorCodes;
 import com.steamrankings.service.api.games.SteamGame;
 import com.steamrankings.service.api.profiles.SteamProfile;
 import static com.steamrankings.service.core.ProfileHandler.PARAMETERS_USER_ID;
@@ -52,28 +51,24 @@ public class GamesHandler extends AbstractHandler {
 
         if (param.containsKey(PARAMETERS_APP_ID)) {
             Game game = Game.findById(param.get("appId")[0]);
-            
+
             if (game == null) {
                 sendError("A game with an ID " + param.get("appId")[0] + " does not exist", response, baseRequest);
 
-            } 
-            
-            else {
+            } else {
                 ObjectMapper mapper = new ObjectMapper();
                 SteamGame steamGame = new SteamGame(game.getInteger("id"), game.getString("icon_url"), game.getString("logo_url"), game.getString("name"));
                 sendData(mapper.writeValueAsString(steamGame), response, baseRequest);
             }
-        }
-        
-        else if (param.containsKey(PARAMETERS_USER_ID)) {
-            
+        } else if (param.containsKey(PARAMETERS_USER_ID)) {
+
             List<ProfilesGames> list = ProfilesGames.where("profile_id = ?", (int) (steamId - SteamProfile.BASE_ID_64)).orderBy("total_play_time desc").limit(30);
-            
+
             ArrayList<ProfilesGames> profilesGames = new ArrayList<>(list);
             if (profilesGames != null) {
-                
+
                 ArrayList<SteamGame> steamGames = new ArrayList<>();
-                
+
                 for (ProfilesGames profilesGame : profilesGames) {
                     Game game = Game.findById(profilesGame.get("game_id"));
                     if (game != null) {
@@ -83,20 +78,18 @@ public class GamesHandler extends AbstractHandler {
                 ObjectMapper mapper = new ObjectMapper();
                 sendData(mapper.writeValueAsString(steamGames), response, baseRequest);
             }
-        } 
-        
-        else {
-            
+        } else {
+
             List<Game> list = Game.findAll();
             ArrayList<Game> games = new ArrayList<>(list);
-            
+
             if (games != null) {
                 ArrayList<SteamGame> steamGames = new ArrayList<>();
-                
+
                 for (Game game : games) {
                     steamGames.add(new SteamGame(game.getInteger("id"), game.getString("icon_url"), game.getString("logo_url"), game.getString("name")));
                 }
-                
+
                 ObjectMapper mapper = new ObjectMapper();
                 sendData(mapper.writeValueAsString(steamGames), response, baseRequest);
             }

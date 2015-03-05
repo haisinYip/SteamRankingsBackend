@@ -162,7 +162,7 @@ public class ProfileHandler extends AbstractHandler {
 
         // Open DB connection
         Database.openDBConnection();
-        
+
         Map<String, String[]> param = request.getParameterMap();
 
         // Check to see if parameters are correct
@@ -212,7 +212,7 @@ public class ProfileHandler extends AbstractHandler {
                 profile.set("avatar_icon_url", steamProfile.getIconAvatarUrl());
 
                 profile.set("last_logoff", new Timestamp(steamProfile.getLastOnline().getMillis()));
-                profile.set("avg_completion_rate",0);
+                profile.set("avg_completion_rate", 0);
                 profile.insert();
 
                 LOGGER.log(Level.INFO, "New Profile Added: {0}", profile.toString());
@@ -223,16 +223,17 @@ public class ProfileHandler extends AbstractHandler {
         steamProfile = new SteamProfile(profile.getInteger("id") + SteamProfile.BASE_ID_64, profile.getString("community_id"), profile.getString("persona_name"), profile.getString("real_name"),
                 profile.getString("location_country"), profile.getString("location_province"), profile.getString("location_citys"), profile.getString("avatar_full_url"),
                 profile.getString("avatar_medium_url"), profile.getString("avatar_icon_url"), new DateTime(profile.getTimestamp("last_logoff").getTime()));
-        
+
         sendData(steamProfile.toString(), response, baseRequest);
-        
+
         Database.closeDBConnection();
     }
-    
+
     /**
      * Calculate the mean of a float array.
+     *
      * @param p Float array
-     * @return  Mean
+     * @return Mean
      */
     private static float mean(float[] p) {
 
