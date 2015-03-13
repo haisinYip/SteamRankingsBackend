@@ -32,6 +32,7 @@ public class SteamApi {
     final public static String METHOD_GET_OWNED_GAMES = "GetOwnedGames";
     final public static String METHOD_PLAYER_ACHIEVEMENTS = "GetPlayerAchievements";
     final public static String METHOD_GET_SCHEMA_FOR_GAME = "GetSchemaForGame";
+    final public static String METHOD_GET_GLOBAL_ACHIEVEMENTS_PERCENT = "GetGlobalAchievementPercentagesForApp";
 
     final public static int VERSION_ONE = 1;
     final public static int VERSION_TWO = 2;
@@ -39,6 +40,7 @@ public class SteamApi {
     final public static String PARAMETER_STEAM_IDS = "steamids";
     final public static String PARAMETER_STEAM_ID = "steamid";
     final public static String PARAMETER_APP_ID = "appid";
+    final public static String PARAMETER_GAME_ID = "gameid";
     final public static String PARAMETER_FORMAT = "format";
     final public static String PARAMETER_LANGUAGE = "l";
 
