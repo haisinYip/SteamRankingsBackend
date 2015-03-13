@@ -21,10 +21,14 @@ import org.xml.sax.InputSource;
 
 import com.steamrankings.service.api.achievements.GameAchievement;
 import com.steamrankings.service.api.games.SteamGame;
+import com.steamrankings.service.api.news.SteamNews;
 import com.steamrankings.service.api.profiles.SteamProfile;
+
 import java.io.IOException;
 import java.util.logging.Level;
+
 import javax.xml.parsers.ParserConfigurationException;
+
 import org.w3c.dom.DOMException;
 import org.xml.sax.SAXException;
 
