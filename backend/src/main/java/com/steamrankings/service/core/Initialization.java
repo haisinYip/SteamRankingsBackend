@@ -3,6 +3,7 @@ package com.steamrankings.service.core;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,8 +36,15 @@ public class Initialization {
             CONFIG.load(inputStream);
         }
 
+        String portAsString = System.getenv("BACKEND_PORT");
+        int portAsInt = 6789;
+        if (portAsString != null) {
+            System.out.println(portAsString);
+            portAsInt = Integer.decode(portAsString);
+        }
+        
         // Create HTTP server
-        Server server = new Server(6789);
+        Server server = new Server(portAsInt);
 
         // Initialize updater
         Updater update = new Updater();
