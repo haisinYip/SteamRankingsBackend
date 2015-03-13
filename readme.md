@@ -14,4 +14,4 @@ You can also run/debug the backend from Eclipse, but it has a tendency to do wei
 
 The `master` branch is build by Jenkins, and should be stable.
 
-[![Build Status](http://mikemontreal.ignorelist.com:58722/buildStatus/icon?job=SteamRankingsService)](http://mikemontreal.ignorelist.com:58722/job/SteamRankingsService/)
+[![Build Status](http://mikemontreal.ignorelist.com:58722/buildStatus/icon?job=SteamRankingsWebsiteDEV)](http://mikemontreal.ignorelist.com:58722/job/SteamRankingsWebsiteDEV/)
