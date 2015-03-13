@@ -28,6 +28,7 @@ public class Initialization {
     private static final String REST_API_INTERFACE_UPDATE_PROFILE = "/update";
     private static final String REST_API_INTERFACE_TOP_PLAYER = "/topplayer";
     private static final String REST_API_INTERFACE_ECHO = "/echo";
+    private static final String REST_API_INTERFACE_NEWS = "/news";
 
     public static void main(String[] args) throws IOException {
 
@@ -76,9 +77,12 @@ public class Initialization {
 
         ContextHandler context9 = new ContextHandler(REST_API_INTERFACE_UPDATE_PROFILE);
         context9.setHandler(new UpdateHandler());
+        
+        ContextHandler context10 = new ContextHandler(REST_API_INTERFACE_NEWS);
+        context10.setHandler(new UpdateHandler());
 
         ContextHandlerCollection contexts = new ContextHandlerCollection();
-        contexts.setHandlers(new Handler[]{context1, context2, context3, context4, context5, context6, context7, context8, context9});
+        contexts.setHandlers(new Handler[]{context1, context2, context3, context4, context5, context6, context7, context8, context9, context10});
 
         server.setHandler(contexts);
 
