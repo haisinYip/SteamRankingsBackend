@@ -27,11 +27,13 @@ public class SteamApi {
     final public static String INTERFACE_STEAM_USER = "ISteamUser";
     final public static String INTERFACE_STEAM_USER_STATS = "ISteamUserStats";
     final public static String INTERFACE_PLAYER_SERVICE = "IPlayerService";
+    final public static String INTERFACE_STEAM_NEWS = "ISteamNews";
 
     final public static String METHOD_GET_PLAYER_SUMMARIES = "GetPlayerSummaries";
     final public static String METHOD_GET_OWNED_GAMES = "GetOwnedGames";
     final public static String METHOD_PLAYER_ACHIEVEMENTS = "GetPlayerAchievements";
     final public static String METHOD_GET_SCHEMA_FOR_GAME = "GetSchemaForGame";
+    final public static String METHOD_GET_NEWS_FOR_GAME = "GetNewsForApp";
 
     final public static int VERSION_ONE = 1;
     final public static int VERSION_TWO = 2;
@@ -41,6 +43,8 @@ public class SteamApi {
     final public static String PARAMETER_APP_ID = "appid";
     final public static String PARAMETER_FORMAT = "format";
     final public static String PARAMETER_LANGUAGE = "l";
+    final public static String PARAMETER_COUNT = "count";
+	final public static String PARAMETER_MAXLENGTH = "maxlength";
 
     final private static int MAX_NUMBER_OF_CONNECTIONS = 25;
 
