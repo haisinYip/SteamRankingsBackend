@@ -52,6 +52,13 @@ public class SteamDataExtractor {
     final static private String STEAM_MEDIA_URL = "http://media.steampowered.com/steamcommunity/public/images/apps/";
     final static private int AVG_NUM_ACHEIVEMENTS_PER_GAME = 10;
 
+    final public static String METHOD_GET_NEWS_FOR_GAME = "GetNewsForApp";
+    final public static int VERSION_ONE = 1;
+    final public static int VERSION_TWO = 2;
+    final public static String PARAMETER_COUNT = "count";
+    final public static String PARAMETER_MAXLENGTH = "maxlength";
+
+
     private static final Logger logger = Logger.getLogger(SteamDataExtractor.class.getName());
 
     private SteamApi steamApi;
@@ -378,7 +385,53 @@ public class SteamDataExtractor {
         return achievements;
 
     }
-    
+
+    public HashMap<Integer, HashMap<String, Double>> getGlobalAchievementPercent(int[] appId) {
+        // Create map for arguments that don't change every request
+        HashMap<String, String> parametersConstant = new HashMap<>(1);
+        parametersConstant.put(SteamApi.PARAMETER_FORMAT, "json");
+
+        // Create and fill list for arguments that do change each request (i.e.
+        // appId)
+        ArrayList<Map<String, String>> parameterList = new ArrayList<>(appId.length);
+
+        for (int i = 0; i < appId.length; i++) {
+            HashMap<String, String> parametersVarying = new HashMap<>(1);
+            parametersVarying.put(SteamApi.PARAMETER_GAME_ID, Integer.toString(appId[i]));
+            parameterList.add(parametersVarying);
+        }
+
+        // Go get data from steam.
+        String[] jsonString = steamApi.getJSONThreaded(SteamApi.INTERFACE_STEAM_USER_STATS, SteamApi.METHOD_GET_GLOBAL_ACHIEVEMENTS_PERCENT, SteamApi.VERSION_TWO, parametersConstant, parameterList);
+
+        // Parse everything into a nice array list
+        JSONArray json;
+        // Note we try and preallocate memory here
+        HashMap<Integer, HashMap<String, Double>> gameList = new HashMap<>(jsonString.length);
+
+        // Iterate over all entries (games)
+        for (int j = 0; j < jsonString.length; j++) {
+            try {
+                // Get the array of achievement percentages for the game
+                json = new JSONObject(jsonString[j]).getJSONObject("achievementpercentages").getJSONArray("achievements");
+
+                HashMap<String, Double> achievements = new HashMap<>(json.length());
+                // Iterate through all achievements, add to map
+                for (int i = 0; i < json.length(); i++) {
+                    JSONObject jsonObject = json.getJSONObject(i);
+                    achievements.put(jsonObject.getString("name"), jsonObject.getDouble("percent"));
+                }
+                // Add achievement map for game to list of games
+                gameList.put(appId[j], achievements);
+
+            } catch (JSONException e) {
+                logger.log(Level.WARNING, "Error parsing JSON, likely no achievement data for game ID {0}", appId[j]);
+            }
+        }
+
+        return gameList;
+    }
+
     /**
 	 * Gets all news for a specified game.
 	 * 
@@ -423,8 +476,7 @@ public class SteamDataExtractor {
 		return gameNews;
 	}
 
-
-    // expects either communityid or the steamid64 itself
+// expects either communityid or the steamid64 itself
     public static long convertToSteamId64(String idToConvert) {
         try {
             return Long.parseLong(idToConvert);

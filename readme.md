@@ -12,6 +12,8 @@ To run the backend (from the `backend` folder):
 
 You can also run/debug the backend from Eclipse, but it has a tendency to do weird things so I can't write anything about it.  It should work fine, though, and did last time I tested it. You may want to run `mvn eclipse:eclipse` if Eclipse gets confused as to the folder structure.
 
-The `master` branch is build by Jenkins, and should be stable.
+The `master` branch is built by Jenkins, and should be stable.
 
-[![Build Status](http://mikemontreal.ignorelist.com:58722/buildStatus/icon?job=SteamRankingsService)](http://mikemontreal.ignorelist.com:58722/job/SteamRankingsService/)
+Below is the build status for the dev branch.
+
+[![Build Status](http://mikemontreal.ignorelist.com:58722/buildStatus/icon?job=SteamRankingsServiceDEV)](http://mikemontreal.ignorelist.com:58722/job/SteamRankingsServiceDEV/)
