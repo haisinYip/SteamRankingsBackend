@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.joda.time.DateTime;
 
 import com.steamrankings.service.api.ErrorCodes;
 import com.steamrankings.service.api.news.SteamNews;
@@ -44,7 +45,8 @@ public class NewsHandler extends AbstractHandler {
 	 * because the appId sent to getGameNews will not match(unless you get really lucky). To test do:
 	 * List<SteamNews> sn = steamDataExtractor.getGameNews("appId", NUM_NEWS_ENTRIES, MAX_LENGTH_NEWS_ENTRY);
 	 * and supply your own appId thus bypassing the random game generator. This will cause the appId to match and 
-	 * from the testing I've done so far it seems to work fine
+	 * from the testing I've done so far it seems to work fine. Make sure the appId in the steamdataextractor
+	 * and the one you supply in your web browser are the same!
 	 */
 
 	public void handle(String target, Request baseRequest, HttpServletRequest request, 
