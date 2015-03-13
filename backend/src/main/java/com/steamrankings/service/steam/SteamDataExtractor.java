@@ -21,10 +21,14 @@ import org.xml.sax.InputSource;
 
 import com.steamrankings.service.api.achievements.GameAchievement;
 import com.steamrankings.service.api.games.SteamGame;
+import com.steamrankings.service.api.news.SteamNews;
 import com.steamrankings.service.api.profiles.SteamProfile;
+
 import java.io.IOException;
 import java.util.logging.Level;
+
 import javax.xml.parsers.ParserConfigurationException;
+
 import org.w3c.dom.DOMException;
 import org.xml.sax.SAXException;
 
@@ -47,6 +51,11 @@ public class SteamDataExtractor {
     public static final String JSON_PLAYER_SUMMARIES_STEAM_ID_KEY = "steamid";
     final static private String STEAM_MEDIA_URL = "http://media.steampowered.com/steamcommunity/public/images/apps/";
     final static private int AVG_NUM_ACHEIVEMENTS_PER_GAME = 10;
+    final public static String METHOD_GET_NEWS_FOR_GAME = "GetNewsForApp";
+    final public static int VERSION_ONE = 1;
+    final public static int VERSION_TWO = 2;
+    final public static String PARAMETER_COUNT = "count";
+    final public static String PARAMETER_MAXLENGTH = "maxlength";
 
     private static final Logger logger = Logger.getLogger(SteamDataExtractor.class.getName());
 
@@ -374,8 +383,8 @@ public class SteamDataExtractor {
         return achievements;
 
     }
-    
-    public HashMap<Integer, HashMap<String,Double>> getGlobalAchievementPercent(int[] appId) {
+
+    public HashMap<Integer, HashMap<String, Double>> getGlobalAchievementPercent(int[] appId) {
         // Create map for arguments that don't change every request
         HashMap<String, String> parametersConstant = new HashMap<>(1);
         parametersConstant.put(SteamApi.PARAMETER_FORMAT, "json");
@@ -396,15 +405,15 @@ public class SteamDataExtractor {
         // Parse everything into a nice array list
         JSONArray json;
         // Note we try and preallocate memory here
-        HashMap<Integer, HashMap<String,Double>> gameList = new HashMap<>(jsonString.length);
-        
+        HashMap<Integer, HashMap<String, Double>> gameList = new HashMap<>(jsonString.length);
+
         // Iterate over all entries (games)
         for (int j = 0; j < jsonString.length; j++) {
             try {
                 // Get the array of achievement percentages for the game
                 json = new JSONObject(jsonString[j]).getJSONObject("achievementpercentages").getJSONArray("achievements");
-                
-                HashMap<String,Double> achievements = new HashMap<>(json.length());
+
+                HashMap<String, Double> achievements = new HashMap<>(json.length());
                 // Iterate through all achievements, add to map
                 for (int i = 0; i < json.length(); i++) {
                     JSONObject jsonObject = json.getJSONObject(i);
@@ -421,7 +430,48 @@ public class SteamDataExtractor {
         return gameList;
     }
 
-    // expects either communityid or the steamid64 itself
+    /**
+     * Gets all news for a specified game.
+     *
+     * @param appId Application ID. In this case, it specifies a game type id.
+     * @param count Number of news for specified game.
+     * @param maxlength Max char length of HTML content.
+     *
+     * @return All news for specified game
+     */
+    public List<SteamNews> getGameNews(int appId, int count, int maxlength) {
+
+        // Create map for arguments that don't change every request
+        HashMap<String, String> parametersConstant = new HashMap<String, String>(1);
+        parametersConstant.put(SteamApi.PARAMETER_FORMAT, "json");
+        parametersConstant.put(SteamApi.PARAMETER_APP_ID, Integer.toString(appId));
+        parametersConstant.put(SteamApi.PARAMETER_COUNT, Integer.toString(count));
+        parametersConstant.put(SteamApi.PARAMETER_MAXLENGTH, Integer.toString(maxlength));
+
+        // Get data from steam
+        String jsonString = steamApi.getJSON(SteamApi.INTERFACE_STEAM_NEWS, SteamApi.METHOD_GET_NEWS_FOR_GAME, SteamApi.VERSION_TWO, parametersConstant);
+
+        JSONObject json = new JSONObject(jsonString).getJSONObject("appnews");
+        JSONArray jsonNews;
+
+        // Note we try and preallocate memory here to avoid having to reallocate
+        // during .add
+        ArrayList<SteamNews> gameNews = new ArrayList<SteamNews>(count);
+
+        try {
+            jsonNews = json.getJSONArray("newsitems");
+            // Iterate through all news
+            for (int i = 0; i < jsonNews.length(); i++) {
+                JSONObject jsonObject = jsonNews.getJSONObject(i);
+                gameNews.add(new SteamNews(appId, jsonObject.getString("title"), jsonObject.getString("url"), jsonObject.getString("date")));
+            }
+        } catch (JSONException e) {
+            logger.warning("Error parsing JSON Steam News of game " + appId);
+        }
+        return gameNews;
+    }
+
+// expects either communityid or the steamid64 itself
     public static long convertToSteamId64(String idToConvert) {
         try {
             return Long.parseLong(idToConvert);
