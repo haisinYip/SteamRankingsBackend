@@ -21,10 +21,14 @@ import org.xml.sax.InputSource;
 
 import com.steamrankings.service.api.achievements.GameAchievement;
 import com.steamrankings.service.api.games.SteamGame;
+import com.steamrankings.service.api.news.SteamNews;
 import com.steamrankings.service.api.profiles.SteamProfile;
+
 import java.io.IOException;
 import java.util.logging.Level;
+
 import javax.xml.parsers.ParserConfigurationException;
+
 import org.w3c.dom.DOMException;
 import org.xml.sax.SAXException;
 
@@ -47,11 +51,6 @@ public class SteamDataExtractor {
     public static final String JSON_PLAYER_SUMMARIES_STEAM_ID_KEY = "steamid";
     final static private String STEAM_MEDIA_URL = "http://media.steampowered.com/steamcommunity/public/images/apps/";
     final static private int AVG_NUM_ACHEIVEMENTS_PER_GAME = 10;
-    final public static String METHOD_GET_NEWS_FOR_GAME = "GetNewsForApp";
-    final public static int VERSION_ONE = 1;
-	final public static int VERSION_TWO = 2;
-	final public static String PARAMETER_COUNT = "count";
-	final public static String PARAMETER_MAXLENGTH = "maxlength";
 
     private static final Logger logger = Logger.getLogger(SteamDataExtractor.class.getName());
 
@@ -416,7 +415,7 @@ public class SteamDataExtractor {
 			// Iterate through all news
 			for (int i = 0; i < jsonNews.length(); i++) {
 				JSONObject jsonObject = jsonNews.getJSONObject(i);
-				gameNews.add( new SteamNews(appId, jsonObject.getString("title"), jsonObject.getString("url"), jsonObject.getString("date")) );
+				gameNews.add( new SteamNews(appId, jsonObject.getString("title"), jsonObject.getString("url"), new DateTime(jsonObject.getInt("date"))));
 			}
 		} catch (JSONException e) {
 			logger.warning("Error parsing JSON Steam News of game " + appId);

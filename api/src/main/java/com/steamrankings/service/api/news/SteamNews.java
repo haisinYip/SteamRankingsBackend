@@ -4,6 +4,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
+import org.joda.time.DateTime;
 
 public class SteamNews {
 
@@ -20,12 +21,12 @@ public class SteamNews {
 	private String feedLabel;
 
 	@JsonProperty("date")
-	private String date;
+	private DateTime date;
 	
 	@JsonProperty("contents")
 	private String contents;
 
-	public SteamNews(){
+	public SteamNews() {
 
 	}
 
@@ -35,7 +36,7 @@ public class SteamNews {
 		this.url = url;
 	}
 	
-	public SteamNews(int appid, String title, String url, String contents, String date) {
+	public SteamNews(int appid, String title, String url, String contents, DateTime date) {
 		this.appid = appid;
 		this.title = title;
 		this.url = url;
@@ -43,7 +44,7 @@ public class SteamNews {
 		this.date = date;
 	}
 	
-	public SteamNews(int appid, String title, String url, String date) {
+	public SteamNews(int appid, String title, String url, DateTime date) {
 		this.appid = appid;
 		this.title = title;
 		this.url = url;
@@ -71,7 +72,7 @@ public class SteamNews {
 	}
 
 	@JsonIgnore
-	public String getDate() {
+	public DateTime getDate() {
 		return date;
 	}
 	
