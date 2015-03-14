@@ -79,7 +79,7 @@ public class Initialization {
         context9.setHandler(new UpdateHandler(profile));
         
         ContextHandler context10 = new ContextHandler(REST_API_INTERFACE_NEWS);
-        context10.setHandler(new UpdateHandler());
+        context10.setHandler(new NewsHandler());
 
         ContextHandlerCollection contexts = new ContextHandlerCollection();
         contexts.setHandlers(new Handler[]{context1, context2, context3, context4, context5, context6, context7, context8, context9, context10});
