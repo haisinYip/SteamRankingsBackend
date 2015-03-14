@@ -8,7 +8,6 @@ package com.steamrankings.service.core;
 import com.steamrankings.service.api.ErrorCodes;
 import com.steamrankings.service.api.profiles.SteamProfile;
 import static com.steamrankings.service.core.ProfileHandler.PARAMETERS_USER_ID;
-import static com.steamrankings.service.core.ProfileHandler.processNewUser;
 import static com.steamrankings.service.core.ResponseHandler.sendData;
 import static com.steamrankings.service.core.ResponseHandler.sendError;
 import com.steamrankings.service.database.Database;
@@ -34,6 +33,12 @@ public class UpdateHandler extends AbstractHandler {
 
     private final static Logger LOGGER = Logger.getLogger(LeaderboardHandler.class.getName());
 
+    private ProfileHandler profile;
+    
+    public UpdateHandler(ProfileHandler profile) {
+        this.profile = profile;
+    }
+    
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         // Open DB connection
