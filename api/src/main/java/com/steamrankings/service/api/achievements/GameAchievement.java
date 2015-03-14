@@ -27,7 +27,10 @@ public class GameAchievement {
 
     @JsonProperty("unlocked_timestamp")
     private DateTime unlockedTimestamp;
-
+    
+    @JsonProperty("percentage_achieved")
+    private Double percentageAchieved;
+            
     public GameAchievement() {
     }
 
@@ -61,6 +64,17 @@ public class GameAchievement {
         this.lockedIconUrl = lockedIconUrl;
         this.unlockedTimestamp = null;
     }
+    
+    public GameAchievement(int appId, String achievementId, String name, String description, String unlockedIconUrl, String lockedIconUrl, Double percentageAchieved) {
+        this.appId = appId;
+        this.achievementId = achievementId;
+        this.name = name;
+        this.description = description;
+        this.unlockedIconUrl = unlockedIconUrl;
+        this.lockedIconUrl = lockedIconUrl;
+        this.unlockedTimestamp = null;
+        this.percentageAchieved = percentageAchieved;
+    }
 
     @JsonIgnore
     public int getAppId() {
@@ -75,6 +89,11 @@ public class GameAchievement {
     @JsonIgnore
     public String getUnlockedIconUrl() {
         return this.unlockedIconUrl;
+    }
+    
+    @JsonIgnore
+    public Double getPercentageAchieved() {
+        return this.percentageAchieved;
     }
 
     @JsonIgnore

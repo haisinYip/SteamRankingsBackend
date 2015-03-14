@@ -46,9 +46,9 @@ public class ProfileHandler extends AbstractHandler {
     public static final String PARAMETERS_USER_ID = "id";
 
     private static final int AVG_NUM_GAMES_NOT_IN_DB = 50;
-    
+
     private final Updater updater;
-    
+
     public ProfileHandler(Updater updater) {
         this.updater = updater;
     }
@@ -109,9 +109,6 @@ public class ProfileHandler extends AbstractHandler {
         }
 
         Base.executeBatch(ps);
-        
-        // Tell updater we have added the achievements; start getting the percentage info
-        updater.startAchievementPercentageUpdate(gameAchievements);
 
         // Add links from profile to achievements
         // First create array of IDs
@@ -160,6 +157,9 @@ public class ProfileHandler extends AbstractHandler {
         }
 
         System.out.println("Time taken to add new user: " + (System.currentTimeMillis() - time));
+
+        // Tell updater we have added the achievements; start getting the percentage info
+        updater.startAchievementPercentageUpdate(gameAchievements);
     }
 
     @Override

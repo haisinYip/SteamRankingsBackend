@@ -149,6 +149,7 @@ public class Updater {
 
         try {
             Base.executeBatch(ps);
+            logger.info("Successfully added percentages for all new achievements");
         } catch (Exception ex) {
             logger.log(Level.SEVERE, null, ex);
         }
@@ -157,6 +158,7 @@ public class Updater {
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
+        
     }
 
     private static void updateAllAchievementPercentage() {
