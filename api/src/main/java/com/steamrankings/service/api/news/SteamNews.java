@@ -21,7 +21,7 @@ public class SteamNews {
 	private String feedLabel;
 
 	@JsonProperty("date")
-	private DateTime date;
+	private String date;
 	
 	@JsonProperty("contents")
 	private String contents;
@@ -36,7 +36,7 @@ public class SteamNews {
 		this.url = url;
 	}
 	
-	public SteamNews(int appid, String title, String url, String contents, DateTime date) {
+	public SteamNews(int appid, String title, String url, String contents, String date) {
 		this.appid = appid;
 		this.title = title;
 		this.url = url;
@@ -44,7 +44,7 @@ public class SteamNews {
 		this.date = date;
 	}
 	
-	public SteamNews(int appid, String title, String url, DateTime date) {
+	public SteamNews(int appid, String title, String url, String date) {
 		this.appid = appid;
 		this.title = title;
 		this.url = url;
@@ -72,7 +72,7 @@ public class SteamNews {
 	}
 
 	@JsonIgnore
-	public DateTime getDate() {
+	public String getDate() {
 		return date;
 	}
 	
