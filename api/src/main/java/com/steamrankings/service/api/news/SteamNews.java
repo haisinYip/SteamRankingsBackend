@@ -27,7 +27,6 @@ public class SteamNews {
 	private String contents;
 
 	public SteamNews() {
-
 	}
 
 	public SteamNews(int appid, String title, String url) {

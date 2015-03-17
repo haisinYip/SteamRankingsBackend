@@ -15,11 +15,11 @@ import com.steamrankings.service.api.SteamRankingsClient;
 
 public class News {
 
-    public static List<SteamNews> getSteamNews(int appId, SteamRankingsClient client) throws JsonParseException, JsonMappingException, JSONException, IOException, APIException {
-        String data = client.excecuteRequest("news?appId=" + appId);
+    public static ArrayList<SteamNews> getSteamNews(SteamRankingsClient client) throws JsonParseException, JsonMappingException, JSONException, IOException, APIException {
+        String data = client.excecuteRequest("news?appId=1");
         
         ObjectMapper mapper = new ObjectMapper();
-        JSONArray jsonArray = new JSONArray(data);
+        JSONArray jsonArray = new JSONArray("[" + data + "]");
         ArrayList<SteamNews> news = new ArrayList<SteamNews>();
         
         for(int i = 0; i < jsonArray.length(); i++) {

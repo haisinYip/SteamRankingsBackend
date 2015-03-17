@@ -1,6 +1,7 @@
 package com.steamrankings.service.api;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -8,6 +9,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 
 public class SteamRankingsClient {
 
@@ -16,6 +18,7 @@ public class SteamRankingsClient {
 
     private String enviroment;
     private String hostName;
+    
 
     public SteamRankingsClient(String enviroment) throws APIException {
         this.enviroment = enviroment;

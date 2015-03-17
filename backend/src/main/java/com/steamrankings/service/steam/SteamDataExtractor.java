@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -445,7 +446,6 @@ public class SteamDataExtractor {
 	 * @return All news for specified game
 	 */
 	public List<SteamNews> getGameNews(int appId, int count, int maxlength) {
-
 		// Create map for arguments that don't change every request
 		HashMap<String, String> parametersConstant = new HashMap<String, String>(1);
 		parametersConstant.put(SteamApi.PARAMETER_FORMAT, "json");
@@ -455,20 +455,20 @@ public class SteamDataExtractor {
 
 		// Get data from steam
 		String jsonString = steamApi.getJSON(SteamApi.INTERFACE_STEAM_NEWS, SteamApi.METHOD_GET_NEWS_FOR_GAME, SteamApi.VERSION_TWO, parametersConstant);
-
-		JSONObject json = new JSONObject(jsonString).getJSONObject("appnews");
-		JSONArray jsonNews;
-		
-		// Note we try and preallocate memory here to avoid having to reallocate
-		// during .add
-		ArrayList<SteamNews> gameNews = new ArrayList<SteamNews>(count);
-
+		ArrayList<SteamNews> gameNews = null;
 		try {
+			JSONObject json = new JSONObject(jsonString).getJSONObject("appnews");
+			JSONArray jsonNews;
+
+			// Note we try and preallocate memory here to avoid having to reallocate
+			// during .add
+			gameNews = new ArrayList<SteamNews>(count);
+
 			jsonNews = json.getJSONArray("newsitems");
 			// Iterate through all news
 			for (int i = 0; i < jsonNews.length(); i++) {
 				JSONObject jsonObject = jsonNews.getJSONObject(i);
-				gameNews.add( new SteamNews(appId, jsonObject.getString("title"), jsonObject.getString("url"), new DateTime(jsonObject.getInt("date"))));
+				gameNews.add( new SteamNews(appId, jsonObject.getString("title"), jsonObject.getString("url"), jsonObject.getString("contents"), new DateTime(jsonObject.getInt("date"))));
 			}
 		} catch (JSONException e) {
 			logger.warning("Error parsing JSON Steam News of game " + appId);

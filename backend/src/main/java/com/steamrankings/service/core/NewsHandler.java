@@ -78,10 +78,11 @@ public class NewsHandler extends AbstractHandler {
 			return;
 		} else {
 			//get news for randomly selected game
-			List<SteamNews> sn = steamDataExtractor.getGameNews(game.getInteger("appId"), NUM_NEWS_ENTRIES, MAX_LENGTH_NEWS_ENTRY);
-			if(sn == null || sn.isEmpty()) {
-				sendError(ErrorCodes.API_ERROR_BAD_ARGUMENTS, response, baseRequest);
-				return;
+			List<SteamNews> sn = null;
+			while (sn == null || sn.isEmpty()) {
+				Random ran = new Random();
+				int appId = ran.nextInt(30001);
+				sn = steamDataExtractor.getGameNews(appId, NUM_NEWS_ENTRIES, MAX_LENGTH_NEWS_ENTRY);				
 			}
 
 			//may need adjusting. getGameNews returns a list of steam news, but if only one news entry is requested 
