@@ -478,7 +478,8 @@ public class SteamDataExtractor {
 			// Iterate through all news
 			for (int i = 0; i < jsonNews.length(); i++) {
 				JSONObject jsonObject = jsonNews.getJSONObject(i);
-				gameNews.add( new SteamNews(appId, jsonObject.getString("title"), jsonObject.getString("url"), jsonObject.getString("contents"), new DateTime(jsonObject.getInt("date"))));
+				gameNews.add( new SteamNews(appId, jsonObject.getString("title"), jsonObject.getString("url"), jsonObject.getString("contents"), new DateTime(jsonObject.getInt("date")).toString()));
+
 			}
 		} catch (JSONException e) {
 			logger.warning("Error parsing JSON Steam News of game " + appId);
