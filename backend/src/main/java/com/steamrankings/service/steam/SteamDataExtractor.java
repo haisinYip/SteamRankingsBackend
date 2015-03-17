@@ -26,6 +26,7 @@ import com.steamrankings.service.api.news.SteamNews;
 import com.steamrankings.service.api.profiles.SteamProfile;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.logging.Level;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -281,7 +282,10 @@ public class SteamDataExtractor {
                 // Create object for each achievement in the list
                 for (int i = 0; i < json.length(); i++) {
                     JSONObject jsonObject = json.getJSONObject(i);
-                    achievements.add(new GameAchievement(appId[j], jsonObject.getString("name"), jsonObject.has("displayName") ? jsonObject.getString("displayName") : null, jsonObject
+                    // Note we set the name to upper case because this name is used
+                    // to ID achievements yet Steam is not consistent with the
+                    // case when different achievement-related methods are used
+                    achievements.add(new GameAchievement(appId[j], jsonObject.getString("name").toUpperCase(Locale.ROOT), jsonObject.has("displayName") ? jsonObject.getString("displayName") : null, jsonObject
                             .has("description") ? jsonObject.getString("description") : null, jsonObject.has("icon") ? jsonObject.getString("icon") : null, jsonObject.has("icongray") ? jsonObject
                                     .getString("icongray") : null, DateTime.now()));
                 }
@@ -372,7 +376,10 @@ public class SteamDataExtractor {
                     JSONObject jsonObject = json.getJSONObject(i);
                     // Only add achievement if achieved and count it
                     if (jsonObject.getInt("achieved") == 1) {
-                        achievements.add(new GameAchievement(appId[j], jsonObject.getString("apiname"), jsonObject.getString("name")));
+                        // Note we set the apiname to upper case because this name is used
+                        // to ID achievements yet Steam is not consistent with the
+                        // case when different achievement-related methods are used
+                        achievements.add(new GameAchievement(appId[j], jsonObject.getString("apiname").toUpperCase(Locale.ROOT), jsonObject.getString("name")));
                         numAcheivedByPlayer++;
                     }
                 }
@@ -387,18 +394,18 @@ public class SteamDataExtractor {
 
     }
 
-    public HashMap<Integer, HashMap<String, Double>> getGlobalAchievementPercent(int[] appId) {
+    public HashMap<Integer, HashMap<String, Double>> getGlobalAchievementPercent(ArrayList<Integer> appId) {
         // Create map for arguments that don't change every request
         HashMap<String, String> parametersConstant = new HashMap<>(1);
         parametersConstant.put(SteamApi.PARAMETER_FORMAT, "json");
 
         // Create and fill list for arguments that do change each request (i.e.
         // appId)
-        ArrayList<Map<String, String>> parameterList = new ArrayList<>(appId.length);
+        ArrayList<Map<String, String>> parameterList = new ArrayList<>(appId.size());
 
-        for (int i = 0; i < appId.length; i++) {
+        for (Integer i : appId) {
             HashMap<String, String> parametersVarying = new HashMap<>(1);
-            parametersVarying.put(SteamApi.PARAMETER_GAME_ID, Integer.toString(appId[i]));
+            parametersVarying.put(SteamApi.PARAMETER_GAME_ID, Integer.toString(i));
             parameterList.add(parametersVarying);
         }
 
@@ -420,13 +427,16 @@ public class SteamDataExtractor {
                 // Iterate through all achievements, add to map
                 for (int i = 0; i < json.length(); i++) {
                     JSONObject jsonObject = json.getJSONObject(i);
-                    achievements.put(jsonObject.getString("name"), jsonObject.getDouble("percent"));
+                    // Note we set the name to upper case because this name is used
+                    // to ID achievements yet Steam is not consistent with the
+                    // case when different achievement-related methods are used
+                    achievements.put(jsonObject.getString("name").toUpperCase(Locale.ROOT), jsonObject.getDouble("percent"));
                 }
                 // Add achievement map for game to list of games
-                gameList.put(appId[j], achievements);
+                gameList.put(appId.get(j), achievements);
 
             } catch (JSONException e) {
-                logger.log(Level.WARNING, "Error parsing JSON, likely no achievement data for game ID {0}", appId[j]);
+                logger.log(Level.WARNING, "Error parsing JSON, likely no achievement data for game ID {0}", appId.get(j));
             }
         }
 

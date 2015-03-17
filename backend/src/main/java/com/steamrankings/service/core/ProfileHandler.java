@@ -47,7 +47,13 @@ public class ProfileHandler extends AbstractHandler {
 
     private static final int AVG_NUM_GAMES_NOT_IN_DB = 50;
 
-    public static void processNewUser(SteamDataExtractor steamDataExtractor, Profile profile, long steamID64) {
+    private final Updater updater;
+
+    public ProfileHandler(Updater updater) {
+        this.updater = updater;
+    }
+
+    public void processNewUser(SteamDataExtractor steamDataExtractor, Profile profile, long steamID64) {
 
         long time = System.currentTimeMillis();
         // Get user game list
@@ -91,22 +97,18 @@ public class ProfileHandler extends AbstractHandler {
         ArrayList<GameAchievement> gameAchievements = (ArrayList<GameAchievement>) steamDataExtractor.getGameAchievementsThreaded(idListNotContain);
 
         // Add all missing achievements to DB
-        ps = Base.startBatch("insert into achievements (id, game_id, name, description, unlocked_icon_url, locked_icon_url) values (?,?,?,?,?,?)");
+        ps = Base.startBatch("insert into achievements (id, apiname, game_id, name, description, unlocked_icon_url, locked_icon_url) values (?,?,?,?,?,?,?)");
         for (GameAchievement achievement : gameAchievements) {
             // Note achievement hash is the ID ("apiname" in JSON, e.g.
             // TF_PLAY_GAME_EVERYCLASS) + the human readable name (e.g. Head of
             // the Class)
             // to ensure enough variation for hashing. Some apinames are only
             // 2-3 characters long which leads to collisions
-            Base.addBatch(ps, (achievement.getAchievementId() + achievement.getName()).hashCode(), achievement.getAppId(), achievement.getName(), achievement.getDescription(),
+            Base.addBatch(ps, (achievement.getAchievementId() + achievement.getName()).hashCode(), achievement.getAchievementId(), achievement.getAppId(), achievement.getName(), achievement.getDescription(),
                     achievement.getUnlockedIconUrl(), achievement.getLockedIconUrl());
         }
 
         Base.executeBatch(ps);
-
-        // Clear gameAcheivement list to save memory
-        gameAchievements.clear();
-        gameAchievements.trimToSize();
 
         // Add links from profile to achievements
         // First create array of IDs
@@ -155,6 +157,9 @@ public class ProfileHandler extends AbstractHandler {
         }
 
         System.out.println("Time taken to add new user: " + (System.currentTimeMillis() - time));
+
+        // Tell updater we have added the achievements; start getting the percentage info
+        updater.startAchievementPercentageUpdate(gameAchievements);
     }
 
     @Override

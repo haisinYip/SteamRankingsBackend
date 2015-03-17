@@ -57,7 +57,8 @@ public class Initialization {
         context2.setHandler(new VersionHandler());
 
         ContextHandler context3 = new ContextHandler(REST_API_INTERFACE_PROFILES);
-        context3.setHandler(new ProfileHandler());
+        ProfileHandler profile = new ProfileHandler(update);
+        context3.setHandler(profile);
 
         ContextHandler context4 = new ContextHandler(REST_API_INTERFACE_GAMES);
         context4.setHandler(new GamesHandler());
@@ -75,7 +76,7 @@ public class Initialization {
         context8.setHandler(new TopPlayerHandler());
 
         ContextHandler context9 = new ContextHandler(REST_API_INTERFACE_UPDATE_PROFILE);
-        context9.setHandler(new UpdateHandler());
+        context9.setHandler(new UpdateHandler(profile));
         
         ContextHandler context10 = new ContextHandler(REST_API_INTERFACE_NEWS);
         context10.setHandler(new NewsHandler());
