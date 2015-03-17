@@ -14,6 +14,9 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.joda.time.DateTime;
 
 import com.steamrankings.service.api.ErrorCodes;
+import com.steamrankings.service.api.SteamRankingsClient;
+import com.steamrankings.service.api.games.Games;
+import com.steamrankings.service.api.games.SteamGame;
 import com.steamrankings.service.api.news.SteamNews;
 import com.steamrankings.service.database.Database;
 import com.steamrankings.service.models.Game;
@@ -59,6 +62,7 @@ public class NewsHandler extends AbstractHandler {
 			sendError(ErrorCodes.API_ERROR_BAD_ARGUMENTS, response, baseRequest);
 			return; 
 		}
+
 		//open db
 		Database.openDBConnection();
 
@@ -81,11 +85,7 @@ public class NewsHandler extends AbstractHandler {
 		} else {
 			//get news for randomly selected game
 			List<SteamNews> sn = null;
-			while (sn == null || sn.isEmpty()) {
-				Random ran = new Random();
-				int appId = ran.nextInt(30001);
-				sn = steamDataExtractor.getGameNews(appId, NUM_NEWS_ENTRIES, MAX_LENGTH_NEWS_ENTRY);				
-			}
+			sn = steamDataExtractor.getGameNews(game.getInteger("id"), NUM_NEWS_ENTRIES, MAX_LENGTH_NEWS_ENTRY);				
 
 			//may need adjusting. getGameNews returns a list of steam news, but if only one news entry is requested 
 			//returning a list seems like bad practice
