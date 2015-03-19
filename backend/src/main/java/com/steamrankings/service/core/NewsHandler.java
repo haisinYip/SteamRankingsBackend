@@ -81,6 +81,7 @@ public class NewsHandler extends AbstractHandler {
 		//probably need a better error message
 		if(game == null) {
 			sendError(ErrorCodes.API_ERROR_BAD_ARGUMENTS, response, baseRequest);
+			Database.closeDBConnection();
 			return;
 		} else {
 			//get news for randomly selected game
