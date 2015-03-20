@@ -62,7 +62,7 @@ public class SteamNews {
 	
 	@JsonIgnore
 	public String getUrl() {
-		return url;
+		return  url;
 	}
 
 	@JsonIgnore
