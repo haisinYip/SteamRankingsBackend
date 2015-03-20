@@ -1,6 +1,7 @@
 package com.steamrankings.service.core;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -75,8 +76,27 @@ public class NewsHandler extends AbstractHandler {
         SteamDataExtractor steamDataExtractor = new SteamDataExtractor(new SteamApi(Initialization.CONFIG.getProperty("apikey")));
 
         SteamNews gameNews = null;
+        
+      //appID's of some popular games so that any random game selected has news and will not return null to the front end
+      	int[] appIdArray = {440, 20, 10, 220, 620, 550, 570, 730, 8930, 22380, 39120, 42690, 40, 6850, 80, 100, 240, 320, 340, 4760};
+      		
+      	List<Game> gameslist = new ArrayList<Game>();
+		for(int i = 0; i < appIdArray.length; i++) {
+			Game addedGame = Game.findById(appIdArray[i]);
+			if(addedGame == null) {
+				continue;
+			}
+			else {
+				gameslist.add(addedGame);
+			}
+		}
+		
+		if(gameslist.isEmpty()) {
+			sendError(ErrorCodes.API_ERROR_BAD_ARGUMENTS, response, baseRequest);
+            Database.closeDBConnection();
+            return;
+		}
 
-        List<Game> gameslist = Game.findAll();
         int gameslistsize = gameslist.size();
 
         //get a random number to select a random game from the gameslist
