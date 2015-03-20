@@ -83,23 +83,26 @@ public class GamesHandler extends AbstractHandler {
                         steamGames.add(new SteamGame(game.getInteger("id"), game.getString("icon_url"), game.getString("logo_url"), game.getString("name")));
                     }
                 }
-                
-                //rarest Achievements
-                List<Achievement> tempList = Achievement.where("game_id = ?", param.get("appIdRarest")[0]).orderBy("percentageComplete").limit(30);
-
-                ArrayList<Achievement> achievements = new ArrayList<>(tempList);
-                if (achievements != null) {
-
-                    ArrayList<GameAchievement> rarestAchievements = new ArrayList<>();
-
-                    for (Achievement achievement : achievements) {
-                   	 rarestAchievements.add(new GameAchievement(achievement.getInteger("game_id"), null, achievement.getString("name"), achievement.getString("description"),achievement.getString("unlocked_icon_url"),achievement.getString("locked_icon_url"),achievement.getDouble("percentageComplete")));
-                    }
-                    ObjectMapper mapper = new ObjectMapper();
-                    sendData(mapper.writeValueAsString(steamGames), response, baseRequest);
-                    sendData(mapper.writeValueAsString(rarestAchievements), response, baseRequest);
+                ObjectMapper mapper = new ObjectMapper();
+                sendData(mapper.writeValueAsString(steamGames), response, baseRequest);
             }
-        } 
+        } else if(param.containsKey(PARAMETERS_RAREST_APP_ID)){
+        	
+        	 System.out.println("Rarest achievments");
+        	 List<Achievement> list = Achievement.where("game_id = ?", param.get("appIdRarest")[0]).orderBy("percentageComplete").limit(30);
+
+             ArrayList<Achievement> achievements = new ArrayList<>(list);
+             if (achievements != null) {
+
+                 ArrayList<GameAchievement> rarestAchievements = new ArrayList<>();
+
+                 for (Achievement achievement : achievements) {
+                	 System.out.println(achievement.getString("name"));
+                	 rarestAchievements.add(new GameAchievement(achievement.getInteger("game_id"), null, achievement.getString("name"), achievement.getString("description"),achievement.getString("unlocked_icon_url"),achievement.getString("locked_icon_url"),achievement.getDouble("percentageComplete")));
+                 }
+                 ObjectMapper mapper = new ObjectMapper();
+                 sendData(mapper.writeValueAsString(rarestAchievements), response, baseRequest);
+            }
         }
         else {
 
