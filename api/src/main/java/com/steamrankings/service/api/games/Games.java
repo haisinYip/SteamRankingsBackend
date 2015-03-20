@@ -12,6 +12,7 @@ import org.json.JSONException;
 
 import com.steamrankings.service.api.APIException;
 import com.steamrankings.service.api.SteamRankingsClient;
+import com.steamrankings.service.api.achievements.GameAchievement;
 import com.steamrankings.service.api.leaderboards.RankEntryByTotalPlayTime;
 
 public class Games {
@@ -21,6 +22,21 @@ public class Games {
         ObjectMapper mapper = new ObjectMapper();
 
         return mapper.readValue(data, SteamGame.class);
+    }
+    
+    //get rarest achievments
+    public static List<GameAchievement> getRarestAchievements(int appId, SteamRankingsClient client) throws APIException, JsonParseException, JsonMappingException,JSONException, IOException {
+        String data = client.excecuteRequest("games?appIdRarest=" + appId);
+        
+        ObjectMapper mapper = new ObjectMapper();
+        JSONArray jsonArray = new JSONArray(data);
+        ArrayList<GameAchievement> rarestAchievements = new ArrayList<GameAchievement>();
+
+        for (int i = 0; i < jsonArray.length(); i++) {
+        	rarestAchievements.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), GameAchievement.class));
+        }
+
+        return rarestAchievements;
     }
 
     public static List<SteamGame> getPlayedSteamGames(String steamID64, SteamRankingsClient client) throws APIException, JsonParseException, JsonMappingException, JSONException, IOException {
