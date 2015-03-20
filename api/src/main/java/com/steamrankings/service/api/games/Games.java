@@ -27,8 +27,7 @@ public class Games {
     //get rarest achievments
     public static List<GameAchievement> getRarestAchievements(int appId, SteamRankingsClient client) throws APIException, JsonParseException, JsonMappingException,JSONException, IOException {
         String data = client.excecuteRequest("games?appIdRarest=" + appId);
-        
-        System.out.println(data);
+      
         System.out.println("rarest achievment api");
         ObjectMapper mapper = new ObjectMapper();
         JSONArray jsonArray = new JSONArray(data);
@@ -37,7 +36,11 @@ public class Games {
         for (int i = 0; i < jsonArray.length(); i++) {
         	rarestAchievements.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), GameAchievement.class));
         }
-
+        
+        for(int i=0;i<rarestAchievements.size();i++)
+        {
+        	System.out.println(rarestAchievements.get(0).getName());
+        }
         return rarestAchievements;
     }
 
