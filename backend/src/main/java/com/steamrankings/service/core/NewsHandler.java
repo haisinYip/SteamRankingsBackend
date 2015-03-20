@@ -60,6 +60,7 @@ public class NewsHandler extends AbstractHandler {
 		// Check to see if parameters are correct
 		if (param == null || param.isEmpty()) {
 			sendError(ErrorCodes.API_ERROR_BAD_ARGUMENTS, response, baseRequest);
+			Database.closeDBConnection();
 			return; 
 		}
 
