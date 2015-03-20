@@ -88,7 +88,6 @@ public class GamesHandler extends AbstractHandler {
             }
         } else if(param.containsKey(PARAMETERS_RAREST_APP_ID)){
         	
-        	 System.out.println("Rarest achievments");
         	 List<Achievement> list = Achievement.where("game_id = ?", param.get("appIdRarest")[0]).orderBy("percentageComplete").limit(30);
 
              ArrayList<Achievement> achievements = new ArrayList<>(list);
@@ -97,7 +96,6 @@ public class GamesHandler extends AbstractHandler {
                  ArrayList<GameAchievement> rarestAchievements = new ArrayList<>();
 
                  for (Achievement achievement : achievements) {
-                	 System.out.println(achievement.getString("name"));
                 	 rarestAchievements.add(new GameAchievement(achievement.getInteger("game_id"), null, achievement.getString("name"), achievement.getString("description"),achievement.getString("unlocked_icon_url"),achievement.getString("locked_icon_url"),achievement.getDouble("percentageComplete")));
                  }
                  ObjectMapper mapper = new ObjectMapper();
