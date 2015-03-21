@@ -9,17 +9,20 @@ public class Database {
     }
 
     public static void openDBConnection() {
-        Base.open("com.mysql.jdbc.Driver",
-                "jdbc:mysql://" + Initialization.CONFIG.getProperty("server")
-                + ":" + Initialization.CONFIG.getProperty("mysql_port")
-                + "/" + Initialization.CONFIG.getProperty("mysql_database")
-                + "?characterEncoding=utf8",
-                Initialization.CONFIG.getProperty("mysql_username"),
-                Initialization.CONFIG.getProperty("mysql_password"));
-
+        if (Base.hasConnection() == false) {
+            Base.open("com.mysql.jdbc.Driver",
+                    "jdbc:mysql://" + Initialization.CONFIG.getProperty("server")
+                    + ":" + Initialization.CONFIG.getProperty("mysql_port")
+                    + "/" + Initialization.CONFIG.getProperty("mysql_database")
+                    + "?characterEncoding=utf8",
+                    Initialization.CONFIG.getProperty("mysql_username"),
+                    Initialization.CONFIG.getProperty("mysql_password"));
+        }
     }
 
     public static void closeDBConnection() {
-        Base.close();
+        if (Base.hasConnection()) {
+            Base.close();
+        }
     }
 }
