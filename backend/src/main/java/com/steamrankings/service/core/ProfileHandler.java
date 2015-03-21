@@ -53,7 +53,7 @@ public class ProfileHandler extends AbstractHandler {
         this.updater = updater;
     }
 
-    public void processNewUser(SteamDataExtractor steamDataExtractor, Profile profile, long steamID64) {
+    public void processNewUser(SteamDataExtractor steamDataExtractor, Profile profile, long steamID64, Boolean getFriends) {
 
         long time = System.currentTimeMillis();
         // Get user game list
@@ -148,6 +148,60 @@ public class ProfileHandler extends AbstractHandler {
         }
         profile.setFloat("avg_completion_rate", avgCompletionRate);
         profile.saveIt();
+        
+        if (getFriends) {
+            ps = Base.startBatch("insert into profiles_profiles (profile_id1, profile_id2) values (?,?)");
+            long[] friendIds = steamDataExtractor.getSteamFriends(steamID64);
+
+            if (friendIds != null && friendIds.length != 0) {
+                ArrayList<Long> idsNotInDatabase = new ArrayList<Long>();
+                
+                for(int j = 0; j < friendIds.length; j++) {
+                    if(!Profile.exists(friendIds[j] - SteamProfile.BASE_ID_64)) {
+                        idsNotInDatabase.add(friendIds[j]);
+                    } else {
+                        Base.addBatch(ps, profile.getId(), friendIds[j] - SteamProfile.BASE_ID_64);
+                    }
+                }
+
+                if (idsNotInDatabase.size() > 0) {
+                    long[] idsToFind = new long[idsNotInDatabase.size()];
+                    
+                    for(int j = 0; j < idsNotInDatabase.size(); j++) {
+                        idsToFind[j] = idsNotInDatabase.get(j).longValue();
+                    }
+
+                    ArrayList<SteamProfile> friendProfiles = steamDataExtractor.getSteamProfileThreaded(idsToFind);
+                    if (friendProfiles != null && friendProfiles.size() != 0) {
+                        for (SteamProfile friendProfile : friendProfiles) {
+                            if (friendProfile.getProfileState() == 3) {
+                                Profile friendModel = new Profile();
+
+                                friendModel.set("id", (int) (friendProfile.getSteamId64() - SteamProfile.BASE_ID_64));
+                                friendModel.set("community_id", friendProfile.getSteamCommunityId());
+                                friendModel.set("persona_name", friendProfile.getPersonaName());
+                                friendModel.set("real_name", friendProfile.getRealName());
+                                friendModel.set("location_country", friendProfile.getCountryCode());
+                                friendModel.set("location_province", friendProfile.getProvinceCode());
+                                friendModel.set("location_city", friendProfile.getCityCode());
+                                friendModel.set("avatar_full_url", friendProfile.getFullAvatarUrl());
+                                friendModel.set("avatar_medium_url", friendProfile.getMediumAvatarUrl());
+                                friendModel.set("avatar_icon_url", friendProfile.getIconAvatarUrl());
+
+                                friendModel.set("last_logoff", new Timestamp(friendProfile.getLastOnline().getMillis()));
+                                friendModel.set("avg_completion_rate", 0);
+                                friendModel.insert();
+                                processNewUser(steamDataExtractor, friendModel, friendProfile.getSteamId64(), false);
+
+                                Base.addBatch(ps, profile.getId(), friendModel.getId());
+                            }
+                        }
+                    }
+                }
+            }
+            
+            Base.executeBatch(ps);
+        }
 
         // Close prepared statement because we're done with it
         try {
@@ -221,7 +275,7 @@ public class ProfileHandler extends AbstractHandler {
                 profile.insert();
 
                 LOGGER.log(Level.INFO, "New Profile Added: {0}", profile.toString());
-                processNewUser(steamDataExtractor, profile, steamProfile.getSteamId64());
+                processNewUser(steamDataExtractor, profile, steamProfile.getSteamId64(), true);
             }
         }
 

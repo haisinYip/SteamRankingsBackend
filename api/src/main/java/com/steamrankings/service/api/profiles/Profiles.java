@@ -24,20 +24,31 @@ public class Profiles {
     public static List<SteamProfile> getSteamFriends(String steamID64, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
         String data = client.excecuteRequest("friends?id=" + steamID64);
 
-        try {
-            JSONArray jsonArray = new JSONArray(data);
-            ObjectMapper mapper = new ObjectMapper();
-            ArrayList<SteamProfile> profiles = new ArrayList<SteamProfile>();
+        JSONArray jsonArray = new JSONArray(data);
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayList<SteamProfile> profiles = new ArrayList<SteamProfile>();
 
-            for (int i = 0; i < jsonArray.length(); i++) {
-                profiles.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), SteamProfile.class));
-            }
-
-            return profiles;
-        } catch (Exception e) {
-            return null;
+        for (int i = 0; i < jsonArray.length(); i++) {
+            profiles.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), SteamProfile.class));
         }
+
+        return profiles;
     }
+    
+    public static ArrayList<VersusResult> compareSteamUsers(String user1Id, String user2Id, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
+        String data = client.excecuteRequest("versus?id1=" + user1Id + "&id2=" + user2Id);
+
+        ObjectMapper mapper = new ObjectMapper();
+        JSONArray jsonArray = new JSONArray(data);
+        ArrayList<VersusResult> comparisons = new ArrayList<VersusResult>();
+
+        for (int i = 0; i < jsonArray.length(); i++) {
+            comparisons.add(mapper.readValue(jsonArray.getJSONObject(i).toString(), VersusResult.class));
+        }
+
+        return comparisons;
+    }
+    
     public static String addBlackList(String steamID64, SteamRankingsClient client) throws ClientProtocolException, APIException, IOException {
     	String data = client.excecuteRequest("blacklist?id=" + steamID64);
 

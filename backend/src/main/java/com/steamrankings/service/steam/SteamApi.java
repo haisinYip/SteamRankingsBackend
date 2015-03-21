@@ -35,6 +35,7 @@ public class SteamApi {
     final public static String METHOD_GET_SCHEMA_FOR_GAME = "GetSchemaForGame";
     final public static String METHOD_GET_GLOBAL_ACHIEVEMENTS_PERCENT = "GetGlobalAchievementPercentagesForApp";
     final public static String METHOD_GET_NEWS_FOR_GAME = "GetNewsForApp";
+    final public static String METHOD_GET_FRIENDS = "GetFriendList";
 
     final public static int VERSION_ONE = 1;
     final public static int VERSION_TWO = 2;

@@ -81,7 +81,7 @@ public class UpdateHandler extends AbstractHandler {
 
         user.insert();
 
-        profile.processNewUser(steamDataExtractor, user, id);
+        profile.processNewUser(steamDataExtractor, user, id, true);
 
         steamProfile = new SteamProfile(user.getInteger("id") + SteamProfile.BASE_ID_64, user.getString("community_id"), user.getString("persona_name"), user.getString("real_name"),
                 user.getString("location_country"), user.getString("location_province"), user.getString("location_citys"), user.getString("avatar_full_url"),

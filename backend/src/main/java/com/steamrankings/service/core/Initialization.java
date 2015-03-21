@@ -28,6 +28,8 @@ public class Initialization {
     private static final String REST_API_INTERFACE_TOP_PLAYER = "/topplayer";
     private static final String REST_API_INTERFACE_ECHO = "/echo";
     private static final String REST_API_INTERFACE_NEWS = "/news";
+    private static final String REST_API_INTERFACE_FRIENDS = "/friends";
+    private static final String REST_API_INTERFACE_VERSUS = "/versus";
 
     public static void main(String[] args) throws IOException {
 
@@ -80,9 +82,15 @@ public class Initialization {
         
         ContextHandler context10 = new ContextHandler(REST_API_INTERFACE_NEWS);
         context10.setHandler(new NewsHandler());
+        
+        ContextHandler context11 = new ContextHandler(REST_API_INTERFACE_FRIENDS);
+        context11.setHandler(new FriendsHandler());
+        
+        ContextHandler context12 = new ContextHandler(REST_API_INTERFACE_VERSUS);
+        context12.setHandler(new VersusHandler());
 
         ContextHandlerCollection contexts = new ContextHandlerCollection();
-        contexts.setHandlers(new Handler[]{context1, context2, context3, context4, context5, context6, context7, context8, context9, context10});
+        contexts.setHandlers(new Handler[]{context1, context2, context3, context4, context5, context6, context7, context8, context9, context10, context11, context12});
 
         server.setHandler(contexts);
 

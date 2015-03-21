@@ -13,6 +13,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.easymock.EasyMock;
 import org.joda.time.DateTime;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.steamrankings.service.api.APIException;
@@ -87,20 +88,6 @@ public class ProfilesTest extends TestCase {
             assertEquals(friends.get(i).getLastOnline().getMillisOfSecond(), friendsToTest.get(i).getLastOnline().getMillisOfSecond());
         }
 
-        EasyMock.verify(client);
-    }
-    
-    @Test
-    public void testGetSteamFriendsException() throws APIException, ClientProtocolException, IOException {
-        ArrayList<SteamProfile> friends = new ArrayList<SteamProfile>();
-        friends.add(PROFILE_ONE);
-        friends.add(PROFILE_TWO);
-
-        EasyMock.resetToStrict(client);
-        expect(client.excecuteRequest("friends?id=76561197965726621")).andReturn("bad json data");
-        replay(client);
-
-        assertNull(Profiles.getSteamFriends("76561197965726621", client));
         EasyMock.verify(client);
     }
 }

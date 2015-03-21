@@ -102,6 +102,35 @@ public class SteamDataExtractor {
             return null;
         }
     }
+    
+    public long[] getSteamFriends(long steamId) {
+        HashMap<String, String> parameters = new HashMap<>();
+        parameters.put(SteamApi.PARAMETER_STEAM_ID, Long.toString(steamId));
+        parameters.put("relationship", "friend");
+        parameters.put(SteamApi.PARAMETER_FORMAT, "json");
+
+        // Call API
+        String jsonString = steamApi.getJSON(SteamApi.INTERFACE_STEAM_USER, SteamApi.METHOD_GET_FRIENDS, SteamApi.VERSION_ONE, parameters);
+
+        JSONArray json;
+        try {
+            json = new JSONObject(jsonString).getJSONObject("friendslist").getJSONArray("friends");
+            if (json == null || json.length() == 0) {
+                return new long[0];
+            }
+
+            long[] friendIds = new long[json.length()];
+
+            for (int i = 0; i < json.length(); i++) {
+                JSONObject friend = json.getJSONObject(i);
+                friendIds[i] = friend.getLong("steamid");
+            }
+            
+            return friendIds;
+        } catch (JSONException e) {
+            return new long[0];
+        }
+    }
 
     /**
      * Gets the profile information of several players
