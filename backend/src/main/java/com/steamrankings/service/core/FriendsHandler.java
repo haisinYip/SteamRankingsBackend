@@ -67,7 +67,7 @@ public class FriendsHandler extends AbstractHandler {
         ArrayList<SteamProfile> friendSteamProfiles = new ArrayList<SteamProfile>();
         for (Profile friendProfile : friendProfiles) {
             friendSteamProfiles.add(new SteamProfile(friendProfile.getInteger("id") + SteamProfile.BASE_ID_64, friendProfile.getString("community_id"), friendProfile.getString("persona_name"),
-                    friendProfile.getString("real_name"), friendProfile.getString("location_country"), friendProfile.getString("location_province"), friendProfile.getString("location_citys"),
+                    friendProfile.getString("real_name"), friendProfile.getString("location_country"), friendProfile.getString("location_province"), friendProfile.getString("location_city"),
                     friendProfile.getString("avatar_full_url"), friendProfile.getString("avatar_medium_url"), friendProfile.getString("avatar_icon_url"), new DateTime(friendProfile.getTimestamp(
                             "last_logoff").getTime())));
         }
