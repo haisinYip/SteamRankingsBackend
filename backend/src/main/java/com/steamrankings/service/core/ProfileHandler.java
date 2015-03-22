@@ -161,6 +161,7 @@ public class ProfileHandler extends AbstractHandler {
                         idsNotInDatabase.add(friendIds[j]);
                     } else {
                         Base.addBatch(ps, profile.getId(), friendIds[j] - SteamProfile.BASE_ID_64);
+                        Base.addBatch(ps, friendIds[j] - SteamProfile.BASE_ID_64, profile.getId());
                     }
                 }
 
@@ -174,7 +175,7 @@ public class ProfileHandler extends AbstractHandler {
                     ArrayList<SteamProfile> friendProfiles = steamDataExtractor.getSteamProfileThreaded(idsToFind);
                     if (friendProfiles != null && friendProfiles.size() != 0) {
                         for (SteamProfile friendProfile : friendProfiles) {
-                            if (friendProfile.getProfileState() == 3) {
+                            if (friendProfile.getProfileState() == 3 && !BlacklistHandler.isUserInBlackList(friendProfile.getSteamId64() - SteamProfile.BASE_ID_64)) {
                                 Profile friendModel = new Profile();
 
                                 friendModel.set("id", (int) (friendProfile.getSteamId64() - SteamProfile.BASE_ID_64));
@@ -194,6 +195,7 @@ public class ProfileHandler extends AbstractHandler {
                                 processNewUser(steamDataExtractor, friendModel, friendProfile.getSteamId64(), false);
 
                                 Base.addBatch(ps, profile.getId(), friendModel.getId());
+                                Base.addBatch(ps, friendModel.getId(), profile.getId());
                             }
                         }
                     }
@@ -280,7 +282,7 @@ public class ProfileHandler extends AbstractHandler {
         }
 
         steamProfile = new SteamProfile(profile.getInteger("id") + SteamProfile.BASE_ID_64, profile.getString("community_id"), profile.getString("persona_name"), profile.getString("real_name"),
-                profile.getString("location_country"), profile.getString("location_province"), profile.getString("location_citys"), profile.getString("avatar_full_url"),
+                profile.getString("location_country"), profile.getString("location_province"), profile.getString("location_city"), profile.getString("avatar_full_url"),
                 profile.getString("avatar_medium_url"), profile.getString("avatar_icon_url"), new DateTime(profile.getTimestamp("last_logoff").getTime()));
 
         sendData(steamProfile.toString(), response, baseRequest);

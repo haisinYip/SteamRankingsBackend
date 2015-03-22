@@ -7,20 +7,26 @@ package com.steamrankings.service.core;
 
 import com.steamrankings.service.api.ErrorCodes;
 import com.steamrankings.service.api.profiles.SteamProfile;
+
 import static com.steamrankings.service.core.ProfileHandler.PARAMETERS_USER_ID;
 import static com.steamrankings.service.core.ResponseHandler.sendData;
 import static com.steamrankings.service.core.ResponseHandler.sendError;
+
 import com.steamrankings.service.database.Database;
 import com.steamrankings.service.models.Profile;
+import com.steamrankings.service.models.ProfilesProfiles;
 import com.steamrankings.service.steam.SteamApi;
 import com.steamrankings.service.steam.SteamDataExtractor;
+
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Map;
 import java.util.logging.Logger;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.joda.time.DateTime;
@@ -62,8 +68,11 @@ public class UpdateHandler extends AbstractHandler {
             Database.closeDBConnection();
             return;            
         }
+        
+        // Delete user's friend links
+        ProfilesProfiles.delete("profile_id1 = ? or profile_id2 = ?", user.getId(), user.getId());
         user.deleteCascadeShallow();
-
+        
         // Now we add them as a new user
         SteamDataExtractor steamDataExtractor = new SteamDataExtractor(new SteamApi(Initialization.CONFIG.getProperty("apikey")));
 
@@ -89,7 +98,7 @@ public class UpdateHandler extends AbstractHandler {
         profile.processNewUser(steamDataExtractor, user, id, true);
 
         steamProfile = new SteamProfile(user.getInteger("id") + SteamProfile.BASE_ID_64, user.getString("community_id"), user.getString("persona_name"), user.getString("real_name"),
-                user.getString("location_country"), user.getString("location_province"), user.getString("location_citys"), user.getString("avatar_full_url"),
+                user.getString("location_country"), user.getString("location_province"), user.getString("location_city"), user.getString("avatar_full_url"),
                 user.getString("avatar_medium_url"), user.getString("avatar_icon_url"), new DateTime(user.getTimestamp("last_logoff").getTime()));
 
         sendData(steamProfile.toString(), response, baseRequest);

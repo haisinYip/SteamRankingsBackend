@@ -7,22 +7,30 @@ package com.steamrankings.service.core;
 
 import com.steamrankings.service.api.ErrorCodes;
 import com.steamrankings.service.api.profiles.SteamProfile;
+
 import static com.steamrankings.service.core.ProfileHandler.PARAMETERS_USER_ID;
 import static com.steamrankings.service.core.ResponseHandler.sendData;
 import static com.steamrankings.service.core.ResponseHandler.sendError;
+
 import com.steamrankings.service.database.Database;
 import com.steamrankings.service.models.Blacklist;
 import com.steamrankings.service.models.Profile;
+import com.steamrankings.service.models.ProfilesProfiles;
 import com.steamrankings.service.steam.SteamApi;
 import com.steamrankings.service.steam.SteamDataExtractor;
+
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.javalite.activejdbc.LazyList;
 
 public class BlacklistHandler extends AbstractHandler {
 
@@ -77,10 +85,14 @@ public class BlacklistHandler extends AbstractHandler {
         Profile profile = Profile.findById((int) (steamId - SteamProfile.BASE_ID_64));
 
         if (profile != null) {
+            // Delete user's friend links
+            ProfilesProfiles.delete("profile_id1 = ? or profile_id2 = ?", profile.getId(), profile.getId());
+            
             profile.deleteCascadeShallow();
             System.out.println("Blacklist method is done");
         }
         sendData(steamProfile.toString(), response, baseRequest);
+
         Database.closeDBConnection();
     }
 

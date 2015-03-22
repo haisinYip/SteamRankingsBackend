@@ -87,16 +87,11 @@ public class SteamDataExtractor {
             if (json.getInt("communityvisibilitystate") != 3) {
                 return null;
             } else {
-                System.out.println(json.getLong("lastlogoff"));
-                System.out.println(new DateTime(0).getMillisOfSecond());
-                System.out.println(new DateTime(0).getMillis());
-                System.out.println(new DateTime(1425003477).getMillisOfSecond());
-                System.out.println(new DateTime(1425003477).getMillis());
                 return new SteamProfile(Long.parseLong(json.getString("steamid")), getCommunityIdFromUrl(json.getString("profileurl")), json.getString("personaname"),
                         json.has("realname") ? json.getString("realname") : null, json.has("loccountrycode") ? json.getString("loccountrycode") : null,
                         json.has("locstatecode") ? json.getString("locstatecode") : null, json.has("loccityid") ? Integer.toString(json.getInt("loccityid")) : null,
                         json.has("avatarfull") ? json.getString("avatarfull") : null, json.has("avatarmedium") ? json.getString("avatarmedium") : null, json.has("avatar") ? json.getString("avatar")
-                                : null, json.has("lastlogoff") ? new DateTime(json.getLong("lastlogoff")) : new DateTime(0));
+                                : null, json.has("lastlogoff") ? new DateTime(json.getLong("lastlogoff")) : new DateTime());
             }
         } catch (JSONException e) {
             return null;

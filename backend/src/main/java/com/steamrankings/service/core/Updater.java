@@ -1,6 +1,7 @@
 package com.steamrankings.service.core;
 
 import com.steamrankings.service.api.achievements.GameAchievement;
+
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -14,12 +15,15 @@ import com.steamrankings.service.database.Database;
 import com.steamrankings.service.models.Achievement;
 import com.steamrankings.service.models.Game;
 import com.steamrankings.service.models.Profile;
+import com.steamrankings.service.models.ProfilesProfiles;
 import com.steamrankings.service.steam.SteamApi;
 import com.steamrankings.service.steam.SteamDataExtractor;
+
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.logging.Level;
+
 import org.javalite.activejdbc.Base;
 
 /**
@@ -254,9 +258,13 @@ public class Updater {
         // Get profile from DB
         Profile user = Profile.findById(profile.getSteamId64() - SteamProfile.BASE_ID_64);
         if (user != null) {
-                // Run shallow delete because our relationships are only 1 level
+            // Delete user's friend links
+            ProfilesProfiles.delete("profile_id1 = ? or profile_id2 = ?", user.getId(), user.getId());
+            
+            // Run shallow delete because our relationships are only 1 level
             // and this is fast
             user.deleteCascadeShallow();
+            
         }
     }
 
