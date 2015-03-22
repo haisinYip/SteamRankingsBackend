@@ -57,6 +57,11 @@ public class UpdateHandler extends AbstractHandler {
 
         // Get user from DB, delete them
         Profile user = Profile.findById(id - SteamProfile.BASE_ID_64);
+        if (user == null) {
+            sendError(ErrorCodes.API_ERROR_BAD_ARGUMENTS, response, baseRequest);
+            Database.closeDBConnection();
+            return;            
+        }
         user.deleteCascadeShallow();
 
         // Now we add them as a new user
