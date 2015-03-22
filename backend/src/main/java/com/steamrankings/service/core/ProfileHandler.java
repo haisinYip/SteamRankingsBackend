@@ -161,6 +161,7 @@ public class ProfileHandler extends AbstractHandler {
                         idsNotInDatabase.add(friendIds[j]);
                     } else {
                         Base.addBatch(ps, profile.getId(), friendIds[j] - SteamProfile.BASE_ID_64);
+                        Base.addBatch(ps, friendIds[j] - SteamProfile.BASE_ID_64, profile.getId());
                     }
                 }
 
@@ -194,6 +195,7 @@ public class ProfileHandler extends AbstractHandler {
                                 processNewUser(steamDataExtractor, friendModel, friendProfile.getSteamId64(), false);
 
                                 Base.addBatch(ps, profile.getId(), friendModel.getId());
+                                Base.addBatch(ps, friendModel.getId(), profile.getId());
                             }
                         }
                     }
