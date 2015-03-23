@@ -10,6 +10,12 @@ To run the backend (from the `backend` folder):
 
 `java -jar target/standalone-backend-1.1-SNAPSHOT.jar`
 
+Another method to run the project is to run
+
+`bash run.sh`
+
+from the default directory
+
 You can also run/debug the backend from Eclipse, but it has a tendency to do weird things so I can't write anything about it.  It should work fine, though, and did last time I tested it. You may want to run `mvn eclipse:eclipse` if Eclipse gets confused as to the folder structure.
 
 The `master` branch is built by Jenkins, and should be stable.
